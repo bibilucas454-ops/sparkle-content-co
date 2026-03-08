@@ -145,7 +145,7 @@ export default function GenerateContent() {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" /> Generate Content
+                <Sparkles className="w-4 h-4" /> Gerar Conteúdo
               </>
             )}
           </Button>
