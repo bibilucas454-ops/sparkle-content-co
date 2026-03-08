@@ -9,13 +9,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/generate", label: "Generate", icon: Sparkles },
-  { path: "/trends", label: "Trend Hunter", icon: Compass },
-  { path: "/hooks", label: "Hook Library", icon: BookOpen },
-  { path: "/saved", label: "Saved Content", icon: Save },
-  { path: "/calendar", label: "Calendar", icon: Calendar },
-  { path: "/settings", label: "Settings", icon: Settings },
+  { path: "/dashboard", label: "Painel", icon: LayoutDashboard },
+  { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
+  { path: "/trends", label: "Tendências", icon: Compass },
+  { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
+  { path: "/saved", label: "Conteúdo Salvo", icon: Save },
+  { path: "/calendar", label: "Calendário", icon: Calendar },
+  { path: "/settings", label: "Configurações", icon: Settings },
 ];
 
 export default function AppLayout({ children }: { children: ReactNode }) {
