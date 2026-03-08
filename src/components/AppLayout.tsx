@@ -12,6 +12,8 @@ const navItems = [
   { path: "/dashboard", label: "Painel", icon: LayoutDashboard },
   { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
   { path: "/publisher", label: "Publicar", icon: Upload },
+  { path: "/publisher/history", label: "Histórico de Publicações", icon: Calendar },
+  { path: "/publisher/accounts", label: "Contas Conectadas", icon: Settings },
   { path: "/trends", label: "Tendências", icon: Compass },
   { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
   { path: "/saved", label: "Conteúdo Salvo", icon: Save },
