@@ -123,7 +123,7 @@ export default function GenerateContent() {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Content Types</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Tipos de Conteúdo</label>
             <div className="flex gap-2 flex-wrap">
               {contentTypes.map((ct) => (
                 <Button
