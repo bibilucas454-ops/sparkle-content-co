@@ -99,7 +99,7 @@ export default function Dashboard() {
 
         {/* Trends of the day */}
         <div>
-          <h2 className="font-display font-semibold text-lg mb-4">🔥 Trends of the Day</h2>
+          <h2 className="font-display font-semibold text-lg mb-4">🔥 Tendências do Dia</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {trends.map((t) => (
               <div key={t.id} className="rounded-lg border border-border bg-card p-4 space-y-2">
