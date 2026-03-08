@@ -39,7 +39,7 @@ export default function SavedContent() {
   };
 
   const types = ["Todos", ...new Set(items.map((i) => i.type))];
-  const filtered = filter === "All" ? items : items.filter((i) => i.type === filter);
+  const filtered = filter === "Todos" ? items : items.filter((i) => i.type === filter);
 
   return (
     <AppLayout>
