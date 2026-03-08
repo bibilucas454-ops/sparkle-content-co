@@ -38,7 +38,7 @@ export default function SavedContent() {
     toast.success("Conteúdo excluído");
   };
 
-  const types = ["All", ...new Set(items.map((i) => i.type))];
+  const types = ["Todos", ...new Set(items.map((i) => i.type))];
   const filtered = filter === "All" ? items : items.filter((i) => i.type === filter);
 
   return (
