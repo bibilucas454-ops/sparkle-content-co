@@ -77,10 +77,10 @@ export default function GenerateContent() {
         });
       }
 
-      toast.success("Content generated and saved!");
+      toast.success("Conteúdo gerado e salvo!");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to generate content");
+      toast.error(err.message || "Falha ao gerar conteúdo");
     } finally {
       setLoading(false);
     }

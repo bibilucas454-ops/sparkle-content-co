@@ -46,7 +46,7 @@ serve(async (req) => {
               type: "function",
               function: {
                 name: "return_content",
-                description: "Return the generated content with a viral score",
+                description: "Retorne o conteúdo gerado com uma pontuação viral. Todo conteúdo DEVE ser em Português do Brasil.",
                 parameters: {
                   type: "object",
                   properties: {
