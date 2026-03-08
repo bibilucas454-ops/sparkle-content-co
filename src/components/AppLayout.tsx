@@ -55,7 +55,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          Sign Out
+          Sair
         </button>
       </aside>
 
