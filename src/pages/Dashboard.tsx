@@ -71,8 +71,8 @@ export default function Dashboard() {
             className="glow-card rounded-lg border border-border bg-card p-6 flex items-center justify-between cursor-pointer"
           >
             <div>
-              <h2 className="font-display font-semibold text-lg">Generate Viral Content</h2>
-              <p className="text-muted-foreground text-sm">Enter a topic and let AI create content for you</p>
+              <h2 className="font-display font-semibold text-lg">Gerar Conteúdo Viral</h2>
+              <p className="text-muted-foreground text-sm">Digite um tema e deixe a IA criar conteúdo para você</p>
             </div>
             <Sparkles className="w-8 h-8 text-accent" />
           </motion.div>
