@@ -11,13 +11,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const contentTypes = [
-  { id: "viral-idea", label: "Viral Idea", emoji: "💡" },
-  { id: "script", label: "Script", emoji: "📝" },
-  { id: "caption", label: "Caption (AIDA)", emoji: "✍️" },
+  { id: "viral-idea", label: "Ideias Virais", emoji: "💡" },
+  { id: "script", label: "Roteiro", emoji: "📝" },
+  { id: "caption", label: "Legenda (AIDA)", emoji: "✍️" },
   { id: "hashtags", label: "Hashtags", emoji: "#️⃣" },
-  { id: "tags", label: "Tags", emoji: "🏷️" },
-  { id: "video-prompt", label: "Video Prompt", emoji: "🎬" },
-  { id: "viral-score", label: "Viral Score", emoji: "📊" },
+  { id: "tags", label: "Tags SEO", emoji: "🏷️" },
+  { id: "video-prompt", label: "Prompt de Vídeo IA", emoji: "🎬" },
+  { id: "viral-score", label: "Score Viral", emoji: "📊" },
 ];
 
 const platforms = ["Instagram Reels", "TikTok", "YouTube Shorts"];
@@ -44,11 +44,11 @@ export default function GenerateContent() {
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
-      toast.error("Please enter a topic");
+      toast.error("Por favor, insira um tema");
       return;
     }
     if (selectedTypes.length === 0) {
-      toast.error("Select at least one content type");
+      toast.error("Selecione pelo menos um tipo de conteúdo");
       return;
     }
 
@@ -77,10 +77,10 @@ export default function GenerateContent() {
         });
       }
 
-      toast.success("Content generated and saved!");
+      toast.success("Conteúdo gerado e salvo!");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to generate content");
+      toast.error(err.message || "Falha ao gerar conteúdo");
     } finally {
       setLoading(false);
     }
@@ -90,16 +90,16 @@ export default function GenerateContent() {
     <AppLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Generate Content</h1>
-          <p className="text-muted-foreground mt-1">Enter a topic and generate viral content instantly</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Gerar Conteúdo</h1>
+          <p className="text-muted-foreground mt-1">Digite um tema e gere conteúdo viral instantaneamente</p>
         </div>
 
         {/* Input area */}
         <div className="rounded-lg border border-border bg-card p-6 space-y-6">
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Topic</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Tema</label>
             <Input
-              placeholder="e.g. How to grow on TikTok in 2026..."
+              placeholder="ex: Como crescer no TikTok em 2026..."
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               className="bg-secondary border-border text-lg"
@@ -107,7 +107,7 @@ export default function GenerateContent() {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Platform</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Plataforma</label>
             <div className="flex gap-2 flex-wrap">
               {platforms.map((p) => (
                 <Button
@@ -123,7 +123,7 @@ export default function GenerateContent() {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Content Types</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Tipos de Conteúdo</label>
             <div className="flex gap-2 flex-wrap">
               {contentTypes.map((ct) => (
                 <Button
@@ -141,11 +141,11 @@ export default function GenerateContent() {
           <Button onClick={handleGenerate} disabled={loading} variant="glow" className="w-full" size="lg">
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                <Loader2 className="w-4 h-4 animate-spin" /> Gerando...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" /> Generate Content
+                <Sparkles className="w-4 h-4" /> Gerar Conteúdo
               </>
             )}
           </Button>
@@ -159,7 +159,7 @@ export default function GenerateContent() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              <h2 className="font-display font-semibold text-lg">Generated Content</h2>
+              <h2 className="font-display font-semibold text-lg">Conteúdo Gerado</h2>
               {results.map((r, i) => (
                 <motion.div
                   key={i}
