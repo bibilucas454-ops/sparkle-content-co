@@ -21,7 +21,7 @@ const Login = () => {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast.success("Check your email for the confirmation link!");
+        toast.success("Verifique seu e-mail para o link de confirmação!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
