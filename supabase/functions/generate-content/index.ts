@@ -121,13 +121,13 @@ serve(async (req) => {
 
       if (!response.ok) {
         if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
             status: 429,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
+          return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos para continuar." }), {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
