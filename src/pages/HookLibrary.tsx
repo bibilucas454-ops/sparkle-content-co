@@ -25,8 +25,8 @@ export default function HookLibrary() {
       });
   }, []);
 
-  const categories = ["All", ...new Set(hooks.map((h) => h.category))];
-  const filtered = filter === "All" ? hooks : hooks.filter((h) => h.category === filter);
+  const categories = ["Todos", ...new Set(hooks.map((h) => h.category))];
+  const filtered = filter === "Todos" ? hooks : hooks.filter((h) => h.category === filter);
 
   return (
     <AppLayout>
