@@ -97,9 +97,9 @@ export default function GenerateContent() {
         {/* Input area */}
         <div className="rounded-lg border border-border bg-card p-6 space-y-6">
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Topic</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Tema</label>
             <Input
-              placeholder="e.g. How to grow on TikTok in 2026..."
+              placeholder="ex: Como crescer no TikTok em 2026..."
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               className="bg-secondary border-border text-lg"
