@@ -35,7 +35,7 @@ export default function SavedContent() {
   const handleDelete = async (id: string) => {
     await supabase.from("contents").delete().eq("id", id);
     setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success("Content deleted");
+    toast.success("Conteúdo excluído");
   };
 
   const types = ["All", ...new Set(items.map((i) => i.type))];
