@@ -77,7 +77,7 @@ const Login = () => {
               />
             </div>
             <Button type="submit" className="w-full" variant="glow" disabled={loading}>
-              {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+              {loading ? "Carregando..." : isSignUp ? "Cadastrar" : "Entrar"}
             </Button>
           </form>
 
