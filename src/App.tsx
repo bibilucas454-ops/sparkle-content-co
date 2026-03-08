@@ -13,6 +13,8 @@ import SavedContent from "./pages/SavedContent";
 import ContentCalendar from "./pages/ContentCalendar";
 import SettingsPage from "./pages/SettingsPage";
 import PublisherHub from "./pages/PublisherHub";
+import PublisherHistory from "./pages/PublisherHistory";
+import PublisherAccounts from "./pages/PublisherAccounts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
