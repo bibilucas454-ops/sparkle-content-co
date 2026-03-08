@@ -45,8 +45,8 @@ export default function SavedContent() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Saved Content</h1>
-          <p className="text-muted-foreground mt-1">{items.length} pieces of content saved</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Conteúdo Salvo</h1>
+          <p className="text-muted-foreground mt-1">{items.length} conteúdos salvos</p>
         </div>
 
         <div className="flex gap-2 flex-wrap">
