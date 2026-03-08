@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 interface CalendarEvent {
   date: string;
@@ -35,14 +35,14 @@ export default function ContentCalendar() {
     setShowAdd(null);
   };
 
-  const monthName = currentDate.toLocaleString("default", { month: "long", year: "numeric" });
+  const monthName = currentDate.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Content Calendar</h1>
-          <p className="text-muted-foreground mt-1">Plan and schedule your content</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Calendário de Conteúdo</h1>
+          <p className="text-muted-foreground mt-1">Planeje e agende seu conteúdo</p>
         </div>
 
         <div className="flex items-center justify-between">
@@ -90,13 +90,13 @@ export default function ContentCalendar() {
                 {showAdd === dateStr && (
                   <div className="mt-1 space-y-1" onClick={(e) => e.stopPropagation()}>
                     <Input
-                      placeholder="Title"
+                      placeholder="Título"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       className="h-6 text-[10px] bg-secondary"
                     />
                     <Button size="sm" className="h-5 text-[10px] w-full" onClick={() => addEvent(dateStr)}>
-                      <Plus className="w-3 h-3" /> Add
+                      <Plus className="w-3 h-3" /> Adicionar
                     </Button>
                   </div>
                 )}

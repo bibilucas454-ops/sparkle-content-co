@@ -51,17 +51,17 @@ export default function Dashboard() {
     : 0;
 
   const stats = [
-    { label: "Content Created", value: contentCount, icon: FileText },
-    { label: "Avg Viral Score", value: avgScore, icon: TrendingUp },
-    { label: "Trending Topics", value: trends.length, icon: Zap },
+    { label: "Conteúdos Criados", value: contentCount, icon: FileText },
+    { label: "Score Viral Médio", value: avgScore, icon: TrendingUp },
+    { label: "Temas em Alta", value: trends.length, icon: Zap },
   ];
 
   return (
     <AppLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Painel</h1>
+          <p className="text-muted-foreground mt-1">Bem-vindo de volta, {user?.email?.split("@")[0]}</p>
         </div>
 
         {/* Quick action */}
@@ -71,8 +71,8 @@ export default function Dashboard() {
             className="glow-card rounded-lg border border-border bg-card p-6 flex items-center justify-between cursor-pointer"
           >
             <div>
-              <h2 className="font-display font-semibold text-lg">Generate Viral Content</h2>
-              <p className="text-muted-foreground text-sm">Enter a topic and let AI create content for you</p>
+              <h2 className="font-display font-semibold text-lg">Gerar Conteúdo Viral</h2>
+              <p className="text-muted-foreground text-sm">Digite um tema e deixe a IA criar conteúdo para você</p>
             </div>
             <Sparkles className="w-8 h-8 text-accent" />
           </motion.div>
@@ -99,7 +99,7 @@ export default function Dashboard() {
 
         {/* Trends of the day */}
         <div>
-          <h2 className="font-display font-semibold text-lg mb-4">🔥 Trends of the Day</h2>
+          <h2 className="font-display font-semibold text-lg mb-4">🔥 Tendências do Dia</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {trends.map((t) => (
               <div key={t.id} className="rounded-lg border border-border bg-card p-4 space-y-2">
@@ -120,7 +120,7 @@ export default function Dashboard() {
         {/* Recent content */}
         {recentContent.length > 0 && (
           <div>
-            <h2 className="font-display font-semibold text-lg mb-4">Recent Content</h2>
+            <h2 className="font-display font-semibold text-lg mb-4">Conteúdo Recente</h2>
             <div className="space-y-2">
               {recentContent.map((c) => (
                 <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">

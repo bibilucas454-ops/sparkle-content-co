@@ -21,7 +21,7 @@ const Login = () => {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast.success("Check your email for the confirmation link!");
+        toast.success("Verifique seu e-mail para o link de confirmação!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -46,19 +46,19 @@ const Login = () => {
             <Zap className="w-8 h-8 text-accent" />
             <h1 className="text-3xl font-bold font-display text-gradient-silver">CreatorOS AI</h1>
           </div>
-          <p className="text-muted-foreground">AI Operating System for Content Creators</p>
+          <p className="text-muted-foreground">Sistema de IA para Criadores de Conteúdo</p>
         </div>
 
         <div className="glow-card rounded-lg border border-border bg-card p-6">
           <h2 className="text-xl font-semibold font-display mb-6 text-card-foreground">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {isSignUp ? "Criar Conta" : "Bem-vindo de Volta"}
           </h2>
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder="E-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -68,7 +68,7 @@ const Login = () => {
             <div>
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder="Senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -77,7 +77,7 @@ const Login = () => {
               />
             </div>
             <Button type="submit" className="w-full" variant="glow" disabled={loading}>
-              {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+              {loading ? "Carregando..." : isSignUp ? "Cadastrar" : "Entrar"}
             </Button>
           </form>
 
@@ -86,7 +86,7 @@ const Login = () => {
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+              {isSignUp ? "Já tem uma conta? Entrar" : "Não tem uma conta? Cadastre-se"}
             </button>
           </div>
         </div>

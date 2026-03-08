@@ -35,18 +35,18 @@ export default function SavedContent() {
   const handleDelete = async (id: string) => {
     await supabase.from("contents").delete().eq("id", id);
     setItems((prev) => prev.filter((i) => i.id !== id));
-    toast.success("Content deleted");
+    toast.success("Conteúdo excluído");
   };
 
-  const types = ["All", ...new Set(items.map((i) => i.type))];
-  const filtered = filter === "All" ? items : items.filter((i) => i.type === filter);
+  const types = ["Todos", ...new Set(items.map((i) => i.type))];
+  const filtered = filter === "Todos" ? items : items.filter((i) => i.type === filter);
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Saved Content</h1>
-          <p className="text-muted-foreground mt-1">{items.length} pieces of content saved</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Conteúdo Salvo</h1>
+          <p className="text-muted-foreground mt-1">{items.length} conteúdos salvos</p>
         </div>
 
         <div className="flex gap-2 flex-wrap">
@@ -97,7 +97,7 @@ export default function SavedContent() {
         </div>
 
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">No saved content yet. Start generating!</p>
+          <p className="text-center text-muted-foreground py-12">Nenhum conteúdo salvo ainda. Comece a gerar!</p>
         )}
       </div>
     </AppLayout>

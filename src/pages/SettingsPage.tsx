@@ -13,7 +13,7 @@ export default function SettingsPage() {
 
   const handleUpdatePassword = async () => {
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
     setLoading(true);
@@ -21,7 +21,7 @@ export default function SettingsPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Password updated!");
+      toast.success("Senha atualizada!");
       setNewPassword("");
     }
     setLoading(false);
@@ -31,12 +31,12 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="space-y-8 max-w-lg">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Configurações</h1>
+          <p className="text-muted-foreground mt-1">Gerencie sua conta</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold">Account</h2>
+          <h2 className="font-display font-semibold">Conta</h2>
           <div>
             <label className="text-sm text-muted-foreground">Email</label>
             <p className="text-sm">{user?.email}</p>
@@ -44,23 +44,23 @@ export default function SettingsPage() {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold">Change Password</h2>
+          <h2 className="font-display font-semibold">Alterar Senha</h2>
           <Input
             type="password"
-            placeholder="New password"
+            placeholder="Nova senha"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="bg-secondary border-border"
           />
           <Button onClick={handleUpdatePassword} disabled={loading}>
-            Update Password
+            Atualizar Senha
           </Button>
         </div>
 
         <div className="rounded-lg border border-destructive/30 bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold text-destructive">Danger Zone</h2>
+          <h2 className="font-display font-semibold text-destructive">Zona de Perigo</h2>
           <Button variant="destructive" onClick={signOut}>
-            Sign Out
+            Sair
           </Button>
         </div>
       </div>
