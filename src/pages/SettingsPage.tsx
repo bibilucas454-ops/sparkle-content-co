@@ -36,7 +36,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold">Account</h2>
+          <h2 className="font-display font-semibold">Conta</h2>
           <div>
             <label className="text-sm text-muted-foreground">Email</label>
             <p className="text-sm">{user?.email}</p>
