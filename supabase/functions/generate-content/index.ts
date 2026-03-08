@@ -6,13 +6,13 @@ const corsHeaders = {
 };
 
 const typePrompts: Record<string, string> = {
-  "viral-idea": "Generate 3 viral content ideas. Each idea should be creative, attention-grabbing, and optimized for short-form video. Format as a numbered list.",
-  "script": "Write a complete short-form video script (30-60 seconds). Include: Hook (first 3 seconds), Build-up, Main point, Call-to-action. Use conversational tone.",
-  "caption": "Write a caption using the AIDA framework: Attention (hook line), Interest (why they should care), Desire (paint the picture), Action (clear CTA). Include relevant emojis.",
-  "hashtags": "Generate 20 strategic hashtags. Mix: 5 high-volume (1M+), 10 medium (100K-1M), 5 niche/specific. Format as a single line separated by spaces.",
-  "tags": "Generate 15 relevant tags/keywords for SEO optimization. Include: primary keywords, secondary keywords, and long-tail variations. Format as comma-separated list.",
-  "video-prompt": "Create a detailed AI video generation prompt. Include: visual style, camera angles, transitions, text overlays, music mood, color grading. Be specific and cinematic.",
-  "viral-score": "Analyze the viral potential of this content topic. Rate from 0-100 and explain: Hook strength, Shareability, Trend alignment, Emotional trigger, Uniqueness. Format with scores for each category.",
+  "viral-idea": "Gere 10 ideias de vídeos virais. Cada ideia deve ser criativa, chamativa e otimizada para vídeos curtos. Formate como lista numerada. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "script": "Escreva um roteiro completo para vídeo curto (10-20 segundos). Estrutura obrigatória: Hook (primeiros 2 segundos - extremamente chamativo), Contexto (desenvolvimento rápido), Clímax (momento de impacto), Call to Action (CTA claro). Use tom conversacional e coloquial brasileiro. O conteúdo deve maximizar retenção, curiosidade e compartilhamento. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "caption": "Escreva uma legenda usando o modelo AIDA: Atenção (frase de impacto/hook), Interesse (por que devem se importar), Desejo (pinte o cenário ideal), Ação (CTA claro e direto). Inclua emojis relevantes. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "hashtags": "Gere 5 hashtags virais estratégicas em português. Mix: 2 alto volume (1M+), 2 médio (100K-1M), 1 nicho/específico. Formate em uma única linha separadas por espaços. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "tags": "Gere 5 tags/palavras-chave relevantes para SEO em português. Inclua: palavras-chave primárias, secundárias e variações long-tail. Formate como lista separada por vírgulas. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "video-prompt": "Crie um prompt detalhado para geração de vídeo por IA. Inclua: estilo visual, ângulos de câmera, transições, sobreposições de texto, clima da música, colorização. Seja específico e cinematográfico. IMPORTANTE: O prompt pode ser em inglês para compatibilidade com ferramentas de IA, mas a descrição/explicação deve ser em Português do Brasil.",
+  "viral-score": "Analise o potencial viral deste tópico de conteúdo. Avalie de 0 a 100 e explique: Força do Hook, Compartilhabilidade, Alinhamento com tendências, Gatilho emocional, Originalidade. Formate com pontuações para cada categoria. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
 };
 
 serve(async (req) => {
