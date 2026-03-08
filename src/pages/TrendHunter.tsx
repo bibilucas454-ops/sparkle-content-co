@@ -27,8 +27,8 @@ export default function TrendHunter() {
       });
   }, []);
 
-  const platforms = ["All", "TikTok", "Instagram", "YouTube"];
-  const filtered = filter === "All" ? trends : trends.filter((t) => t.platform.includes(filter));
+  const platforms = ["Todos", "TikTok", "Instagram", "YouTube"];
+  const filtered = filter === "Todos" ? trends : trends.filter((t) => t.platform.includes(filter));
 
   return (
     <AppLayout>
