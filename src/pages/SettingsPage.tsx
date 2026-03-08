@@ -44,10 +44,10 @@ export default function SettingsPage() {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold">Change Password</h2>
+          <h2 className="font-display font-semibold">Alterar Senha</h2>
           <Input
             type="password"
-            placeholder="New password"
+            placeholder="Nova senha"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="bg-secondary border-border"
