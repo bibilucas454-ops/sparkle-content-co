@@ -11,8 +11,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const contentTypes = [
-  { id: "viral-idea", label: "Ideias Virais", emoji: "💡" },
+  { id: "viral-idea", label: "Ideia Viral", emoji: "💡" },
+  { id: "hook", label: "Hook (Gancho)", emoji: "🎯" },
   { id: "script", label: "Roteiro", emoji: "📝" },
+  { id: "video-text", label: "Texto p/ Vídeo", emoji: "💬" },
   { id: "caption", label: "Legenda (AIDA)", emoji: "✍️" },
   { id: "hashtags", label: "Hashtags", emoji: "#️⃣" },
   { id: "tags", label: "Tags SEO", emoji: "🏷️" },
