@@ -159,7 +159,7 @@ export default function GenerateContent() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              <h2 className="font-display font-semibold text-lg">Generated Content</h2>
+              <h2 className="font-display font-semibold text-lg">Conteúdo Gerado</h2>
               {results.map((r, i) => (
                 <motion.div
                   key={i}
