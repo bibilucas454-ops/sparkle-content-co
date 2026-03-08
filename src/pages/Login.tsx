@@ -51,7 +51,7 @@ const Login = () => {
 
         <div className="glow-card rounded-lg border border-border bg-card p-6">
           <h2 className="text-xl font-semibold font-display mb-6 text-card-foreground">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {isSignUp ? "Criar Conta" : "Bem-vindo de Volta"}
           </h2>
 
           <form onSubmit={handleAuth} className="space-y-4">
