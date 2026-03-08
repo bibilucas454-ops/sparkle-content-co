@@ -90,8 +90,8 @@ export default function GenerateContent() {
     <AppLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Generate Content</h1>
-          <p className="text-muted-foreground mt-1">Enter a topic and generate viral content instantly</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Gerar Conteúdo</h1>
+          <p className="text-muted-foreground mt-1">Digite um tema e gere conteúdo viral instantaneamente</p>
         </div>
 
         {/* Input area */}
