@@ -6,13 +6,69 @@ const corsHeaders = {
 };
 
 const typePrompts: Record<string, string> = {
-  "viral-idea": "Gere 10 ideias de vídeos virais. Cada ideia deve ser criativa, chamativa e otimizada para vídeos curtos. Formate como lista numerada. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
-  "script": "Escreva um roteiro completo para vídeo curto (10-20 segundos). Estrutura obrigatória: Hook (primeiros 2 segundos - extremamente chamativo), Contexto (desenvolvimento rápido), Clímax (momento de impacto), Call to Action (CTA claro). Use tom conversacional e coloquial brasileiro. O conteúdo deve maximizar retenção, curiosidade e compartilhamento. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
-  "caption": "Escreva uma legenda usando o modelo AIDA: Atenção (frase de impacto/hook), Interesse (por que devem se importar), Desejo (pinte o cenário ideal), Ação (CTA claro e direto). Inclua emojis relevantes. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
-  "hashtags": "Gere 5 hashtags virais estratégicas em português. Mix: 2 alto volume (1M+), 2 médio (100K-1M), 1 nicho/específico. Formate em uma única linha separadas por espaços. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
-  "tags": "Gere 5 tags/palavras-chave relevantes para SEO em português. Inclua: palavras-chave primárias, secundárias e variações long-tail. Formate como lista separada por vírgulas. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
-  "video-prompt": "Crie um prompt detalhado para geração de vídeo por IA. Inclua: estilo visual, ângulos de câmera, transições, sobreposições de texto, clima da música, colorização. Seja específico e cinematográfico. IMPORTANTE: O prompt pode ser em inglês para compatibilidade com ferramentas de IA, mas a descrição/explicação deve ser em Português do Brasil.",
-  "viral-score": "Analise o potencial viral deste tópico de conteúdo. Avalie de 0 a 100 e explique: Força do Hook, Compartilhabilidade, Alinhamento com tendências, Gatilho emocional, Originalidade. Formate com pontuações para cada categoria. IMPORTANTE: Todo o conteúdo DEVE ser em Português do Brasil.",
+  "viral-idea": `Gere 1 ideia de vídeo curto com ALTO potencial de viralização.
+Formato obrigatório:
+- Título da ideia (curto e impactante)
+- Breve descrição do conceito (máximo 2 linhas)
+- Por que vai viralizar (1 linha)
+Use linguagem simples e impactante. Frases curtas. APENAS Português do Brasil.`,
+
+  "hook": `Crie um HOOK (gancho) extremamente chamativo para os primeiros 2 segundos do vídeo.
+Use uma destas técnicas:
+- Curiosidade irresistível
+- Quebra de expectativa
+- Polêmica leve
+- Mistério
+Formato: Apenas a frase do hook, direta e impactante. Máximo 1-2 frases curtas. APENAS Português do Brasil.`,
+
+  "script": `Escreva um roteiro para vídeo curto (10-20 segundos). Estrutura OBRIGATÓRIA:
+
+🎯 HOOK (0–2s): Frase extremamente chamativa
+📌 CONTEXTO (2–6s): Desenvolvimento rápido
+💥 MOMENTO DE IMPACTO (6–10s): Clímax surpreendente
+📢 CALL TO ACTION (final): CTA direto e claro
+
+Use tom conversacional e coloquial brasileiro. Frases curtas. Maximize retenção, curiosidade e compartilhamento. APENAS Português do Brasil.`,
+
+  "video-text": `Crie frases curtas e impactantes que aparecerão NA TELA durante o vídeo.
+Formato:
+- 4 a 6 frases curtas (máximo 8 palavras cada)
+- Cada frase deve aparecer em um momento diferente do vídeo
+- Use linguagem direta e visual
+APENAS Português do Brasil.`,
+
+  "caption": `Escreva uma legenda usando o modelo AIDA. Máximo 3 linhas no total:
+✅ Atenção: Frase de impacto/hook
+✅ Interesse: Por que devem se importar
+✅ Desejo: Pinte o cenário ideal
+✅ Ação: CTA claro e direto
+Inclua emojis relevantes. Frases curtas e impactantes. APENAS Português do Brasil.`,
+
+  "hashtags": `Gere EXATAMENTE 5 hashtags virais e relevantes em português.
+Mix: 2 alto volume, 2 médio volume, 1 nicho específico.
+Formate em uma única linha separadas por espaços. APENAS Português do Brasil.`,
+
+  "tags": `Gere EXATAMENTE 5 tags/palavras-chave para SEO em português.
+Inclua palavras-chave primárias e variações. Formate como lista separada por vírgulas. APENAS Português do Brasil.`,
+
+  "video-prompt": `Crie um prompt detalhado para gerar o vídeo em ferramentas de IA (Runway, Pika, Sora, Grok).
+Formato obrigatório:
+🎨 Estilo visual:
+💡 Iluminação:
+🎥 Movimento de câmera:
+🌍 Ambiente:
+🌀 Atmosfera:
+O prompt principal pode ser em inglês para compatibilidade, mas toda explicação DEVE ser em Português do Brasil.`,
+
+  "viral-score": `Analise o potencial viral deste conteúdo. Dê uma pontuação de 0 a 100.
+Avalie cada critério:
+🎯 Força do Hook: /100
+📤 Compartilhabilidade: /100
+📈 Alinhamento com tendências: /100
+❤️ Gatilho emocional: /100
+✨ Originalidade: /100
+📊 SCORE FINAL: /100
+Explique brevemente cada nota. APENAS Português do Brasil.`,
 };
 
 serve(async (req) => {
@@ -65,13 +121,13 @@ serve(async (req) => {
 
       if (!response.ok) {
         if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+          return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
             status: 429,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
+          return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione créditos para continuar." }), {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
