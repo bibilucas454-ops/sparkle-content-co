@@ -11,13 +11,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const contentTypes = [
-  { id: "viral-idea", label: "Viral Idea", emoji: "💡" },
-  { id: "script", label: "Script", emoji: "📝" },
-  { id: "caption", label: "Caption (AIDA)", emoji: "✍️" },
+  { id: "viral-idea", label: "Ideias Virais", emoji: "💡" },
+  { id: "script", label: "Roteiro", emoji: "📝" },
+  { id: "caption", label: "Legenda (AIDA)", emoji: "✍️" },
   { id: "hashtags", label: "Hashtags", emoji: "#️⃣" },
-  { id: "tags", label: "Tags", emoji: "🏷️" },
-  { id: "video-prompt", label: "Video Prompt", emoji: "🎬" },
-  { id: "viral-score", label: "Viral Score", emoji: "📊" },
+  { id: "tags", label: "Tags SEO", emoji: "🏷️" },
+  { id: "video-prompt", label: "Prompt de Vídeo IA", emoji: "🎬" },
+  { id: "viral-score", label: "Score Viral", emoji: "📊" },
 ];
 
 const platforms = ["Instagram Reels", "TikTok", "YouTube Shorts"];
