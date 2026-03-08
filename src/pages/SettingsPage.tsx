@@ -13,7 +13,7 @@ export default function SettingsPage() {
 
   const handleUpdatePassword = async () => {
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
     setLoading(true);
