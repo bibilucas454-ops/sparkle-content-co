@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Sparkles, Compass, BookOpen, Save,
-  Calendar, Settings, LogOut, Zap, Menu, X
+  Calendar, Settings, LogOut, Zap, Menu, X, Upload
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { path: "/dashboard", label: "Painel", icon: LayoutDashboard },
   { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
+  { path: "/publisher", label: "Publicar", icon: Upload },
   { path: "/trends", label: "Tendências", icon: Compass },
   { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
   { path: "/saved", label: "Conteúdo Salvo", icon: Save },

@@ -107,6 +107,162 @@ export type Database = {
         }
         Relationships: []
       }
+      publication_logs: {
+        Row: {
+          created_at: string
+          details: string | null
+          event: string
+          id: string
+          publication_target_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          event: string
+          id?: string
+          publication_target_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          event?: string
+          id?: string
+          publication_target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publication_targets: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          platform: string
+          platform_post_id: string | null
+          platform_post_url: string | null
+          publication_id: string
+          published_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform: string
+          platform_post_id?: string | null
+          platform_post_url?: string | null
+          publication_id: string
+          published_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          platform?: string
+          platform_post_id?: string | null
+          platform_post_url?: string | null
+          publication_id?: string
+          published_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_targets_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publications: {
+        Row: {
+          caption: string | null
+          created_at: string
+          hashtags: string | null
+          id: string
+          scheduled_for: string | null
+          title: string
+          upload_id: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          hashtags?: string | null
+          id?: string
+          scheduled_for?: string | null
+          title: string
+          upload_id: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          hashtags?: string | null
+          id?: string
+          scheduled_for?: string | null
+          title?: string
+          upload_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publications_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_accounts: {
+        Row: {
+          access_token_encrypted: string | null
+          account_id: string | null
+          account_name: string | null
+          created_at: string
+          id: string
+          platform: string
+          refresh_token_encrypted: string | null
+          token_expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string
+          id?: string
+          platform: string
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          created_at?: string
+          id?: string
+          platform?: string
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       trends: {
         Row: {
           category: string | null
@@ -143,6 +299,42 @@ export type Database = {
           platform?: string
           topic?: string
           trending_score?: number | null
+        }
+        Relationships: []
+      }
+      uploads: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          thumbnail_path: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          thumbnail_path?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          thumbnail_path?: string | null
+          user_id?: string
         }
         Relationships: []
       }
