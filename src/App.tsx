@@ -12,6 +12,7 @@ import HookLibrary from "./pages/HookLibrary";
 import SavedContent from "./pages/SavedContent";
 import ContentCalendar from "./pages/ContentCalendar";
 import SettingsPage from "./pages/SettingsPage";
+import PublisherHub from "./pages/PublisherHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
