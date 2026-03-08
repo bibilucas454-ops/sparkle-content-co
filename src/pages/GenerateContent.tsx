@@ -107,7 +107,7 @@ export default function GenerateContent() {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Platform</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Plataforma</label>
             <div className="flex gap-2 flex-wrap">
               {platforms.map((p) => (
                 <Button
