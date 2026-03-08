@@ -112,6 +112,9 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          format: string | null
+          hashtags: string | null
+          hook: string | null
           id: string
           platform: string
           topic: string
@@ -121,6 +124,9 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          format?: string | null
+          hashtags?: string | null
+          hook?: string | null
           id?: string
           platform: string
           topic: string
@@ -130,6 +136,9 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          format?: string | null
+          hashtags?: string | null
+          hook?: string | null
           id?: string
           platform?: string
           topic?: string
