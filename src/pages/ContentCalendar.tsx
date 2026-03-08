@@ -41,8 +41,8 @@ export default function ContentCalendar() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Content Calendar</h1>
-          <p className="text-muted-foreground mt-1">Plan and schedule your content</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Calendário de Conteúdo</h1>
+          <p className="text-muted-foreground mt-1">Planeje e agende seu conteúdo</p>
         </div>
 
         <div className="flex items-center justify-between">
