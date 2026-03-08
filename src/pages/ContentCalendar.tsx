@@ -35,7 +35,7 @@ export default function ContentCalendar() {
     setShowAdd(null);
   };
 
-  const monthName = currentDate.toLocaleString("default", { month: "long", year: "numeric" });
+  const monthName = currentDate.toLocaleString("pt-BR", { month: "long", year: "numeric" });
 
   return (
     <AppLayout>
