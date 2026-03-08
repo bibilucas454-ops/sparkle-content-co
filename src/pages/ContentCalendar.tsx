@@ -90,7 +90,7 @@ export default function ContentCalendar() {
                 {showAdd === dateStr && (
                   <div className="mt-1 space-y-1" onClick={(e) => e.stopPropagation()}>
                     <Input
-                      placeholder="Title"
+                      placeholder="Título"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       className="h-6 text-[10px] bg-secondary"
