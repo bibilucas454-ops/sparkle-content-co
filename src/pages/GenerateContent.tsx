@@ -125,7 +125,19 @@ export default function GenerateContent() {
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Tipos de Conteúdo</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm text-muted-foreground">Tipos de Conteúdo</label>
+              <button
+                onClick={() =>
+                  setSelectedTypes((prev) =>
+                    prev.length === contentTypes.length ? [] : contentTypes.map((ct) => ct.id)
+                  )
+                }
+                className="text-xs text-accent hover:underline"
+              >
+                {selectedTypes.length === contentTypes.length ? "Desmarcar Todos" : "Selecionar Todos"}
+              </button>
+            </div>
             <div className="flex gap-2 flex-wrap">
               {contentTypes.map((ct) => (
                 <Button
