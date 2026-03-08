@@ -26,8 +26,8 @@ serve(async (req) => {
     const results = [];
 
     for (const type of types) {
-      const systemPrompt = `You are a viral content strategist specializing in ${platform}. You understand algorithms, trends, and what makes content go viral. Be specific, actionable, and creative. Never be generic.`;
-      const userPrompt = `Topic: "${topic}" for ${platform}.\n\n${typePrompts[type] || "Generate creative content for this topic."}`;
+      const systemPrompt = `Você é um estrategista de conteúdo viral especializado em ${platform}. Você entende algoritmos, tendências e o que faz um conteúdo viralizar. Seja específico, acionável e criativo. Nunca seja genérico. REGRA OBRIGATÓRIA: Todo o conteúdo gerado DEVE ser em Português do Brasil.`;
+      const userPrompt = `Tema: "${topic}" para ${platform}.\n\n${typePrompts[type] || "Gere conteúdo criativo para este tema em Português do Brasil."}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
