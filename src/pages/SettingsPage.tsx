@@ -31,8 +31,8 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="space-y-8 max-w-lg">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Configurações</h1>
+          <p className="text-muted-foreground mt-1">Gerencie sua conta</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-6 space-y-4">
