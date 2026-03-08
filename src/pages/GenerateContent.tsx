@@ -141,7 +141,7 @@ export default function GenerateContent() {
           <Button onClick={handleGenerate} disabled={loading} variant="glow" className="w-full" size="lg">
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                <Loader2 className="w-4 h-4 animate-spin" /> Gerando...
               </>
             ) : (
               <>
