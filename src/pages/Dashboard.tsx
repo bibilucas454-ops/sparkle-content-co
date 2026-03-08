@@ -51,9 +51,9 @@ export default function Dashboard() {
     : 0;
 
   const stats = [
-    { label: "Content Created", value: contentCount, icon: FileText },
-    { label: "Avg Viral Score", value: avgScore, icon: TrendingUp },
-    { label: "Trending Topics", value: trends.length, icon: Zap },
+    { label: "Conteúdos Criados", value: contentCount, icon: FileText },
+    { label: "Score Viral Médio", value: avgScore, icon: TrendingUp },
+    { label: "Temas em Alta", value: trends.length, icon: Zap },
   ];
 
   return (
