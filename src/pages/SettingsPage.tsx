@@ -21,7 +21,7 @@ export default function SettingsPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Password updated!");
+      toast.success("Senha atualizada!");
       setNewPassword("");
     }
     setLoading(false);
