@@ -14,7 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contents: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          platform: string | null
+          topic: string
+          type: string
+          user_id: string
+          viral_score: number | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          topic: string
+          type: string
+          user_id: string
+          viral_score?: number | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          topic?: string
+          type?: string
+          user_id?: string
+          viral_score?: number | null
+        }
+        Relationships: []
+      }
+      hooks: {
+        Row: {
+          category: string
+          created_at: string
+          hook_text: string
+          id: string
+          is_public: boolean | null
+          platform: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          hook_text: string
+          id?: string
+          is_public?: boolean | null
+          platform?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          hook_text?: string
+          id?: string
+          is_public?: boolean | null
+          platform?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          plan: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          plan?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          plan?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      trends: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          platform: string
+          topic: string
+          trending_score: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          platform: string
+          topic: string
+          trending_score?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          platform?: string
+          topic?: string
+          trending_score?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
