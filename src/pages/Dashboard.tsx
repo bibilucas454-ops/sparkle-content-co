@@ -120,7 +120,7 @@ export default function Dashboard() {
         {/* Recent content */}
         {recentContent.length > 0 && (
           <div>
-            <h2 className="font-display font-semibold text-lg mb-4">Recent Content</h2>
+            <h2 className="font-display font-semibold text-lg mb-4">Conteúdo Recente</h2>
             <div className="space-y-2">
               {recentContent.map((c) => (
                 <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
