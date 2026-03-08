@@ -34,8 +34,8 @@ export default function TrendHunter() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Trend Hunter</h1>
-          <p className="text-muted-foreground mt-1">Discover what's trending across platforms</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Caçador de Tendências</h1>
+          <p className="text-muted-foreground mt-1">Descubra o que está em alta nas plataformas</p>
         </div>
 
         <div className="flex gap-2 flex-wrap">
