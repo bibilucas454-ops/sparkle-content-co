@@ -86,7 +86,7 @@ const Login = () => {
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+              {isSignUp ? "Já tem uma conta? Entrar" : "Não tem uma conta? Cadastre-se"}
             </button>
           </div>
         </div>
