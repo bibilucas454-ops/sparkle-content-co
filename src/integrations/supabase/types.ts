@@ -50,6 +50,56 @@ export type Database = {
         }
         Relationships: []
       }
+      drafts: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          cta: string | null
+          hashtags: string | null
+          id: string
+          scheduled_for: string | null
+          selected_platforms: Json | null
+          title: string | null
+          updated_at: string | null
+          upload_id: string | null
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          cta?: string | null
+          hashtags?: string | null
+          id?: string
+          scheduled_for?: string | null
+          selected_platforms?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          upload_id?: string | null
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          cta?: string | null
+          hashtags?: string | null
+          id?: string
+          scheduled_for?: string | null
+          selected_platforms?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          upload_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drafts_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hooks: {
         Row: {
           category: string
@@ -147,6 +197,9 @@ export type Database = {
           platform: string
           platform_post_id: string | null
           platform_post_url: string | null
+          platform_specific_caption: string | null
+          platform_specific_title: string | null
+          privacy_status: string | null
           publication_id: string
           published_at: string | null
           status: string
@@ -159,6 +212,9 @@ export type Database = {
           platform: string
           platform_post_id?: string | null
           platform_post_url?: string | null
+          platform_specific_caption?: string | null
+          platform_specific_title?: string | null
+          privacy_status?: string | null
           publication_id: string
           published_at?: string | null
           status?: string
@@ -171,6 +227,9 @@ export type Database = {
           platform?: string
           platform_post_id?: string | null
           platform_post_url?: string | null
+          platform_specific_caption?: string | null
+          platform_specific_title?: string | null
+          privacy_status?: string | null
           publication_id?: string
           published_at?: string | null
           status?: string
@@ -190,30 +249,42 @@ export type Database = {
         Row: {
           caption: string | null
           created_at: string
+          cta: string | null
           hashtags: string | null
           id: string
+          overall_status: string | null
           scheduled_for: string | null
+          thumbnail_path: string | null
           title: string
+          updated_at: string | null
           upload_id: string
           user_id: string
         }
         Insert: {
           caption?: string | null
           created_at?: string
+          cta?: string | null
           hashtags?: string | null
           id?: string
+          overall_status?: string | null
           scheduled_for?: string | null
+          thumbnail_path?: string | null
           title: string
+          updated_at?: string | null
           upload_id: string
           user_id: string
         }
         Update: {
           caption?: string | null
           created_at?: string
+          cta?: string | null
           hashtags?: string | null
           id?: string
+          overall_status?: string | null
           scheduled_for?: string | null
+          thumbnail_path?: string | null
           title?: string
+          updated_at?: string | null
           upload_id?: string
           user_id?: string
         }
@@ -237,6 +308,7 @@ export type Database = {
           platform: string
           refresh_token_encrypted: string | null
           token_expires_at: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -248,6 +320,7 @@ export type Database = {
           platform: string
           refresh_token_encrypted?: string | null
           token_expires_at?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -259,6 +332,7 @@ export type Database = {
           platform?: string
           refresh_token_encrypted?: string | null
           token_expires_at?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -304,6 +378,7 @@ export type Database = {
       }
       uploads: {
         Row: {
+          aspect_ratio: string | null
           created_at: string
           duration_seconds: number | null
           file_name: string
@@ -315,6 +390,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aspect_ratio?: string | null
           created_at?: string
           duration_seconds?: number | null
           file_name: string
@@ -326,6 +402,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aspect_ratio?: string | null
           created_at?: string
           duration_seconds?: number | null
           file_name?: string
