@@ -44,11 +44,11 @@ export default function GenerateContent() {
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
-      toast.error("Please enter a topic");
+      toast.error("Por favor, insira um tema");
       return;
     }
     if (selectedTypes.length === 0) {
-      toast.error("Select at least one content type");
+      toast.error("Selecione pelo menos um tipo de conteúdo");
       return;
     }
 
