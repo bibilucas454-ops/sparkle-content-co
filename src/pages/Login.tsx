@@ -46,7 +46,7 @@ const Login = () => {
             <Zap className="w-8 h-8 text-accent" />
             <h1 className="text-3xl font-bold font-display text-gradient-silver">CreatorOS AI</h1>
           </div>
-          <p className="text-muted-foreground">AI Operating System for Content Creators</p>
+          <p className="text-muted-foreground">Sistema de IA para Criadores de Conteúdo</p>
         </div>
 
         <div className="glow-card rounded-lg border border-border bg-card p-6">
