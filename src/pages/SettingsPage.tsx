@@ -53,7 +53,7 @@ export default function SettingsPage() {
             className="bg-secondary border-border"
           />
           <Button onClick={handleUpdatePassword} disabled={loading}>
-            Update Password
+            Atualizar Senha
           </Button>
         </div>
 
