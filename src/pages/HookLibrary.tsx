@@ -32,8 +32,8 @@ export default function HookLibrary() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Hook Library</h1>
-          <p className="text-muted-foreground mt-1">Proven hooks to grab attention instantly</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Biblioteca de Hooks</h1>
+          <p className="text-muted-foreground mt-1">Hooks comprovados para captar atenção instantaneamente</p>
         </div>
 
         <div className="flex gap-2 flex-wrap">

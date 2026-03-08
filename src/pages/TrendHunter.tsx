@@ -75,7 +75,7 @@ export default function TrendHunter() {
         </div>
 
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">No trends found for this platform.</p>
+          <p className="text-center text-muted-foreground py-12">Nenhuma tendência encontrada para esta plataforma.</p>
         )}
       </div>
     </AppLayout>

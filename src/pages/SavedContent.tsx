@@ -97,7 +97,7 @@ export default function SavedContent() {
         </div>
 
         {filtered.length === 0 && (
-          <p className="text-center text-muted-foreground py-12">No saved content yet. Start generating!</p>
+          <p className="text-center text-muted-foreground py-12">Nenhum conteúdo salvo ainda. Comece a gerar!</p>
         )}
       </div>
     </AppLayout>

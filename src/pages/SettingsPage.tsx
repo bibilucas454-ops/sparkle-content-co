@@ -58,9 +58,9 @@ export default function SettingsPage() {
         </div>
 
         <div className="rounded-lg border border-destructive/30 bg-card p-6 space-y-4">
-          <h2 className="font-display font-semibold text-destructive">Danger Zone</h2>
+          <h2 className="font-display font-semibold text-destructive">Zona de Perigo</h2>
           <Button variant="destructive" onClick={signOut}>
-            Sign Out
+            Sair
           </Button>
         </div>
       </div>

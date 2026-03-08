@@ -96,7 +96,7 @@ export default function ContentCalendar() {
                       className="h-6 text-[10px] bg-secondary"
                     />
                     <Button size="sm" className="h-5 text-[10px] w-full" onClick={() => addEvent(dateStr)}>
-                      <Plus className="w-3 h-3" /> Add
+                      <Plus className="w-3 h-3" /> Adicionar
                     </Button>
                   </div>
                 )}
