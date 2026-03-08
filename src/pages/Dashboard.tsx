@@ -60,8 +60,8 @@ export default function Dashboard() {
     <AppLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back, {user?.email?.split("@")[0]}</p>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Painel</h1>
+          <p className="text-muted-foreground mt-1">Bem-vindo de volta, {user?.email?.split("@")[0]}</p>
         </div>
 
         {/* Quick action */}
