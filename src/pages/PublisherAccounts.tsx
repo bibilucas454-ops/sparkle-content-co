@@ -26,6 +26,7 @@ interface Account {
   id: string;
   platform: string;
   account_name: string | null;
+  account_id: string | null;
   created_at: string;
   token_expires_at: string | null;
 }
