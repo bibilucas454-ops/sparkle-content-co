@@ -46,7 +46,7 @@ export default function PublisherAccounts() {
     setLoading(true);
     const { data } = await supabase
       .from("social_accounts")
-      .select("id, platform, account_name, created_at, token_expires_at")
+      .select("id, platform, account_name, account_id, created_at, token_expires_at")
       .order("created_at", { ascending: false });
     setAccounts(data ?? []);
     setLoading(false);
