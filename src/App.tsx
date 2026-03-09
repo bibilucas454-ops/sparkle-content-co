@@ -15,6 +15,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PublisherHub from "./pages/PublisherHub";
 import PublisherHistory from "./pages/PublisherHistory";
 import PublisherAccounts from "./pages/PublisherAccounts";
+import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/publisher" element={<ProtectedRoute><PublisherHub /></ProtectedRoute>} />
             <Route path="/publisher/history" element={<ProtectedRoute><PublisherHistory /></ProtectedRoute>} />
             <Route path="/publisher/accounts" element={<ProtectedRoute><PublisherAccounts /></ProtectedRoute>} />
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
             <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />
             <Route path="/hooks" element={<ProtectedRoute><HookLibrary /></ProtectedRoute>} />
             <Route path="/saved" element={<ProtectedRoute><SavedContent /></ProtectedRoute>} />

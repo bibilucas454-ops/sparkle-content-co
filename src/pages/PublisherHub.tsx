@@ -302,14 +302,16 @@ export default function PublisherHub() {
 
         if (!schedule) {
           // Publish (mock)
-          const videoUrl = supabase.storage.from("videos").getPublicUrl(filePath).data.publicUrl;
           const payload: PublishPayload = {
             publicationTargetId: target.id,
             platform,
-            videoUrl,
+            uploadId: uploadRecord.id,
             title,
             caption,
             hashtags,
+            privacyStatus: (settings as any)?.privacy || "public",
+            platformSpecificTitle: (settings as any)?.title || undefined,
+            platformSpecificCaption: (settings as any)?.caption || undefined,
           };
 
           statuses[platform] = { status: "enviando" };

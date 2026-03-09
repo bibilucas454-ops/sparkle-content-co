@@ -3,12 +3,17 @@ import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Youtube, Instagram, Play, Link2, Unlink, RefreshCw, Loader2 } from "lucide-react";
+import { Youtube, Instagram, Play, Link2, Unlink, RefreshCw, Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   connectYouTubeAccount,
   connectInstagramAccount,
   connectTikTokAccount,
+  refreshPlatformToken,
+  getAccountStatus,
+  getAccountStatusLabel,
+  getAccountStatusColor,
+  type AccountStatus,
 } from "@/services/platformServices";
 
 const PLATFORMS = [
@@ -21,6 +26,7 @@ interface Account {
   id: string;
   platform: string;
   account_name: string | null;
+  account_id: string | null;
   created_at: string;
   token_expires_at: string | null;
 }
@@ -30,6 +36,7 @@ export default function PublisherAccounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAccounts();
@@ -39,7 +46,7 @@ export default function PublisherAccounts() {
     setLoading(true);
     const { data } = await supabase
       .from("social_accounts")
-      .select("id, platform, account_name, created_at, token_expires_at")
+      .select("id, platform, account_name, account_id, created_at, token_expires_at")
       .order("created_at", { ascending: false });
     setAccounts(data ?? []);
     setLoading(false);
@@ -49,12 +56,23 @@ export default function PublisherAccounts() {
     setConnecting(platformId);
     try {
       await connectFn();
-      toast.success("Conta conectada com sucesso.");
-      await fetchAccounts();
+      // Will redirect to OAuth, so no need to handle success here
     } catch (err: any) {
       toast.error(err.message || "Falha ao conectar conta.");
-    } finally {
       setConnecting(null);
+    }
+  };
+
+  const handleRefresh = async (platformId: string) => {
+    setRefreshing(platformId);
+    try {
+      await refreshPlatformToken(platformId);
+      toast.success("Token atualizado com sucesso!");
+      await fetchAccounts();
+    } catch (err: any) {
+      toast.error(err.message || "Falha ao atualizar token.");
+    } finally {
+      setRefreshing(null);
     }
   };
 
@@ -66,6 +84,12 @@ export default function PublisherAccounts() {
       toast.success("Conta desconectada.");
       await fetchAccounts();
     }
+  };
+
+  const getStatusIcon = (status: AccountStatus) => {
+    if (status === "conectada") return <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />;
+    if (status === "token_expirado") return <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />;
+    return <XCircle className="w-3.5 h-3.5 text-muted-foreground" />;
   };
 
   return (
@@ -82,8 +106,10 @@ export default function PublisherAccounts() {
 
         <div className="grid gap-4">
           {PLATFORMS.map((platform) => {
-            const account = accounts.find((a) => a.platform === platform.id);
+            const account = accounts.find((a) => a.platform === platform.id) || null;
             const isConnecting = connecting === platform.id;
+            const isRefreshing = refreshing === platform.id;
+            const status = getAccountStatus(account);
 
             return (
               <div
@@ -100,20 +126,30 @@ export default function PublisherAccounts() {
                       {account ? (
                         <div className="text-sm text-muted-foreground space-y-0.5">
                           <p className="flex items-center gap-1.5">
-                            <Link2 className="w-3 h-3" />
-                            {account.account_name || "Conta conectada"}
+                            {getStatusIcon(status)}
+                            <span className={getAccountStatusColor(status)}>
+                              {getAccountStatusLabel(status)}
+                            </span>
+                            {account.account_name && (
+                              <span className="text-foreground ml-1">— {account.account_name}</span>
+                            )}
                           </p>
                           <p className="text-xs">
                             Conectada em {new Date(account.created_at).toLocaleDateString("pt-BR")}
                           </p>
                           {account.token_expires_at && (
-                            <p className="text-xs text-warning">
-                              Token expira em {new Date(account.token_expires_at).toLocaleDateString("pt-BR")}
+                            <p className={`text-xs ${status === "token_expirado" ? "text-yellow-500" : "text-muted-foreground"}`}>
+                              {status === "token_expirado"
+                                ? "⚠️ Token expirado — reconecte ou atualize"
+                                : `Token expira em ${new Date(account.token_expires_at).toLocaleDateString("pt-BR")}`}
                             </p>
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">Não conectada</p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          {getStatusIcon(status)}
+                          Não conectada
+                        </p>
                       )}
                     </div>
                   </div>
@@ -121,6 +157,21 @@ export default function PublisherAccounts() {
                   <div className="flex items-center gap-2">
                     {account ? (
                       <>
+                        {status === "token_expirado" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRefresh(platform.id)}
+                            disabled={isRefreshing}
+                          >
+                            {isRefreshing ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3.5 h-3.5" />
+                            )}
+                            Atualizar Token
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -166,11 +217,28 @@ export default function PublisherAccounts() {
           })}
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h3 className="text-sm font-medium text-foreground mb-2">ℹ️ Sobre as integrações</h3>
+        <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+          <h3 className="text-sm font-medium text-foreground">⚙️ Credenciais necessárias</h3>
           <p className="text-sm text-muted-foreground">
-            As integrações OAuth com YouTube, Instagram e TikTok estão sendo preparadas.
-            Em breve você poderá conectar suas contas e publicar diretamente de dentro do CreatorOS AI.
+            Para conectar suas contas, as seguintes variáveis de ambiente devem estar configuradas no Supabase (Edge Function Secrets):
+          </p>
+          <div className="grid gap-2 text-xs font-mono">
+            <div className="p-2 rounded bg-secondary">
+              <span className="text-accent">YouTube:</span> YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET
+            </div>
+            <div className="p-2 rounded bg-secondary">
+              <span className="text-accent">Instagram:</span> INSTAGRAM_CLIENT_ID, INSTAGRAM_CLIENT_SECRET
+            </div>
+            <div className="p-2 rounded bg-secondary">
+              <span className="text-accent">TikTok:</span> TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET
+            </div>
+            <div className="p-2 rounded bg-secondary">
+              <span className="text-accent">App:</span> APP_URL (URL do seu app para redirecionamento)
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Configure a URL de callback OAuth em cada plataforma como:<br />
+            <code className="text-accent">https://wjzxntgpuimiubrnqfnz.supabase.co/functions/v1/oauth-callback</code>
           </p>
         </div>
       </div>
