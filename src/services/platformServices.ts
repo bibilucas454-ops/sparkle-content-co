@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // ============================================================
-// Platform Service Layer — Placeholder for future OAuth/API
+// Platform Service Layer — Real OAuth + Publish via Edge Functions
 // ============================================================
 
 export interface PlatformAccount {
@@ -16,7 +16,8 @@ export interface PlatformAccount {
 export interface PublishPayload {
   publicationTargetId: string;
   platform: string;
-  videoUrl: string;
+  uploadId: string;
+  videoUrl?: string;
   title: string;
   caption: string | null;
   hashtags: string | null;
@@ -25,98 +26,103 @@ export interface PublishPayload {
   platformSpecificCaption?: string;
 }
 
-// ---------- Connect helpers (mock / future OAuth) ----------
+// ---------- OAuth Connect helpers ----------
+
+async function initiateOAuth(platform: string): Promise<void> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData?.session) throw new Error("Faça login primeiro.");
+
+  const callbackUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oauth-callback`;
+
+  const { data, error } = await supabase.functions.invoke("oauth-connect", {
+    body: { platform, redirectUri: callbackUrl },
+  });
+
+  if (error) throw new Error(error.message || "Erro ao iniciar autenticação");
+  if (data?.error) {
+    if (data.missingSecret) {
+      throw new Error(`Credencial ausente: ${data.missingSecret}. Configure nas variáveis de ambiente do Supabase (Edge Function Secrets).`);
+    }
+    throw new Error(data.error);
+  }
+
+  if (data?.url) {
+    window.location.href = data.url;
+  } else {
+    throw new Error("URL de autenticação não retornada");
+  }
+}
 
 export async function connectYouTubeAccount(): Promise<void> {
-  // TODO: Implement YouTube OAuth 2.0 flow
-  // 1. Redirect to Google OAuth consent screen
-  // 2. Exchange code for tokens
-  // 3. Store encrypted tokens in social_accounts
-  throw new Error("Integração com YouTube ainda não disponível. Em breve!");
+  return initiateOAuth("youtube");
 }
 
 export async function connectInstagramAccount(): Promise<void> {
-  // TODO: Implement Instagram/Facebook OAuth flow
-  throw new Error("Integração com Instagram ainda não disponível. Em breve!");
+  return initiateOAuth("instagram");
 }
 
 export async function connectTikTokAccount(): Promise<void> {
-  // TODO: Implement TikTok OAuth flow
-  throw new Error("Integração com TikTok ainda não disponível. Em breve!");
+  return initiateOAuth("tiktok");
 }
 
-// ---------- Publish helpers (mock / future API) ----------
+// ---------- Token Refresh ----------
 
-async function updateTargetStatus(targetId: string, status: string, extra?: Record<string, string | null>) {
-  await supabase
-    .from("publication_targets")
-    .update({ status, updated_at: new Date().toISOString(), ...extra })
-    .eq("id", targetId);
-}
-
-async function logEvent(targetId: string, event: string, details?: string) {
-  await supabase.from("publication_logs").insert({
-    publication_target_id: targetId,
-    event,
-    details: details ?? null,
+export async function refreshPlatformToken(platform: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke("refresh-token", {
+    body: { platform },
   });
+
+  if (error) throw new Error(error.message || "Erro ao atualizar token");
+  if (data?.error) throw new Error(data.error);
 }
+
+// ---------- Publish helpers (real Edge Function calls) ----------
 
 export async function publishToYouTube(payload: PublishPayload): Promise<void> {
-  await updateTargetStatus(payload.publicationTargetId, "enviando");
-  await logEvent(payload.publicationTargetId, "enviando", "Iniciando upload para YouTube Shorts");
-
-  // Simulate processing
-  await new Promise((r) => setTimeout(r, 2000));
-  await updateTargetStatus(payload.publicationTargetId, "processando");
-  await logEvent(payload.publicationTargetId, "processando", "Vídeo sendo processado pelo YouTube");
-
-  await new Promise((r) => setTimeout(r, 2000));
-  await updateTargetStatus(payload.publicationTargetId, "publicado", {
-    platform_post_url: "https://youtube.com/shorts/mock-id",
-    platform_post_id: "mock-yt-id",
-    published_at: new Date().toISOString(),
-  });
-  await logEvent(payload.publicationTargetId, "publicado", "Publicado com sucesso no YouTube Shorts");
+  return publishToPlatform(payload);
 }
 
 export async function publishToInstagram(payload: PublishPayload): Promise<void> {
-  await updateTargetStatus(payload.publicationTargetId, "enviando");
-  await logEvent(payload.publicationTargetId, "enviando", "Iniciando upload para Instagram Reels");
-
-  await new Promise((r) => setTimeout(r, 2000));
-  await updateTargetStatus(payload.publicationTargetId, "processando");
-  await logEvent(payload.publicationTargetId, "processando", "Vídeo sendo processado pelo Instagram");
-
-  await new Promise((r) => setTimeout(r, 3000));
-  // Mock: stays processing
-  await logEvent(payload.publicationTargetId, "processando", "Aguardando aprovação do Instagram");
+  return publishToPlatform(payload);
 }
 
 export async function publishToTikTok(payload: PublishPayload): Promise<void> {
-  await updateTargetStatus(payload.publicationTargetId, "enviando");
-  await logEvent(payload.publicationTargetId, "enviando", "Iniciando upload para TikTok");
+  return publishToPlatform(payload);
+}
 
-  await new Promise((r) => setTimeout(r, 2000));
-  // Mock: error
-  await updateTargetStatus(payload.publicationTargetId, "erro", {
-    error_message: "Token expirado. Reconecte sua conta do TikTok.",
+async function publishToPlatform(payload: PublishPayload): Promise<void> {
+  const { data, error } = await supabase.functions.invoke("publish-video", {
+    body: {
+      targetId: payload.publicationTargetId,
+      platform: payload.platform,
+      uploadId: payload.uploadId,
+      title: payload.title,
+      caption: payload.caption,
+      hashtags: payload.hashtags,
+      privacyStatus: payload.privacyStatus,
+      platformSpecificTitle: payload.platformSpecificTitle,
+      platformSpecificCaption: payload.platformSpecificCaption,
+    },
   });
-  await logEvent(payload.publicationTargetId, "erro", "Falha: token expirado");
+
+  if (error) throw new Error(error.message || "Erro ao publicar");
+  if (data?.error) throw new Error(data.error);
 }
 
 export async function retryPublication(targetId: string, platform: string, payload: PublishPayload): Promise<void> {
-  await updateTargetStatus(targetId, "pendente", { error_message: null });
-  await logEvent(targetId, "retry", "Tentando publicar novamente");
+  // Reset status
+  await supabase
+    .from("publication_targets")
+    .update({ status: "pendente", error_message: null, updated_at: new Date().toISOString() })
+    .eq("id", targetId);
 
-  const publishers: Record<string, (p: PublishPayload) => Promise<void>> = {
-    youtube: publishToYouTube,
-    instagram: publishToInstagram,
-    tiktok: publishToTikTok,
-  };
+  await supabase.from("publication_logs").insert({
+    publication_target_id: targetId,
+    event: "retry",
+    details: "Tentando publicar novamente",
+  });
 
-  const fn = publishers[platform];
-  if (fn) await fn({ ...payload, publicationTargetId: targetId });
+  await publishToPlatform({ ...payload, publicationTargetId: targetId });
 }
 
 export function validateVideoForPlatforms(
@@ -150,4 +156,34 @@ export function validateVideoForPlatforms(
   }
 
   return { warnings, errors };
+}
+
+// ---------- Account Status helpers ----------
+
+export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada";
+
+export function getAccountStatus(account: PlatformAccount | null): AccountStatus {
+  if (!account) return "nao_conectada";
+  if (account.token_expires_at && new Date(account.token_expires_at) < new Date()) {
+    return "token_expirado";
+  }
+  return "conectada";
+}
+
+export function getAccountStatusLabel(status: AccountStatus): string {
+  const labels: Record<AccountStatus, string> = {
+    conectada: "Conectada",
+    token_expirado: "Token expirado",
+    nao_conectada: "Não conectada",
+  };
+  return labels[status];
+}
+
+export function getAccountStatusColor(status: AccountStatus): string {
+  const colors: Record<AccountStatus, string> = {
+    conectada: "text-green-500",
+    token_expirado: "text-yellow-500",
+    nao_conectada: "text-muted-foreground",
+  };
+  return colors[status];
 }
