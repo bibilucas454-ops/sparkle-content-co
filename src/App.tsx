@@ -15,6 +15,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PublisherHub from "./pages/PublisherHub";
 import PublisherHistory from "./pages/PublisherHistory";
 import PublisherAccounts from "./pages/PublisherAccounts";
+import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
