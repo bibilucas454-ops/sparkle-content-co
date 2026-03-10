@@ -75,15 +75,19 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, platform, types } = await req.json();
+    const { topic, platform, types, videoTitle } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const results = [];
 
+    const titleInstruction = videoTitle
+      ? `Título do vídeo definido pelo usuário: "${videoTitle}". Use este título como base principal do conteúdo.`
+      : `O usuário NÃO definiu um título. Gere um título criativo e viral como parte da resposta.`;
+
     for (const type of types) {
       const systemPrompt = `Você é um estrategista de conteúdo viral especializado em ${platform}. Você entende algoritmos, tendências e o que faz um conteúdo viralizar. Seja específico, acionável e criativo. Nunca seja genérico. REGRA OBRIGATÓRIA: Todo o conteúdo gerado DEVE ser em Português do Brasil.`;
-      const userPrompt = `Tema: "${topic}" para ${platform}.\n\n${typePrompts[type] || "Gere conteúdo criativo para este tema em Português do Brasil."}`;
+      const userPrompt = `${titleInstruction}\n\nTema: "${topic}" para ${platform}.\n\n${typePrompts[type] || "Gere conteúdo criativo para este tema em Português do Brasil."}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
