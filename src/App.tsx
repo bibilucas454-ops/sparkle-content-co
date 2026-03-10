@@ -16,6 +16,7 @@ import PublisherHub from "./pages/PublisherHub";
 import PublisherHistory from "./pages/PublisherHistory";
 import PublisherAccounts from "./pages/PublisherAccounts";
 import OAuthCallback from "./pages/OAuthCallback";
+import InstagramCallback from "./pages/InstagramCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
