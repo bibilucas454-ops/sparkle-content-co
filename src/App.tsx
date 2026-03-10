@@ -16,6 +16,7 @@ import PublisherHub from "./pages/PublisherHub";
 import PublisherHistory from "./pages/PublisherHistory";
 import PublisherAccounts from "./pages/PublisherAccounts";
 import OAuthCallback from "./pages/OAuthCallback";
+import InstagramCallback from "./pages/InstagramCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/publisher/history" element={<ProtectedRoute><PublisherHistory /></ProtectedRoute>} />
             <Route path="/publisher/accounts" element={<ProtectedRoute><PublisherAccounts /></ProtectedRoute>} />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
+            <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
             <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />
             <Route path="/hooks" element={<ProtectedRoute><HookLibrary /></ProtectedRoute>} />
             <Route path="/saved" element={<ProtectedRoute><SavedContent /></ProtectedRoute>} />
