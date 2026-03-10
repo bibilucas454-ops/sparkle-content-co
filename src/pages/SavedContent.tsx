@@ -20,7 +20,7 @@ interface ContentItem {
 
 export default function SavedContent() {
   const [items, setItems] = useState<ContentItem[]>([]);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState("Todos");
 
   const fetchItems = async () => {
     const { data } = await supabase

@@ -32,6 +32,7 @@ interface GeneratedContent {
 
 export default function GenerateContent() {
   const { user } = useAuth();
+  const [videoTitle, setVideoTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("TikTok");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["viral-idea"]);
@@ -59,7 +60,12 @@ export default function GenerateContent() {
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-content", {
-        body: { topic, platform, types: selectedTypes },
+        body: {
+          videoTitle: videoTitle.trim() || undefined,
+          topic,
+          platform,
+          types: selectedTypes,
+        },
       });
 
       if (error) throw error;
@@ -99,9 +105,20 @@ export default function GenerateContent() {
         {/* Input area */}
         <div className="rounded-lg border border-border bg-card p-6 space-y-6">
           <div>
+            <label className="text-sm text-muted-foreground mb-2 block">Título do Vídeo</label>
+            <Input
+              placeholder="Ex: O erro que está travando seu crescimento"
+              value={videoTitle}
+              onChange={(e) => setVideoTitle(e.target.value)}
+              className="bg-secondary border-border text-lg"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Opcional — se vazio, a IA gera o título automaticamente</p>
+          </div>
+
+          <div>
             <label className="text-sm text-muted-foreground mb-2 block">Tema</label>
             <Input
-              placeholder="ex: Como crescer no TikTok em 2026..."
+              placeholder="Ex: Como crescer no TikTok em 2026"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               className="bg-secondary border-border text-lg"

@@ -13,7 +13,7 @@ interface Hook {
 
 export default function HookLibrary() {
   const [hooks, setHooks] = useState<Hook[]>([]);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState("Todos");
 
   useEffect(() => {
     supabase
