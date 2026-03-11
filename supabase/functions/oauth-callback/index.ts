@@ -80,25 +80,42 @@ async function exchangeInstagramCode(code: string, redirectUri: string): Promise
     `https://graph.facebook.com/v19.0/me/accounts?access_token=${longData.access_token || tokenData.access_token}`
   );
   const pagesData = await pagesRes.json();
-  const page = pagesData.data?.[0];
-
+  
   let igAccountName = "Conta Instagram";
   let igAccountId = "";
 
-  if (page) {
-    const igRes = await fetch(
-      `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-    );
-    const igData = await igRes.json();
-    igAccountId = igData.instagram_business_account?.id || "";
-
-    if (igAccountId) {
-      const igInfoRes = await fetch(
-        `https://graph.facebook.com/v19.0/${igAccountId}?fields=username&access_token=${page.access_token}`
+  if (pagesData.data && pagesData.data.length > 0) {
+    for (const page of pagesData.data) {
+      if (!page?.id || !page?.access_token) continue;
+      
+      const igRes = await fetch(
+        `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
       );
-      const igInfo = await igInfoRes.json();
-      igAccountName = igInfo.username || igAccountName;
+      const igData = await igRes.json();
+      const possibleIgAccountId = igData.instagram_business_account?.id;
+
+      if (possibleIgAccountId) {
+        igAccountId = possibleIgAccountId;
+        
+        try {
+          const igInfoRes = await fetch(
+            `https://graph.facebook.com/v19.0/${igAccountId}?fields=username&access_token=${page.access_token}`
+          );
+          const igInfo = await igInfoRes.json();
+          if (igInfo.username) {
+             igAccountName = igInfo.username;
+          }
+        } catch (e) {
+          console.error("Erro ao buscar username do Instagram", e);
+        }
+        
+        break; // Found a valid account, stop checking other pages
+      }
     }
+  }
+
+  if (!igAccountId) {
+    throw new Error("Nenhuma conta profissional ou de criador do Instagram vinculada às suas Páginas do Facebook.");
   }
 
   return {
@@ -164,14 +181,14 @@ Deno.serve(async (req) => {
     }
 
     const state = JSON.parse(atob(stateParam));
-    const { userId, platform } = state;
+    const { userId, platform, redirectUri } = state;
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const callbackUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
+    const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
 
     let result: TokenResponse & { accountName?: string; accountId?: string };
 

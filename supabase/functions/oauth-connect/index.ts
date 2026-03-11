@@ -86,12 +86,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
+
     // Build state param with user info
-    const state = btoa(JSON.stringify({ userId, platform, ts: Date.now() }));
+    const stateObj = { userId, platform, ts: Date.now(), redirectUri: callbackUrl };
+    const state = btoa(JSON.stringify(stateObj));
 
     // Build OAuth URL per platform
     let authorizationUrl: string;
-    const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
 
     if (platform === "youtube") {
       const params = new URLSearchParams({
