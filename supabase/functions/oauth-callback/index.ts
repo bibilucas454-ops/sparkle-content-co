@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
 
 function redirectToApp(path: string): Response {
   // Use the app URL from env or construct from Supabase URL
-  const appUrl = Deno.env.get("APP_URL") || "https://id-preview--39c064e2-130c-46b6-a35b-da0bc9abb94e.lovable.app";
+  const appUrl = Deno.env.get("APP_URL") || "https://sparkle-content-co.lovable.app";
   return new Response(null, {
     status: 302,
     headers: { Location: `${appUrl}${path}`, ...corsHeaders },
