@@ -75,47 +75,77 @@ async function exchangeInstagramCode(code: string, redirectUri: string): Promise
   );
   const longData = await longRes.json();
 
-  // Get Instagram business account
+  const accessToken = longData.access_token || tokenData.access_token;
+
+  // 1. Fetch scopes/permissions to see what was granted
+  try {
+    const permsRes = await fetch(`https://graph.facebook.com/v19.0/me/permissions?access_token=${accessToken}`);
+    const permsData = await permsRes.json();
+    console.log("[IG OAuth] GET /me/permissions response:", JSON.stringify(permsData, null, 2));
+  } catch (e) {
+    console.error("[IG OAuth] Error fetching /me/permissions:", e);
+  }
+
+  // 2. Get Facebook Pages
   const pagesRes = await fetch(
-    `https://graph.facebook.com/v19.0/me/accounts?access_token=${longData.access_token || tokenData.access_token}`
+    `https://graph.facebook.com/v19.0/me/accounts?access_token=${accessToken}`
   );
   const pagesData = await pagesRes.json();
+  console.log("[IG OAuth] GET /me/accounts response:", JSON.stringify(pagesData, null, 2));
+
+  // 3. Handle empty Pages case
+  if (!pagesData.data || pagesData.data.length === 0) {
+    console.error("[IG OAuth] /me/accounts data is empty or missing:", pagesData);
+    throw new Error("O login foi concluído, mas nenhuma Página do Facebook foi retornada pela Meta para este usuário/token.");
+  }
+
+  console.log("[IG OAuth] Pages found:", pagesData.data.map((p: any) => ({ id: p.id, name: p.name })));
   
   let igAccountName = "Conta Instagram";
   let igAccountId = "";
 
-  if (pagesData.data && pagesData.data.length > 0) {
-    for (const page of pagesData.data) {
-      if (!page?.id || !page?.access_token) continue;
-      
-      const igRes = await fetch(
-        `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-      );
-      const igData = await igRes.json();
-      const possibleIgAccountId = igData.instagram_business_account?.id;
+  // 4. Check each Page for Instagram Business Account
+  for (const page of pagesData.data) {
+    if (!page?.id || !page?.access_token) {
+      console.log(`[IG OAuth] Page ${page.id} missing access_token in response.`);
+      continue;
+    }
+    
+    console.log(`[IG OAuth] Querying instagram_business_account for Page ID: ${page.id} Name: ${page.name}`);
+    const igRes = await fetch(
+      `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+    );
+    const igData = await igRes.json();
+    console.log(`[IG OAuth] Response for Page ${page.id} (instagram_business_account):`, JSON.stringify(igData, null, 2));
 
-      if (possibleIgAccountId) {
-        igAccountId = possibleIgAccountId;
-        
-        try {
-          const igInfoRes = await fetch(
-            `https://graph.facebook.com/v19.0/${igAccountId}?fields=username&access_token=${page.access_token}`
-          );
-          const igInfo = await igInfoRes.json();
-          if (igInfo.username) {
-             igAccountName = igInfo.username;
-          }
-        } catch (e) {
-          console.error("Erro ao buscar username do Instagram", e);
+    const possibleIgAccountId = igData.instagram_business_account?.id;
+
+    if (possibleIgAccountId) {
+      igAccountId = possibleIgAccountId;
+      console.log(`[IG OAuth] Found IG Business Account ID: ${igAccountId}`);
+      
+      try {
+        const igInfoRes = await fetch(
+          `https://graph.facebook.com/v19.0/${igAccountId}?fields=username&access_token=${page.access_token}`
+        );
+        const igInfo = await igInfoRes.json();
+        console.log(`[IG OAuth] IG Username response:`, JSON.stringify(igInfo, null, 2));
+        if (igInfo.username) {
+           igAccountName = igInfo.username;
         }
-        
-        break; // Found a valid account, stop checking other pages
+      } catch (e) {
+        console.error("[IG OAuth] Erro ao buscar username do Instagram", e);
       }
+      
+      break; // Found a valid account, stop checking other pages
+    } else {
+      console.log(`[IG OAuth] Page ${page.id} does not have an attached instagram_business_account.`);
     }
   }
 
+  // 5. Handle missing IG Business Account case
   if (!igAccountId) {
-    throw new Error("Nenhuma conta profissional ou de criador do Instagram vinculada às suas Páginas do Facebook.");
+    throw new Error("A Página foi retornada, mas a Meta não informou nenhuma conta Instagram conectada para esta Página.");
   }
 
   return {
