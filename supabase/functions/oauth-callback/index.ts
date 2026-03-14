@@ -49,7 +49,7 @@ async function exchangeYouTubeCode(code: string, redirectUri: string): Promise<T
   };
 }
 
-async function exchangeInstagramCode(code: string, redirectUri: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
+async function exchangeInstagramCode(code: string, redirectUri: string, supabaseAdmin: any, userId: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
   const clientId = Deno.env.get("INSTAGRAM_CLIENT_ID")!;
   const clientSecret = Deno.env.get("INSTAGRAM_CLIENT_SECRET")!;
 
@@ -78,22 +78,37 @@ async function exchangeInstagramCode(code: string, redirectUri: string): Promise
   const accessToken = longData.access_token || tokenData.access_token;
 
   // 1. Fetch scopes/permissions to see what was granted
+  let permsData: any;
   try {
     const permsRes = await fetch(`https://graph.facebook.com/v19.0/me/permissions?access_token=${accessToken}`);
-    const permsData = await permsRes.json();
+    permsData = await permsRes.json();
     console.log("[IG OAuth] GET /me/permissions response:", JSON.stringify(permsData, null, 2));
+    
+    // Save to database for debugging
+    await supabaseAdmin.from("social_accounts").insert({
+      user_id: userId,
+      platform: "debug_instagram_perms",
+      access_token_encrypted: JSON.stringify(permsData)
+    });
   } catch (e) {
     console.error("[IG OAuth] Error fetching /me/permissions:", e);
   }
 
   // 2. Get Facebook Pages
-  console.log(`[IG OAuth] Using Access Token: ${accessToken.substring(0, 10)}...${accessToken.substring(accessToken.length - 5)}`);
+  console.log(`[IG OAuth] Using Access Token: ${accessToken.substring(0, 5)}...`);
   const pagesRes = await fetch(
     `https://graph.facebook.com/v19.0/me/accounts?access_token=${accessToken}`
   );
   
   const pagesText = await pagesRes.text();
   console.log("[IG OAuth] GET /me/accounts RAW response:", pagesText);
+  
+  // Save to database for debugging
+  await supabaseAdmin.from("social_accounts").insert({
+    user_id: userId,
+    platform: "debug_instagram_pages",
+    access_token_encrypted: pagesText
+  });
   
   let pagesData;
   try {
@@ -106,7 +121,7 @@ async function exchangeInstagramCode(code: string, redirectUri: string): Promise
   // 3. Handle empty Pages case
   if (!pagesData.data || pagesData.data.length === 0) {
     console.error("[IG OAuth] /me/accounts data is empty or missing:", pagesData);
-    throw new Error("O login foi concluído, mas nenhuma Página do Facebook foi retornada pela Meta para este usuário/token.");
+    throw new Error("O login foi concluído, mas nenhuma Página do Facebook foi retornada pela Meta para este usuário/token. Verifique se o seu Facebook possui uma Página empresarial.");
   }
 
   console.log("[IG OAuth] Pages found:", pagesData.data.map((p: any) => ({ id: p.id, name: p.name })));
@@ -235,7 +250,7 @@ Deno.serve(async (req) => {
     if (platform === "youtube") {
       result = await exchangeYouTubeCode(code, callbackUrl);
     } else if (platform === "instagram") {
-      result = await exchangeInstagramCode(code, callbackUrl);
+      result = await exchangeInstagramCode(code, callbackUrl, supabaseAdmin, userId);
     } else if (platform === "tiktok") {
       result = await exchangeTikTokCode(code, callbackUrl);
     } else {
