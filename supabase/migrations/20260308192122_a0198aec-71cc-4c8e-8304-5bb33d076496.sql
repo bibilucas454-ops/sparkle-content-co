@@ -98,7 +98,7 @@ CREATE TABLE public.trends (
 ALTER TABLE public.trends ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can view trends" ON public.trends
-  FOR SELECT TO authenticated USING (true);
+  FOR SELECT TO authenticated USING (true = true);
 
 -- Seed some initial hooks
 INSERT INTO public.hooks (hook_text, category, platform, is_public) VALUES
