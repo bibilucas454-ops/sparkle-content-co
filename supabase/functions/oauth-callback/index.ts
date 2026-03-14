@@ -87,11 +87,21 @@ async function exchangeInstagramCode(code: string, redirectUri: string): Promise
   }
 
   // 2. Get Facebook Pages
+  console.log(`[IG OAuth] Using Access Token: ${accessToken.substring(0, 10)}...${accessToken.substring(accessToken.length - 5)}`);
   const pagesRes = await fetch(
     `https://graph.facebook.com/v19.0/me/accounts?access_token=${accessToken}`
   );
-  const pagesData = await pagesRes.json();
-  console.log("[IG OAuth] GET /me/accounts response:", JSON.stringify(pagesData, null, 2));
+  
+  const pagesText = await pagesRes.text();
+  console.log("[IG OAuth] GET /me/accounts RAW response:", pagesText);
+  
+  let pagesData;
+  try {
+    pagesData = JSON.parse(pagesText);
+  } catch (e) {
+    console.error("[IG OAuth] Failed to parse /me/accounts response as JSON:", e);
+    throw new Error("Erro ao interpretar resposta da Meta (Pages).");
+  }
 
   // 3. Handle empty Pages case
   if (!pagesData.data || pagesData.data.length === 0) {
