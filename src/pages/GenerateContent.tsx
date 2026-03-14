@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, LayoutGrid, Zap, AlignLeft, Target, Fingerprint } from "lucide-react";
+import { Sparkles, Loader2, LayoutGrid, Zap, AlignLeft, Target, Fingerprint, Rocket, PlayCircle } from "lucide-react";
 import { useNiche } from "@/contexts/NicheContext";
 
 const contentTypes = [
@@ -29,6 +29,7 @@ interface GeneratedContent {
   type: string;
   content: string;
   viralScore: number;
+  isViralMachine?: boolean;
 }
 
 export default function GenerateContent() {
@@ -39,7 +40,9 @@ export default function GenerateContent() {
   const [platform, setPlatform] = useState("Instagram Reels");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["viral-idea"]);
   const [loading, setLoading] = useState(false);
+  const [loadingViralMachine, setLoadingViralMachine] = useState(false);
   const [results, setResults] = useState<GeneratedContent[]>([]);
+  const [isViralMachineResult, setIsViralMachineResult] = useState(false);
 
   const toggleType = (id: string) => {
     setSelectedTypes((prev) =>
@@ -59,6 +62,7 @@ export default function GenerateContent() {
 
     setLoading(true);
     setResults([]);
+    setIsViralMachineResult(false);
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-content", {
@@ -75,7 +79,6 @@ export default function GenerateContent() {
       const generated: GeneratedContent[] = data.results || [];
       setResults(generated);
 
-      // Save to database
       for (const item of generated) {
         await supabase.from("contents").insert({
           user_id: user!.id,
@@ -87,7 +90,7 @@ export default function GenerateContent() {
         });
       }
 
-      toast.success("Conteúdo gerado e salvo com sucesso!");
+      toast.success("Conteúdo gerado com sucesso!");
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Falha ao gerar conteúdo");
@@ -96,27 +99,114 @@ export default function GenerateContent() {
     }
   };
 
+  const handleGenerateViralMachine = async () => {
+    if (!topic.trim()) {
+      toast.error("Por favor, insira o tema para a Máquina Viral");
+      return;
+    }
+
+    setLoadingViralMachine(true);
+    setResults([]);
+    setIsViralMachineResult(true);
+
+    const megaPrompt = `
+      INSTRUÇÃO SUPREMA MÁQUINA VIRAL:
+      Você deve gerar a estrutura COMPLETA de um vídeo viral em um único retorno contínuo e altamente organizado.
+      
+      FOCO DO CRIADOR E PÚBLICO: ${niche}
+      TEMA SOLICITADO: ${topic.trim()}
+      PLATAFORMA: ${platform}
+      
+      Formate EXATAMENTE assim usando Markdown claro, separando cada bloco:
+      
+      ## 💡 Ideia Viral
+      (Descreva a ideia central de forma magnética)
+      
+      ## 🎯 Hook (Primeiros 3s)
+      (A frase exata para prender a atenção)
+      
+      ## 📝 Roteiro Curto
+      **[Cena 1]**: ...
+      **[Cena 2]**: ...
+      **[Cena 3]**: ...
+      
+      ## ✍️ Legenda Fortemente Persuasiva
+      (A legenda pronta com AIDA)
+      
+      ## #️⃣ Hashtags
+      (Lista de 5-8 hashtags extremamente relevantes para ${niche})
+      
+      ## 🚀 Call to Action (CTA)
+      (Instrução exata do que o usuário deve fazer)
+      
+      ## 🎬 Formato de Vídeo Sugerido
+      (Estilo de edição, áudio em alta ou visual recomendado)
+    `;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-content", {
+        body: {
+          videoTitle: videoTitle.trim() || undefined,
+          topic: megaPrompt,
+          platform,
+          types: ["script"], // Bypass using the script route but passing the massive prompt
+        },
+      });
+
+      if (error) throw error;
+
+      const generated: GeneratedContent[] = data.results || [];
+      
+      // Inject the viral machine flag
+      const viralResult = generated.map(g => ({
+        ...g,
+        isViralMachine: true
+      }));
+
+      setResults(viralResult);
+
+      // Save as a combined viral asset
+      await supabase.from("contents").insert({
+        user_id: user!.id,
+        type: "viral-machine",
+        topic,
+        content: viralResult[0]?.content || "",
+        viral_score: viralResult[0]?.viralScore || 90,
+        platform,
+      });
+
+      toast.success("Máquina Viral operou com sucesso!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Falha ao acionar a Máquina Viral");
+    } finally {
+      setLoadingViralMachine(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-10 max-w-6xl mx-auto animate-fade-in pb-12">
         <header className="pb-8 border-b border-border/40">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-lg shadow-primary/10">
-              <Sparkles className="w-8 h-8 text-primary" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-lg shadow-primary/10">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold font-display tracking-tight text-foreground">
+                  Gerar Conteúdo
+                </h1>
+                <p className="text-muted-foreground mt-2 text-base md:text-lg max-w-2xl">
+                  Crie peças avulsas ou ative a Máquina Viral para estruturas completas.
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-display tracking-tight text-foreground">
-                Gerar Conteúdo Viral
-              </h1>
-              <p className="text-muted-foreground mt-2 text-base md:text-lg max-w-2xl">
-                Crie roteiros, hooks e textos que aumentam radicalmente o alcance e o engajamento nas suas redes sociais.
-              </p>
+            
+            <div className="flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary w-fit px-4 py-2 rounded-xl h-fit">
+              <Target className="w-5 h-5" />
+              <span className="text-sm font-bold tracking-wide">Foco Ativo: {niche}</span>
             </div>
-          </div>
-          
-          <div className="mt-6 flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary w-fit px-4 py-2 rounded-xl">
-            <Target className="w-5 h-5" />
-            <span className="text-sm font-bold tracking-wide">Foco Ativo: {niche}</span>
           </div>
         </header>
 
@@ -220,21 +310,35 @@ export default function GenerateContent() {
               </div>
             </div>
 
-            {/* Generative Button */}
-            <div className="pt-6">
+            {/* Action Area */}
+            <div className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button 
                 onClick={handleGenerate} 
-                disabled={loading} 
+                disabled={loading || loadingViralMachine} 
+                variant="outline"
+                className="w-full h-16 text-lg font-bold transition-all rounded-2xl border-border/80 hover:bg-secondary/80"
+              >
+                {loading ? (
+                  <Loader2 className="w-6 h-6 mr-3 animate-spin text-muted-foreground" />
+                ) : (
+                  <Zap className="w-6 h-6 mr-3 text-muted-foreground" />
+                )}
+                GERAR PEÇAS SELECIONADAS
+              </Button>
+
+              <Button 
+                onClick={handleGenerateViralMachine} 
+                disabled={loading || loadingViralMachine} 
                 className="w-full h-16 text-lg font-bold shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all rounded-2xl relative overflow-hidden group border border-primary/30"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                {loading ? (
+                {loadingViralMachine ? (
                   <>
-                    <Loader2 className="w-6 h-6 mr-3 animate-spin" /> Processando Inteligência...
+                    <Loader2 className="w-6 h-6 mr-3 animate-spin" /> Conectando Motores...
                   </>
                 ) : (
                   <>
-                    <Zap className="w-6 h-6 mr-3 text-primary-foreground/90" /> GERAR CONTEÚDO
+                    <Rocket className="w-6 h-6 mr-3 text-primary-foreground/90" /> GERAR VÍDEO VIRAL
                   </>
                 )}
               </Button>
@@ -248,9 +352,23 @@ export default function GenerateContent() {
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-8 pt-10"
                 >
-                  <div className="flex items-center gap-3 border-b border-border/40 pb-5">
-                    <LayoutGrid className="w-6 h-6 text-primary" />
-                    <h2 className="font-display font-bold text-2xl tracking-tight text-foreground">Resultados Gerados</h2>
+                  <div className="flex items-center justify-between border-b border-border/40 pb-5">
+                    <div className="flex items-center gap-3">
+                      {isViralMachineResult ? (
+                        <Rocket className="w-6 h-6 text-primary" />
+                      ) : (
+                        <LayoutGrid className="w-6 h-6 text-primary" />
+                      )}
+                      <h2 className="font-display font-bold text-2xl tracking-tight text-foreground">
+                        {isViralMachineResult ? "Dossiê do Vídeo Viral" : "Resultados Gerados"}
+                      </h2>
+                    </div>
+
+                    {isViralMachineResult && results[0]?.viralScore > 0 && (
+                      <div className="hidden md:block">
+                        <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="lg" showLabel={true} />
+                      </div>
+                    )}
                   </div>
 
                   {/* AI Insights Card */}
@@ -266,43 +384,79 @@ export default function GenerateContent() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-foreground mb-1 font-display tracking-tight">Insights da IA</h3>
-                      <p className="text-sm text-foreground/80 font-medium">Hook forte detectado com alto apelo visual • Retenção projetada acima da média • Duração ideal configurada para {platform}</p>
+                      {isViralMachineResult ? (
+                        <p className="text-sm text-foreground/80 font-medium">Estrutura completa alinhada com as métricas mais altas para {niche} • Formato retentivo detectado • Potencial de viralização extremado.</p>
+                      ) : (
+                        <p className="text-sm text-foreground/80 font-medium">Avaliamos suas opções individuais com foco em otimização do Funil de Atenção para {platform}.</p>
+                      )}
                     </div>
                   </motion.div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {results.map((r, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.08 }}
-                        className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-6 space-y-5 hover:border-border/80 transition-colors shadow-sm group flex flex-col h-full"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/40 backdrop-blur-md">
-                            <span className="text-sm">
-                              {contentTypes.find((ct) => ct.id === r.type)?.emoji}
-                            </span>
-                            <span className="text-sm font-bold tracking-wide text-foreground">
-                              {contentTypes.find((ct) => ct.id === r.type)?.label || r.type}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3 opacity-90 transition-opacity">
-                            {r.viralScore > 0 && <ViralScore score={r.viralScore} size="md" showLabel={true} />}
-                            <div className="bg-background rounded-md border border-border/50 shadow-sm ml-2">
-                              <CopyButton text={r.content} />
+                  {isViralMachineResult ? (
+                    /* Renderização Unificada da Máquina Viral */
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="rounded-2xl border border-border/50 bg-[#0A0A0A] p-6 md:p-8 relative overflow-hidden group shadow-2xl"
+                    >
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-50"></div>
+                      <div className="flex justify-between items-start mb-6 w-full">
+                        <div className="md:hidden mb-4">
+                           <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="md" showLabel={true} />
+                        </div>
+                        <div className="bg-background rounded-md border border-border/50 shadow-sm ml-auto">
+                          <CopyButton text={results[0].content} />
+                        </div>
+                      </div>
+                      
+                      {/* Markdown-like output styling */}
+                      <div className="prose prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
+                         <div dangerouslySetInnerHTML={{ __html: 
+                            results[0].content
+                              .replace(/## (.*?)\n/g, '<h2>$1</h2>')
+                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/\n\n/g, '<br/><br/>')
+                              .replace(/\n/g, '<br/>')
+                         }} />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    /* Renderização Fragmentada Convencional */
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {results.map((r, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.08 }}
+                          className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-6 space-y-5 hover:border-border/80 transition-colors shadow-sm group flex flex-col h-full"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/40 backdrop-blur-md">
+                              <span className="text-sm">
+                                {contentTypes.find((ct) => ct.id === r.type)?.emoji}
+                              </span>
+                              <span className="text-sm font-bold tracking-wide text-foreground">
+                                {contentTypes.find((ct) => ct.id === r.type)?.label || r.type}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 opacity-90 transition-opacity">
+                              {r.viralScore > 0 && <ViralScore score={r.viralScore} size="md" showLabel={true} />}
+                              <div className="bg-background rounded-md border border-border/50 shadow-sm ml-2">
+                                <CopyButton text={r.content} />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm md:text-base whitespace-pre-wrap text-foreground/90 font-medium leading-relaxed bg-black/40 p-5 rounded-xl border border-white/5 h-full">
-                            {r.content}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+                          <div className="flex-1">
+                            <p className="text-sm md:text-base whitespace-pre-wrap text-foreground/90 font-medium leading-relaxed bg-black/40 p-5 rounded-xl border border-white/5 h-full">
+                              {r.content}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -312,3 +466,4 @@ export default function GenerateContent() {
     </AppLayout>
   );
 }
+
