@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { NicheProvider } from "@/contexts/NicheContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import GenerateContent from "./pages/GenerateContent";
@@ -45,26 +46,28 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/generate" element={<ProtectedRoute><GenerateContent /></ProtectedRoute>} />
-            <Route path="/publisher" element={<ProtectedRoute><PublisherHub /></ProtectedRoute>} />
-            <Route path="/publisher/history" element={<ProtectedRoute><PublisherHistory /></ProtectedRoute>} />
-            <Route path="/publisher/accounts" element={<ProtectedRoute><PublisherAccounts /></ProtectedRoute>} />
-            <Route path="/oauth/callback" element={<OAuthCallback />} />
-            <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
-            <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />
-            <Route path="/hooks" element={<ProtectedRoute><HookLibrary /></ProtectedRoute>} />
-            <Route path="/prompt-grok" element={<ProtectedRoute><GrokPrompt /></ProtectedRoute>} />
-            <Route path="/saved" element={<ProtectedRoute><SavedContent /></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <NicheProvider>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/generate" element={<ProtectedRoute><GenerateContent /></ProtectedRoute>} />
+              <Route path="/publisher" element={<ProtectedRoute><PublisherHub /></ProtectedRoute>} />
+              <Route path="/publisher/history" element={<ProtectedRoute><PublisherHistory /></ProtectedRoute>} />
+              <Route path="/publisher/accounts" element={<ProtectedRoute><PublisherAccounts /></ProtectedRoute>} />
+              <Route path="/oauth/callback" element={<OAuthCallback />} />
+              <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
+              <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />
+              <Route path="/hooks" element={<ProtectedRoute><HookLibrary /></ProtectedRoute>} />
+              <Route path="/prompt-grok" element={<ProtectedRoute><GrokPrompt /></ProtectedRoute>} />
+              <Route path="/saved" element={<ProtectedRoute><SavedContent /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </NicheProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

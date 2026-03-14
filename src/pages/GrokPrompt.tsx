@@ -3,11 +3,13 @@ import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/CopyButton";
-import { Bot, Sparkles, Terminal, Code2 } from "lucide-react";
+import { Bot, Sparkles, Terminal, Code2, Target } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useNiche } from "@/contexts/NicheContext";
 
 export default function GrokPrompt() {
+  const { niche } = useNiche();
   const [tema, setTema] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
 
@@ -19,6 +21,7 @@ export default function GrokPrompt() {
 
     const prompt = `Crie um roteiro curto e altamente viral para vídeo curto estilo TikTok / Reels / Shorts.
 
+Público Alvo / Nicho do Criador: ${niche}
 Tema: ${tema.trim()}
 
 Estrutura obrigatória:
@@ -62,6 +65,10 @@ Formato:
                 Engenharia de prompt otimizada para o motor Grok da xAI produzir roteiros estelares.
               </p>
             </div>
+          </div>
+          <div className="mt-6 flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary w-fit px-4 py-2 rounded-xl">
+            <Target className="w-5 h-5" />
+            <span className="text-sm font-bold tracking-wide">Foco Ativo: {niche}</span>
           </div>
         </header>
 

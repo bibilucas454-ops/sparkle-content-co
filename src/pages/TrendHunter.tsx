@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2, Compass, Hash, Film, Zap, Plus, TrendingUp, Flame, Rocket, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useNiche } from "@/contexts/NicheContext";
 
 interface Trend {
   id: string;
@@ -40,9 +41,12 @@ const DEFAULT_NICHES = [
 ];
 
 export default function TrendHunter() {
+  const { niche, setNiche, customNiches, addCustomNiche } = useNiche();
   const [trends, setTrends] = useState<Trend[]>([]);
-  const [nicheFilter, setNicheFilter] = useState("Todos");
-  const [customNiches, setCustomNiches] = useState<string[]>([]);
+  
+  // We sync local filter with global niche to start, but allow user to explore
+  const [nicheFilter, setNicheFilter] = useState(niche);
+  
   const [analyzing, setAnalyzing] = useState(false);
   const [isAddingNiche, setIsAddingNiche] = useState(false);
   const [newNiche, setNewNiche] = useState("");
@@ -57,15 +61,12 @@ export default function TrendHunter() {
 
   useEffect(() => {
     fetchTrends();
-    const saved = localStorage.getItem("creatoros_custom_niches");
-    if (saved) {
-      try {
-        setCustomNiches(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error parsing saved niches", e);
-      }
-    }
   }, []);
+
+  // Update filter if global niche changes elsewhere, but don't force it continuously
+  useEffect(() => {
+    setNicheFilter(niche);
+  }, [niche]);
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
@@ -94,9 +95,7 @@ export default function TrendHunter() {
       return;
     }
 
-    const updated = [...customNiches, formattedNiche];
-    setCustomNiches(updated);
-    localStorage.setItem("creatoros_custom_niches", JSON.stringify(updated));
+    addCustomNiche(formattedNiche);
     setNicheFilter(formattedNiche);
     setNewNiche("");
     setIsAddingNiche(false);

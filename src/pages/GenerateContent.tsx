@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Loader2, LayoutGrid, Zap, AlignLeft, Target, Fingerprint } from "lucide-react";
+import { useNiche } from "@/contexts/NicheContext";
 
 const contentTypes = [
   { id: "viral-idea", label: "Ideia Viral", emoji: "💡" },
@@ -32,6 +33,7 @@ interface GeneratedContent {
 
 export default function GenerateContent() {
   const { user } = useAuth();
+  const { niche } = useNiche();
   const [videoTitle, setVideoTitle] = useState("");
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("Instagram Reels");
@@ -62,7 +64,7 @@ export default function GenerateContent() {
       const { data, error } = await supabase.functions.invoke("generate-content", {
         body: {
           videoTitle: videoTitle.trim() || undefined,
-          topic,
+          topic: `${topic.trim()} (Focado no nicho: ${niche})`,
           platform,
           types: selectedTypes,
         },
@@ -110,6 +112,11 @@ export default function GenerateContent() {
                 Crie roteiros, hooks e textos que aumentam radicalmente o alcance e o engajamento nas suas redes sociais.
               </p>
             </div>
+          </div>
+          
+          <div className="mt-6 flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary w-fit px-4 py-2 rounded-xl">
+            <Target className="w-5 h-5" />
+            <span className="text-sm font-bold tracking-wide">Foco Ativo: {niche}</span>
           </div>
         </header>
 
