@@ -34,7 +34,7 @@ const navGroups: NavGroup[] = [
     items: [
       { path: "/publisher", label: "Publicar", icon: Upload },
       { path: "/saved", label: "Conteúdo Salvo", icon: Save },
-      { path: "/publisher/history", label: "Histórico", icon: History },
+      { path: "/publisher/history", label: "Histórico de Publicações", icon: History },
       { path: "/calendar", label: "Calendário", icon: Calendar },
     ]
   },
@@ -66,11 +66,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const renderNavLinks = (isMobile = false) => (
     <div className="space-y-6">
       {navGroups.map((group) => (
-        <div key={group.label} className="space-y-1">
-          <h4 className="px-3 text-xs font-semibold text-muted-foreground/60 tracking-wider mb-2">
+        <div key={group.label} className="space-y-1 mb-4">
+          <h4 className="px-3 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest mb-2">
             {group.label}
           </h4>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {group.items.map((item) => {
               const active = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
               return (
@@ -78,13 +78,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden ${
                     active
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                      ? "bg-secondary/80 text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
+                  {active && (
+                    <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-primary rounded-r-md"></div>
+                  )}
+                  <item.icon className={`w-4 h-4 transition-colors duration-300 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground/80"}`} />
                   {item.label}
                 </Link>
               );
@@ -92,12 +95,12 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       ))}
-      <div className="pt-4 mt-4 border-t border-border">
+      <div className="pt-4 mt-8 border-t border-border/50">
         <button
           onClick={() => { signOut(); isMobile && setMobileOpen(false); }}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors w-full"
+          className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors w-full"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4 group-hover:text-destructive transition-colors" />
           Sair
         </button>
       </div>

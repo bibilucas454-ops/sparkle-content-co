@@ -49,7 +49,7 @@ export function DashboardStats({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1, duration: 0.4 }}
         >
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden relative group hover:border-border transition-colors">
+          <Card className="glow-card border-border/50 bg-card/60 backdrop-blur-xl overflow-hidden relative group hover:border-border/80 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">

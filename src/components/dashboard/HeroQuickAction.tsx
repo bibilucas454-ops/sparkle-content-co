@@ -12,13 +12,13 @@ export function HeroQuickAction() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.3, duration: 0.5 }}
     >
-      <Card className="border-accent/20 bg-gradient-to-br from-accent/10 via-card to-card overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Sparkles className="w-32 h-32" />
+      <Card className="glow-card border-primary/20 bg-gradient-to-br from-primary/10 via-card/80 to-card/60 backdrop-blur-xl overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 group-hover:opacity-20 transition-all duration-700">
+          <Sparkles className="w-32 h-32 text-primary" />
         </div>
         <CardContent className="p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 max-w-xl">
-            <h2 className="text-2xl sm:text-3xl font-bold font-display text-gradient-accent flex items-center gap-2">
+            <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground flex items-center gap-2">
               <Sparkles className="w-6 h-6 md:hidden text-accent" />
               Gerar Conteúdo Viral
             </h2>
@@ -30,7 +30,8 @@ export function HeroQuickAction() {
           <Button
             asChild
             size="lg"
-            className="w-full sm:w-auto font-medium shadow-glow gap-2"
+            variant="glow"
+            className="w-full sm:w-auto font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 gap-2 h-14 rounded-xl text-[15px]"
           >
             <Link to="/generate">
               Começar a criar

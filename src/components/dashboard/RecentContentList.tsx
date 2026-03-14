@@ -22,7 +22,7 @@ export function RecentContentList({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
     >
-      <Card className="h-full border-border/50 bg-card/30">
+      <Card className="glow-card h-full border-border/50 bg-card/60 backdrop-blur-xl">
         <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2 font-display">
             <Clock className="w-5 h-5 text-blue-500" />
