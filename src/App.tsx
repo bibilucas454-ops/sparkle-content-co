@@ -19,6 +19,7 @@ import PublisherAccounts from "./pages/PublisherAccounts";
 import OAuthCallback from "./pages/OAuthCallback";
 import InstagramCallback from "./pages/InstagramCallback";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
