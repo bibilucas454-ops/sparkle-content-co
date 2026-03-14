@@ -282,8 +282,8 @@ export default function GenerateContent() {
                             </span>
                           </div>
                           <div className="flex items-center gap-3 opacity-90 transition-opacity">
-                            {r.viralScore > 0 && <ViralScore score={r.viralScore} size="sm" />}
-                            <div className="bg-background rounded-md border border-border/50 shadow-sm">
+                            {r.viralScore > 0 && <ViralScore score={r.viralScore} size="md" showLabel={true} />}
+                            <div className="bg-background rounded-md border border-border/50 shadow-sm ml-2">
                               <CopyButton text={r.content} />
                             </div>
                           </div>

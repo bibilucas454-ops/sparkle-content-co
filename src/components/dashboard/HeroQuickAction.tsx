@@ -1,45 +1,53 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Sparkles, ArrowRight, Zap, Bot, BookOpen } from "lucide-react";
 
 export function HeroQuickAction() {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.3, duration: 0.5 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.5 }}
+      className="text-center md:text-left space-y-6 bg-gradient-to-br from-card/30 via-background to-background p-6 md:p-10 rounded-3xl border border-border/50 relative overflow-hidden"
     >
-      <Card className="glow-card border-primary/20 bg-gradient-to-br from-primary/10 via-card/80 to-card/60 backdrop-blur-xl overflow-hidden relative group">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none group-hover:scale-110 group-hover:opacity-20 transition-all duration-700">
-          <Sparkles className="w-32 h-32 text-primary" />
-        </div>
-        <CardContent className="p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3 max-w-xl">
-            <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground flex items-center gap-2">
-              <Sparkles className="w-6 h-6 md:hidden text-accent" />
-              Gerar Conteúdo Viral
-            </h2>
-            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
-              Sem ideias hoje? Nossa IA analisa o que está em alta no seu nicho e
-              cria roteiros, legendas e ganchos prontos para viralizar.
-            </p>
-          </div>
-          <Button
-            asChild
-            size="lg"
-            variant="glow"
-            className="w-full sm:w-auto font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 gap-2 h-14 rounded-xl text-[15px]"
-          >
-            <Link to="/generate">
-              Começar a criar
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="absolute top-0 right-0 w-full h-[500px] bg-primary/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+      
+      <div className="space-y-4 relative z-10 max-w-3xl">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-foreground leading-[1.1]">
+          Painel do CreatorOS
+        </h1>
+        <p className="text-lg md:text-xl text-muted-foreground/90 font-medium">
+          Crie conteúdos virais, analise tendências e publique com inteligência artificial.
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 relative z-10">
+        <Link 
+          to="/generate"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all text-[15px] border border-primary/50 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          <Zap className="w-5 h-5 relative z-10" />
+          <span className="relative z-10">Gerar Conteúdo</span>
+        </Link>
+        
+        <Link 
+          to="/hooks"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-secondary/80 hover:bg-secondary text-foreground font-semibold rounded-xl border border-border/60 hover:border-border transition-all text-[15px]"
+        >
+          <BookOpen className="w-5 h-5 opacity-70" />
+          Biblioteca de Hooks
+        </Link>
+        
+        <Link 
+          to="/grok-prompt"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-secondary/80 hover:bg-secondary text-foreground font-semibold rounded-xl border border-border/60 hover:border-border transition-all text-[15px]"
+        >
+          <Bot className="w-5 h-5 opacity-70" />
+          Prompt para Grok
+        </Link>
+      </div>
     </motion.div>
   );
 }
