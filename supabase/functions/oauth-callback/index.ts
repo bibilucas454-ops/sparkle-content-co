@@ -121,7 +121,7 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   // 3. Handle empty Pages case
   if (!pagesData.data || pagesData.data.length === 0) {
     console.error("[IG OAuth] /me/accounts data is empty or missing:", pagesData);
-    throw new Error("O login foi concluído, mas nenhuma Página do Facebook foi retornada pela Meta para este usuário/token. Verifique se o seu Facebook possui uma Página empresarial.");
+    throw new Error(`O login foi concluído, mas a Meta retornou as seguintes páginas: ${JSON.stringify(pagesData)}. Verifique no Facebook se você concedeu as permissões.`);
   }
 
   console.log("[IG OAuth] Pages found:", pagesData.data.map((p: any) => ({ id: p.id, name: p.name })));
