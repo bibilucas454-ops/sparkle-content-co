@@ -74,9 +74,22 @@ export default function GenerateContent() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = error.message;
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            const errData = await error.context.json();
+            if (errData && errData.error) {
+              errorMessage = errData.error;
+            }
+          }
+        } catch (e) {
+          console.error("Could not parse error context:", e);
+        }
+        throw new Error(errorMessage);
+      }
 
-      const generated: GeneratedContent[] = data.results || [];
+      const generated: GeneratedContent[] = data?.results || [];
       setResults(generated);
 
       for (const item of generated) {
@@ -153,9 +166,22 @@ export default function GenerateContent() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = error.message;
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            const errData = await error.context.json();
+            if (errData && errData.error) {
+              errorMessage = errData.error;
+            }
+          }
+        } catch (e) {
+          console.error("Could not parse error context:", e);
+        }
+        throw new Error(errorMessage);
+      }
 
-      const generated: GeneratedContent[] = data.results || [];
+      const generated: GeneratedContent[] = data?.results || [];
       
       // Inject the viral machine flag
       const viralResult = generated.map(g => ({

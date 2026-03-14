@@ -22,7 +22,7 @@ export function FeatureBlocks() {
       title: "Prompt Grok",
       description: "Estrutura pronta para gerar roteiros virais usando IA avançada.",
       icon: <Bot className="w-6 h-6 text-green-500" />,
-      link: "/grok-prompt",
+      link: "/prompt-grok",
     },
     {
       title: "Legenda AIDA",

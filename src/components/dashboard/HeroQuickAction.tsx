@@ -41,7 +41,7 @@ export function HeroQuickAction() {
         </Link>
         
         <Link 
-          to="/grok-prompt"
+          to="/prompt-grok"
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-secondary/80 hover:bg-secondary text-foreground font-semibold rounded-xl border border-border/60 hover:border-border transition-all text-[15px]"
         >
           <Bot className="w-5 h-5 opacity-70" />

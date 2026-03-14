@@ -20,4 +20,4 @@ entrypoint = "./functions/cron-scheduler/index.ts"
 # static_files = [ "./functions/cron-scheduler/*.html" ]
 
 [functions.generate-content]
-verify_jwt = true
+verify_jwt = false
