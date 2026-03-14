@@ -21,7 +21,7 @@ const PLATFORM_CONFIG: Record<string, {
   },
   instagram: {
     authUrl: "https://www.facebook.com/v19.0/dialog/oauth",
-    scopes: "instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement",
+    scopes: "instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement,business_management",
     clientIdEnv: "INSTAGRAM_CLIENT_ID",
     clientSecretEnv: "INSTAGRAM_CLIENT_SECRET",
   },
