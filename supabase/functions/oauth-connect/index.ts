@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken, decryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,6 +37,47 @@ const PLATFORM_CONFIG: Record<string, {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Ad hoc endpoint: Encrypt existing tokens to migrate old data
+  if (new URL(req.url).pathname.endsWith("encrypt-migrator")) {
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader !== `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { data: accounts, error } = await supabaseAdmin.from("social_accounts").select("*");
+    if (error) return new Response(error.message, { status: 500 });
+
+    let migrated = 0;
+    for (const acc of accounts) {
+      // Very basic check to try and prevent double encryption (AES output is base64 and longer than typical oauth tokens but doesn't have a specific header. If it decrypts cleanly it might be encrypted, but if it throws or returns same string it's plain text)
+      const testAccess = acc.access_token_encrypted;
+      let alreadyEncrypted = false;
+      try {
+         // Attempt to decrypt it. If it successfully decrypts to something different or the same length, but throws otherwise. Our decrypt function catches and returns the original if it fails.
+         const res = await decryptToken(testAccess);
+         if (res !== testAccess) alreadyEncrypted = true; 
+      } catch (e) {}
+
+      if (!alreadyEncrypted) {
+         const encAccess = await encryptToken(acc.access_token_encrypted);
+         const encRefresh = acc.refresh_token_encrypted ? await encryptToken(acc.refresh_token_encrypted) : null;
+
+         await supabaseAdmin.from("social_accounts").update({
+            access_token_encrypted: encAccess,
+            refresh_token_encrypted: encRefresh
+         }).eq("id", acc.id);
+         migrated++;
+      }
+    }
+    
+    return new Response(`Migrated ${migrated} accounts to AES-GCM.`, { status: 200 });
   }
 
   try {
@@ -89,8 +131,26 @@ Deno.serve(async (req) => {
     const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
 
     // Build state param with user info
-    const stateObj = { userId, platform, ts: Date.now(), redirectUri: callbackUrl };
-    const state = btoa(JSON.stringify(stateObj));
+    // Generate state in DB to prevent CSRF / State tampering
+    const { data: stateData, error: stateError } = await supabase
+      .from("oauth_states")
+      .insert({
+        user_id: userId,
+        platform,
+        redirect_uri: callbackUrl,
+      })
+      .select("id")
+      .single();
+
+    if (stateError || !stateData) {
+      console.error("Error creating oauth state:", stateError);
+      return new Response(JSON.stringify({ error: "Erro ao gerar estado seguro para autenticação." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const state = stateData.id;
 
     // Build OAuth URL per platform
     let authorizationUrl: string;

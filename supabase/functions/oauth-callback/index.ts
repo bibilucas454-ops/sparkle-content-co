@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -235,13 +236,27 @@ Deno.serve(async (req) => {
       return redirectToApp("/oauth/callback?error=Parâmetros inválidos");
     }
 
-    const state = JSON.parse(atob(stateParam));
-    const { userId, platform, redirectUri } = state;
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+    
+    // Validate secure state instead of decoding unsafe Base64
+    const { data: stateData, error: stateError } = await supabaseAdmin
+      .from("oauth_states")
+      .delete() // 1-time use, prevents replay attacks
+      .eq("id", stateParam)
+      .select()
+      .single();
+
+    if (stateError || !stateData) {
+      console.error("Invalid or expired OAuth state:", stateParam);
+      return redirectToApp("/oauth/callback?error=Sessão OAuth inválida ou expirada");
+    }
+
+    const userId = stateData.user_id;
+    const platform = stateData.platform;
+    const redirectUri = stateData.redirect_uri;
 
     const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
 
@@ -269,13 +284,19 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .eq("platform", platform);
 
+    // Encrypt the sensitive tokens before saving
+    const encryptedAccess = await encryptToken(result.access_token);
+    const encryptedRefresh = result.refresh_token 
+      ? await encryptToken(result.refresh_token) 
+      : null;
+
     const { error: insertError } = await supabaseAdmin.from("social_accounts").insert({
       user_id: userId,
       platform,
       account_name: result.accountName || null,
       account_id: result.accountId || null,
-      access_token_encrypted: result.access_token,
-      refresh_token_encrypted: result.refresh_token || null,
+      access_token_encrypted: encryptedAccess,
+      refresh_token_encrypted: encryptedRefresh,
       token_expires_at: expiresAt,
     });
 

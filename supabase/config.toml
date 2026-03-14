@@ -1,13 +1,3 @@
-project_id = "wjzxntgpuimiubrnqfnz"
-
-[functions.generate-content]
-verify_jwt = false
-
-[functions.analyze-trends]
-verify_jwt = false
-
-[functions.oauth-connect]
-verify_jwt = false
 
 [functions.oauth-callback]
 verify_jwt = false

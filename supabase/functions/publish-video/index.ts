@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { decryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -404,7 +405,7 @@ Deno.serve(async (req) => {
     // Token Expiry / Refresh (omitted complex refresh logic inline or assumes it's handled; we can do a brief check)
     // For brevity, assuming token is valid or using the existing `refreshToken` logic outside if needed. 
     // In production, we'd place the full refresh logic here. 
-    const accessToken = account.access_token_encrypted!;
+    const accessToken = await decryptToken(account.access_token_encrypted!);
 
     // ====== Download Media Bytes ======
     console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
