@@ -157,6 +157,127 @@ export type Database = {
         }
         Relationships: []
       }
+      post_media: {
+        Row: {
+          created_at: string
+          id: string
+          media_type: string
+          publication_id: string
+          sort_order: number
+          upload_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          media_type?: string
+          publication_id: string
+          sort_order?: number
+          upload_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          media_type?: string
+          publication_id?: string
+          sort_order?: number
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_media_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      publication_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          error_message: string | null
+          http_status: number | null
+          id: string
+          publication_job_id: string
+        }
+        Insert: {
+          attempt_number: number
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          publication_job_id: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          error_message?: string | null
+          http_status?: number | null
+          id?: string
+          publication_job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_attempts_publication_job_id_fkey"
+            columns: ["publication_job_id"]
+            isOneToOne: false
+            referencedRelation: "publication_jobs"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      publication_jobs: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          publication_target_id: string
+          run_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          publication_target_id: string
+          run_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          publication_target_id?: string
+          run_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publication_jobs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_targets"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       publication_logs: {
         Row: {
           created_at: string
@@ -257,7 +378,7 @@ export type Database = {
           thumbnail_path: string | null
           title: string
           updated_at: string | null
-          upload_id: string
+          upload_id: string | null
           user_id: string
         }
         Insert: {
@@ -271,7 +392,7 @@ export type Database = {
           thumbnail_path?: string | null
           title: string
           updated_at?: string | null
-          upload_id: string
+          upload_id?: string | null
           user_id: string
         }
         Update: {
@@ -285,7 +406,7 @@ export type Database = {
           thumbnail_path?: string | null
           title?: string
           updated_at?: string | null
-          upload_id?: string
+          upload_id?: string | null
           user_id?: string
         }
         Relationships: [
