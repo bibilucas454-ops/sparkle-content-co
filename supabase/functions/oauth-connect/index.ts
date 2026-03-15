@@ -97,14 +97,16 @@ Deno.serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Token inválido" }), {
+    let userId;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Token inválido ou malformatado" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub;
 
     const { platform, redirectUri } = await req.json();
 

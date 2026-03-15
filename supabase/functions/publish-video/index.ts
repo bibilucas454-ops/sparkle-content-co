@@ -340,10 +340,13 @@ Deno.serve(async (req) => {
 
     // Token check bypass for internal invoke if needed, but the original logic uses it
     const token = authHeader.replace("Bearer ", "");
-    // If it's a service role key from another Edge function, getClaims might fail or return different sub
     let userId = "";
-    const { data: claimsData } = await supabase.auth.getClaims(token);
-    if (claimsData?.claims) userId = claimsData.claims.sub as string;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+    } catch (e) {
+      console.error("Error decoding JWT:", e);
+    }
 
     const payload = await req.json();
     const { jobId } = payload;
