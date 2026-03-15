@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken, decryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -73,7 +74,7 @@ Deno.serve(async (req) => {
         body: new URLSearchParams({
           client_id: clientId,
           client_secret: clientSecret,
-          refresh_token: account.refresh_token_encrypted,
+          refresh_token: await decryptToken(account.refresh_token_encrypted),
           grant_type: "refresh_token",
         }),
       });
@@ -94,7 +95,7 @@ Deno.serve(async (req) => {
         body: new URLSearchParams({
           client_key: clientKey,
           client_secret: clientSecret,
-          refresh_token: account.refresh_token_encrypted,
+          refresh_token: await decryptToken(account.refresh_token_encrypted),
           grant_type: "refresh_token",
         }),
       });
@@ -103,7 +104,7 @@ Deno.serve(async (req) => {
     } else if (platform === "instagram") {
       // Instagram long-lived tokens can be refreshed
       const res = await fetch(
-        `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${Deno.env.get("INSTAGRAM_CLIENT_ID")}&client_secret=${Deno.env.get("INSTAGRAM_CLIENT_SECRET")}&fb_exchange_token=${account.access_token_encrypted}`
+        `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${Deno.env.get("INSTAGRAM_CLIENT_ID")}&client_secret=${Deno.env.get("INSTAGRAM_CLIENT_SECRET")}&fb_exchange_token=${await decryptToken(account.access_token_encrypted)}`
       );
       tokenData = await res.json();
       if (tokenData.error) throw new Error(tokenData.error.message);
@@ -122,8 +123,10 @@ Deno.serve(async (req) => {
     );
 
     await supabaseAdmin.from("social_accounts").update({
-      access_token_encrypted: tokenData.access_token,
-      refresh_token_encrypted: tokenData.refresh_token || account.refresh_token_encrypted,
+      access_token_encrypted: await encryptToken(tokenData.access_token),
+      refresh_token_encrypted: tokenData.refresh_token 
+        ? await encryptToken(tokenData.refresh_token) 
+        : account.refresh_token_encrypted,
       token_expires_at: tokenData.expires_in
         ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
         : null,
