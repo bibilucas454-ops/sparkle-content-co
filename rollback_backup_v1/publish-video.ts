@@ -223,7 +223,6 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
   if (isCarousel) {
     // Foto / Photo Carousel mode via PULL_FROM_URL
     const photoUrls = mediaFiles.map(m => m.publicUrl);
-    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
     const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
       method: "POST",
       headers: {
@@ -231,7 +230,7 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
+        post_info: { title: caption.slice(0, 150), privacy_level: "SELF_ONLY", disable_duet: false, disable_comment: false, disable_stitch: false },
         source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_urls: photoUrls },
         media_type: "PHOTO"
       }),
@@ -270,7 +269,6 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
   } else {
     // Single Video mode via FILE_UPLOAD
     const videoBytes = mediaFiles[0].bytes;
-    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
 
     const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/video/init/", {
       method: "POST",
@@ -279,7 +277,7 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
+        post_info: { title: caption.slice(0, 150), privacy_level: "SELF_ONLY", disable_duet: false, disable_comment: false, disable_stitch: false },
         source_info: { source: "FILE_UPLOAD", video_size: videoBytes.length, chunk_size: videoBytes.length, total_chunk_count: 1 },
       }),
     });

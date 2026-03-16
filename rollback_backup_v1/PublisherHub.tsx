@@ -373,74 +373,35 @@ export default function PublisherHub() {
                 </div>
               </div>
 
-            </div>
-
-            {selectedPlatforms.length > 0 && (
-              <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-                <h3 className="text-sm font-medium flex items-center gap-2">
-                  <Save className="w-4 h-4 text-muted-foreground" /> Configurações Específicas
-                </h3>
-                <Accordion type="single" collapsible className="w-full">
-                  {selectedPlatforms.includes("youtube") && (
-                    <AccordionItem value="youtube">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
-                        <div className="flex items-center gap-2">
-                          <Youtube className="w-4 h-4 text-red-500" /> YouTube Shorts
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Plataformas</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {PLATFORMS.map((p) => {
+                    const selected = selectedPlatforms.includes(p.id);
+                    const connected = connectedAccounts.includes(p.id);
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => togglePlatform(p.id)}
+                        className={`rounded-lg border p-4 cursor-pointer transition-all ${
+                          selected ? "border-accent bg-accent/10" : "border-border bg-secondary/30 hover:bg-secondary/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <p.icon className={`w-5 h-5 ${selected ? p.color : "text-muted-foreground"}`} />
+                          <span className="text-sm font-medium">{p.label}</span>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
-                        <Input
-                          placeholder="Título específico para YouTube"
-                          value={platformSettings.youtube.title}
-                          onChange={(e) => setPlatformSettings(prev => ({ ...prev, youtube: { ...prev.youtube, title: e.target.value } }))}
-                          className="bg-secondary"
-                        />
-                        <Textarea
-                          placeholder="Descrição específica para YouTube"
-                          value={platformSettings.youtube.description}
-                          onChange={(e) => setPlatformSettings(prev => ({ ...prev, youtube: { ...prev.youtube, description: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                  {selectedPlatforms.includes("instagram") && (
-                    <AccordionItem value="instagram">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
-                        <div className="flex items-center gap-2">
-                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram Reels/Carrossel
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs ${connected ? "text-green-500" : "text-muted-foreground"}`}>
+                            {connected ? "Conectada" : "Não conectada"}
+                          </span>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
-                        <Textarea
-                          placeholder="Legenda específica para Instagram"
-                          value={platformSettings.instagram.caption}
-                          onChange={(e) => setPlatformSettings(prev => ({ ...prev, instagram: { ...prev.instagram, caption: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                  {selectedPlatforms.includes("tiktok") && (
-                    <AccordionItem value="tiktok">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
-                        <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 text-cyan-400" /> TikTok Foto/Video
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
-                        <Textarea
-                          placeholder="Legenda específica para TikTok"
-                          value={platformSettings.tiktok.caption}
-                          onChange={(e) => setPlatformSettings(prev => ({ ...prev, tiktok: { ...prev.tiktok, caption: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
-                </Accordion>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            )}
+            </div>
 
             {/* Validation checklist */}
             <div className="rounded-lg border border-border bg-card p-4">
