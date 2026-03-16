@@ -355,8 +355,9 @@ Deno.serve(async (req) => {
     
     let pTargetId = payload.targetId;
     let pPlatform = payload.platform;
-      privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption,
-      musicMetadata: payload.musicMetadata
+    let pMeta = { 
+      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
+      privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption 
     };
     
     let mediaList: any[] = [];
@@ -373,8 +374,9 @@ Deno.serve(async (req) => {
       
       const pub = target.publications;
       pPlatform = target.platform;
+      pMeta = {
+        title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
         privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
-        musicMetadata: target.music_metadata,
       };
       
       // Override userId to the publication owner so we can fetch their account

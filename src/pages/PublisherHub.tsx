@@ -9,13 +9,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
-  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon,
-  Music, Music2, TrendingUp as TrendingUpIcon, Check, RefreshCw, Target
+  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon
 } from "lucide-react";
-import { 
-  getViralMusicSuggestions, 
-  type MusicSuggestion 
-} from "@/services/musicServices";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -41,8 +36,8 @@ const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle
 
 interface PlatformSettings {
   youtube: { title: string; description: string; privacy: string };
-  instagram: { caption: string; useGlobalHashtags: boolean; music?: { track: string; artist: string; audioUrl?: string } };
-  tiktok: { caption: string; useGlobalHashtags: boolean; music?: { track: string; artist: string; audioUrl?: string } };
+  instagram: { caption: string; useGlobalHashtags: boolean };
+  tiktok: { caption: string; useGlobalHashtags: boolean };
 }
 
 interface MediaFile {
@@ -76,21 +71,10 @@ export default function PublisherHub() {
   const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string }>>({});
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
-  
-  const [musicSuggestions, setMusicSuggestions] = useState<MusicSuggestion[]>([]);
-  const [loadingMusic, setLoadingMusic] = useState(false);
 
   useEffect(() => {
     fetchConnectedAccounts();
-    loadMusicSuggestions();
   }, []);
-
-  const loadMusicSuggestions = async () => {
-    setLoadingMusic(true);
-    const suggestions = await getViralMusicSuggestions();
-    setMusicSuggestions(suggestions);
-    setLoadingMusic(false);
-  };
 
   const fetchConnectedAccounts = async () => {
     const { data } = await supabase.from("social_accounts").select("platform");
@@ -145,14 +129,6 @@ export default function PublisherHub() {
     setSelectedPlatforms((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );
-  };
-  const applyMusic = (track: string, artist: string, audioUrl?: string) => {
-    setPlatformSettings(prev => ({
-      ...prev,
-      instagram: { ...prev.instagram, music: { track, artist, audioUrl } },
-      tiktok: { ...prev.tiktok, music: { track, artist, audioUrl } }
-    }));
-    toast.success(`Música "${track}" aplicada!`);
   };
 
   // Validation checklist
@@ -246,7 +222,6 @@ export default function PublisherHub() {
           platform_specific_title: (settings as any)?.title || null,
           platform_specific_caption: (settings as any)?.caption || null,
           privacy_status: (settings as any)?.privacy || "public",
-          music_metadata: (settings as any)?.music || null,
         }).select().single();
         if (targetError || !target) throw targetError;
 
@@ -362,109 +337,6 @@ export default function PublisherHub() {
                 ))}
               </div>
             )}
-            {/* Platform Selection */}
-            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                <Target className="w-4 h-4 text-muted-foreground" /> Plataformas de Destino
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {PLATFORMS.map((platform) => {
-                  const isSelected = selectedPlatforms.includes(platform.id);
-                  const isConnected = connectedAccounts.includes(platform.id);
-                  const Icon = platform.icon;
-                  
-                  return (
-                    <button
-                      key={platform.id}
-                      onClick={() => togglePlatform(platform.id)}
-                      disabled={!isConnected}
-                      className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left group ${
-                        isSelected 
-                          ? "bg-primary/10 border-primary shadow-sm" 
-                          : "bg-secondary/40 border-border/40 hover:border-border/80"
-                      } ${!isConnected ? "opacity-40 cursor-not-allowed grayscale" : "cursor-pointer"}`}
-                    >
-                      <div className={`p-2 rounded-lg ${isSelected ? "bg-primary/20" : "bg-background border border-border/40"}`}>
-                        <Icon className={`w-5 h-5 ${isSelected ? platform.color : "text-muted-foreground"}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold truncate ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
-                          {platform.label}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
-                          {isConnected ? "Conectada" : "Não conectada"}
-                        </p>
-                      </div>
-                      {isSelected && (
-                         <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              {!selectedPlatforms.length && (
-                <p className="text-[11px] text-destructive font-medium flex items-center gap-1.5 animate-pulse">
-                  <AlertCircle className="w-3 h-3" /> Selecione pelo menos uma plataforma conectada.
-                </p>
-              )}
-            {/* Music Suggestions Block */}
-            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Music2 className="w-4 h-4 text-purple-500" /> Ideias de Músicas Virais
-                </h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 px-2 text-[10px] font-bold uppercase tracking-wider"
-                  onClick={loadMusicSuggestions}
-                  disabled={loadingMusic}
-                >
-                  {loadingMusic ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                </Button>
-              </div>
-              
-              <div className="space-y-2.5">
-                {musicSuggestions.length > 0 ? (
-                  musicSuggestions.slice(0, 4).map((s, idx) => (
-                    <div 
-                      key={idx} 
-                      className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-white/5 hover:bg-secondary/50 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-                          <Music className="w-4 h-4 text-purple-400" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold truncate text-foreground/90">{s.track}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">{s.artist}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="hidden md:flex flex-col items-end mr-2">
-                           <span className="text-[9px] font-black text-purple-400/80 uppercase tracking-tighter">{s.source}</span>
-                           <span className="flex items-center gap-1 text-[10px] font-bold text-green-400/90">
-                             <TrendingUpIcon className="w-2.5 h-2.5" /> {s.trendScore}%
-                           </span>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="glow" 
-                          className="h-8 px-3 text-[10px] font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => applyMusic(s.track, s.artist, s.audioUrl)}
-                        >
-                          Usar
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-[11px] text-muted-foreground text-center py-4 bg-secondary/20 rounded-xl border border-dashed border-border/40">
-                    {loadingMusic ? "Buscando tendências..." : "Nenhuma sugestão disponível no momento."}
-                  </p>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Right column: Form */}
