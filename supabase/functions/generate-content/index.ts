@@ -92,14 +92,15 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
     
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    if (authError || !user) {
-      console.error("Auth erro de acesso da Edge Function:", authError);
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      console.error("Auth erro de acesso da Edge Function:", claimsError);
       return new Response(JSON.stringify({ error: "Sessão expirada ou JWT inválido. Faça login novamente." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const userId = claimsData.claims.sub;
 
     const { topic, platform, types, videoTitle } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
