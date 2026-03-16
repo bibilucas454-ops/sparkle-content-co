@@ -11,10 +11,11 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type PubStatus = "pendente" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
+type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  pendente: { label: "Pendente", icon: Clock, className: "text-muted-foreground" },
+  pendente: { label: "Agendado", icon: Clock, className: "text-muted-foreground" },
+  queued: { label: "Na Fila", icon: Clock, className: "text-blue-500" },
   enviando: { label: "Enviando", icon: Loader2, className: "text-warning animate-spin" },
   processando: { label: "Processando", icon: Loader2, className: "text-accent animate-spin" },
   publicado: { label: "Publicado", icon: CheckCircle2, className: "text-green-500" },
