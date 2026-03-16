@@ -1,0 +1,16 @@
+
+[functions.oauth-callback]
+verify_jwt = false
+
+[functions.publish-video]
+verify_jwt = false
+
+[functions.refresh-token]
+verify_jwt = false
+
+[functions.cron-scheduler]
+enabled = true
+verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = false
