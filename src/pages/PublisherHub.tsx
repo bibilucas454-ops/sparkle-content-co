@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
   AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon,
-  Music, Search, Flame, PlayCircle, PauseCircle, TrendingUp as TrendingUpIcon
+  Music, Search, Flame, PlayCircle, PauseCircle, TrendingUp
 } from "lucide-react";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -567,7 +567,7 @@ export default function PublisherHub() {
                              >
                                <div className="flex items-center gap-3">
                                   <div className="p-1.5 bg-black/20 rounded shadow-inner group-hover:bg-primary/10 transition-colors">
-                                    <TrendingUpIcon className="w-3.5 h-3.5 text-primary" />
+                                    <TrendingUp className="w-3.5 h-3.5 text-primary" />
                                   </div>
                                   <div>
                                     <p className="text-xs font-semibold text-foreground leading-tight">{track.topic}</p>
@@ -650,6 +650,18 @@ export default function PublisherHub() {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Restore History Section */}
+        <div className="mt-12 space-y-4">
+          <h2 className="text-xl font-bold font-display text-gradient-silver flex items-center gap-2">
+            <Clock className="w-5 h-5" /> Histórico de Publicações
+          </h2>
+          <div className="bg-card/30 rounded-2xl border border-border/50 overflow-hidden">
+            <div className="p-4 text-center text-muted-foreground text-sm italic">
+               As publicações recentes aparecerão aqui após o processamento.
+            </div>
           </div>
         </div>
       </div>
