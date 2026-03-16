@@ -5,6 +5,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, Filter, Hash, Smartphone, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useNiche } from "@/contexts/NicheContext";
 
 interface Hook {

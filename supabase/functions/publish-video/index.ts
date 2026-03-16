@@ -418,8 +418,9 @@ Deno.serve(async (req) => {
       const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
       if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
       const bytes = new Uint8Array(await fileData.arrayBuffer());
-      const publicUrlData = await supabaseAdmin.storage.from("videos").getPublicUrl(upload.file_path);
-      return { ...upload, bytes, publicUrl: publicUrlData.data?.publicUrl };
+      const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
+      if (signedUrlError) throw new Error(`Falha ao gerar URL assinada: ${signedUrlError.message}`);
+      return { ...upload, bytes, publicUrl: signedUrlData.signedUrl };
     }));
 
     // ====== Route to Platform ======
