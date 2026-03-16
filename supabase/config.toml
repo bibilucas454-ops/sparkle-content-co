@@ -11,7 +11,6 @@ verify_jwt = false
 [functions.cron-scheduler]
 enabled = true
 verify_jwt = false
-import_map = "./functions/cron-scheduler/deno.json"
 
 [functions.generate-content]
 verify_jwt = false
