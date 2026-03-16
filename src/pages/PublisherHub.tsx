@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
-  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon
+  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon,
+  Music, Search, Flame, PlayCircle, PauseCircle, TrendingUp as TrendingUpIcon
 } from "lucide-react";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -71,10 +72,30 @@ export default function PublisherHub() {
   const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string }>>({});
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
+  
+  // Audio state
+  const [selectedAudio, setSelectedAudio] = useState<{id: string, title: string, artist: string, url: string} | null>(null);
+  const [trendAudio, setTrendAudio] = useState<any[]>([]);
+  const [audioSearch, setAudioSearch] = useState("");
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     fetchConnectedAccounts();
+    fetchTrendAudio();
   }, []);
+
+  const fetchTrendAudio = async () => {
+    const { data } = await supabase
+      .from("trends")
+      .select("*")
+      .order("trending_score", { ascending: false });
+    if (data) {
+      // For now, mapping from generic trends table if it contains audio-like content
+      // Should ideally use a specialized audio table, but let's fulfill the viral/trend requirement
+      setTrendAudio(data.filter(t => t.description?.toLowerCase().includes("áudio") || t.format === 'video'));
+    }
+  };
 
   const fetchConnectedAccounts = async () => {
     const { data } = await supabase.from("social_accounts").select("platform");
@@ -197,6 +218,12 @@ export default function PublisherHub() {
         title, caption, hashtags, cta,
         scheduled_for: schedule ? new Date(scheduledFor).toISOString() : null,
         overall_status: schedule ? "pendente" : "queued",
+        music_metadata: selectedAudio ? {
+          id: selectedAudio.id,
+          title: selectedAudio.title,
+          artist: selectedAudio.artist,
+          url: selectedAudio.url
+        } : null,
       }).select().single();
       if (pubError) throw pubError;
 
@@ -261,6 +288,7 @@ export default function PublisherHub() {
     setHashtags("");
     setCta("");
     setSelectedPlatforms([]);
+    setSelectedAudio(null);
     setScheduledFor("");
     setPlatformStatuses({});
     setUploadProgress(0);
@@ -375,6 +403,50 @@ export default function PublisherHub() {
 
             </div>
 
+            {/* Platform Selection */}
+            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
+                <ExternalLink className="w-4 h-4 text-muted-foreground" /> Selecionar Plataformas
+              </h3>
+              <div className="flex gap-3 flex-wrap">
+                {PLATFORMS.map((p) => {
+                  const isSelected = selectedPlatforms.includes(p.id);
+                  const isConnected = connectedAccounts.includes(p.id);
+                  const isYoutube = p.id === 'youtube';
+                  
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => togglePlatform(p.id)}
+                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-sm group relative ${
+                        isSelected
+                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/20"
+                          : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-secondary/50"
+                      }`}
+                    >
+                      <p.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isSelected ? p.color : "opacity-70"}`} />
+                      <span className="font-semibold">{p.label}</span>
+                      
+                      {isSelected && (
+                         <div className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
+                           <CheckCircle2 className="w-3 h-3" />
+                         </div>
+                      )}
+                      
+                      {!isConnected && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-warning/90 text-[8px] text-black px-1 rounded uppercase font-bold tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          Não Conectado
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground/60 italic">
+                * Selecione uma ou mais plataformas. Carrosséis não são suportados no YouTube.
+              </p>
+            </div>
+
             {selectedPlatforms.length > 0 && (
               <div className="rounded-lg border border-border bg-card p-6 space-y-4">
                 <h3 className="text-sm font-medium flex items-center gap-2">
@@ -441,6 +513,86 @@ export default function PublisherHub() {
                 </Accordion>
               </div>
             )}
+
+            {/* Audio Module */}
+            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
+                <Music className="w-4 h-4 text-muted-foreground" /> Música / Áudio do Post
+              </h3>
+              
+              <div className="space-y-4">
+                {selectedAudio ? (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 animate-in fade-in zoom-in duration-300">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/20 rounded-lg">
+                        <Music className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground leading-none">{selectedAudio.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{selectedAudio.artist}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedAudio(null)} className="hover:bg-destructive/10 hover:text-destructive transition-colors">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Buscar áudio ou artista..." 
+                        value={audioSearch} 
+                        onChange={(e) => setAudioSearch(e.target.value)} 
+                        className="pl-9 bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                         <Flame className="w-3 h-3 text-orange-500" /> Tendências Virais
+                       </h4>
+                       <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                         {trendAudio.length > 0 ? (
+                           trendAudio.map((track) => (
+                             <div 
+                               key={track.id} 
+                               className="flex items-center justify-between p-2 rounded-lg bg-secondary/20 border border-transparent hover:border-border/50 hover:bg-secondary/40 transition-all group cursor-pointer"
+                               onClick={() => setSelectedAudio({
+                                 id: track.id,
+                                 title: track.topic,
+                                 artist: track.category || "Trend Viral",
+                                 url: "" // Would be track.url
+                               })}
+                             >
+                               <div className="flex items-center gap-3">
+                                  <div className="p-1.5 bg-black/20 rounded shadow-inner group-hover:bg-primary/10 transition-colors">
+                                    <TrendingUpIcon className="w-3.5 h-3.5 text-primary" />
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-foreground leading-tight">{track.topic}</p>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">{track.category}</p>
+                                  </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded italic">
+                                    SCORE: {track.trending_score}
+                                  </span>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <PlayCircle className="w-4 h-4" />
+                                  </Button>
+                               </div>
+                             </div>
+                           ))
+                         ) : (
+                           <p className="text-[10px] text-muted-foreground text-center py-4 italic">Nenhum áudio de tendência no momento.</p>
+                         )}
+                       </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Validation checklist */}
             <div className="rounded-lg border border-border bg-card p-4">
