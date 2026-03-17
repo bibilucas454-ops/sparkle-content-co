@@ -203,10 +203,25 @@ async function exchangeTikTokCode(code: string, redirectUri: string): Promise<To
   if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
 
   // Get user info
-  const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name,open_id", {
+  console.log(`[TikTok OAuth] Fetching user info with token: ${tokenData.access_token.substring(0, 5)}...`);
+  const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name,open_id,avatar_url", {
     headers: { Authorization: `Bearer ${tokenData.access_token}` },
   });
-  const userData = await userRes.json();
+  
+  const userText = await userRes.text();
+  console.log("[TikTok OAuth] GET /user/info RAW response:", userText);
+  let userData;
+  try {
+    userData = JSON.parse(userText);
+  } catch (e) {
+    console.error("[TikTok OAuth] Failed to parse /user/info response:", e);
+    throw new Error("Erro ao interpretar dados do usuário TikTok.");
+  }
+
+  if (userData.error?.code) {
+     console.error("[TikTok OAuth] User info error:", userData.error);
+     // Note: we continue if we at least have the access token, but name will be fallback
+  }
 
   return {
     access_token: tokenData.access_token,
