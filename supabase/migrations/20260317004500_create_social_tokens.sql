@@ -26,7 +26,7 @@ INSERT INTO public.social_tokens (
     created_at, 
     updated_at
 )
-SELECT 
+SELECT DISTINCT ON (user_id, platform)
     user_id, 
     platform, 
     account_name, 
@@ -37,6 +37,7 @@ SELECT
     created_at, 
     COALESCE(updated_at, created_at)
 FROM public.social_accounts
+ORDER BY user_id, platform, updated_at DESC, created_at DESC
 ON CONFLICT (user_id, platform) DO UPDATE SET
     account_name = EXCLUDED.account_name,
     account_id = EXCLUDED.account_id,
