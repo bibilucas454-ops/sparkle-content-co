@@ -272,10 +272,17 @@ Deno.serve(async (req) => {
       return redirectToApp("/oauth/callback?error=Plataforma desconhecida");
     }
 
-    // Store tokens in social_tokens (standardized table)
+    // Store tokens in social_accounts
     const expiresAt = result.expires_in
       ? new Date(Date.now() + result.expires_in * 1000).toISOString()
       : null;
+
+    // Upsert: delete existing then insert
+    await supabaseAdmin
+      .from("social_accounts")
+      .delete()
+      .eq("user_id", userId)
+      .eq("platform", platform);
 
     // Encrypt the sensitive tokens before saving
     const encryptedAccess = await encryptToken(result.access_token);
@@ -283,19 +290,15 @@ Deno.serve(async (req) => {
       ? await encryptToken(result.refresh_token) 
       : null;
 
-    // Upsert into social_tokens
-    const { error: insertError } = await supabaseAdmin
-      .from("social_tokens")
-      .upsert({
-        user_id: userId,
-        platform,
-        account_name: result.accountName || null,
-        account_id: result.accountId || null,
-        access_token_encrypted: encryptedAccess,
-        refresh_token_encrypted: encryptedRefresh,
-        expires_at: expiresAt,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,platform" });
+    const { error: insertError } = await supabaseAdmin.from("social_accounts").insert({
+      user_id: userId,
+      platform,
+      account_name: result.accountName || null,
+      account_id: result.accountId || null,
+      access_token_encrypted: encryptedAccess,
+      refresh_token_encrypted: encryptedRefresh,
+      token_expires_at: expiresAt,
+    });
 
     if (insertError) {
       return redirectToApp(`/oauth/callback?error=${encodeURIComponent("Erro ao salvar conta: " + insertError.message)}`);

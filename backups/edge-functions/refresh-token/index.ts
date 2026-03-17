@@ -38,21 +38,16 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    if (!userId) {
+       return new Response(JSON.stringify({ error: "Token sem identificador de usuário" }), { status: 401, headers: corsHeaders });
+    }
 
-    const { platform, userId: bodyUserId } = await req.json();
-    
-    // Use the userId from body if it's an internal call (service role) or from token
-    const targetUserId = bodyUserId || userId;
+    const { platform } = await req.json();
 
-    const { data: account } = await supabaseAdmin
-      .from("social_tokens")
+    const { data: account } = await supabase
+      .from("social_accounts")
       .select("*")
       .eq("platform", platform)
-      .eq("user_id", targetUserId)
       .single();
 
     if (!account || !account.refresh_token_encrypted) {
@@ -121,15 +116,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabaseAdmin.from("social_tokens").update({
+    // Update with admin client
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    await supabaseAdmin.from("social_accounts").update({
       access_token_encrypted: await encryptToken(tokenData.access_token),
       refresh_token_encrypted: tokenData.refresh_token 
         ? await encryptToken(tokenData.refresh_token) 
         : account.refresh_token_encrypted,
-      expires_at: tokenData.expires_in
+      token_expires_at: tokenData.expires_in
         ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
         : null,
-      last_refreshed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", account.id);
 
