@@ -16,7 +16,33 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // 1. Fetch pending jobs (up to 5 per execution to prevent timeout cascades)
+    // 0. Token Refresh Maintenance
+    console.log("Iniciando manutenção de tokens OAuth...");
+    try {
+      // Find tokens expiring in the next 24 hours
+      const { data: staleTokens } = await supabaseAdmin
+        .from("social_tokens")
+        .select("user_id, platform")
+        .lt("expires_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+
+      if (staleTokens && staleTokens.length > 0) {
+        console.log(`Encontrados ${staleTokens.length} tokens para atualizar.`);
+        for (const token of staleTokens) {
+          try {
+            console.log(`Atualizando token para ${token.platform} (User: ${token.user_id})...`);
+            await supabaseAdmin.functions.invoke("refresh-token", {
+              body: { platform: token.platform, userId: token.user_id },
+            });
+          } catch (e) {
+            console.error(`Falha ao atualizar token ${token.platform} para usuário ${token.user_id}:`, e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Erro na rotina de manutenção de tokens:", e);
+    }
+
+    // 1. Fetch pending jobs
     const { data: jobs, error: fetchError } = await supabaseAdmin
       .from("publication_jobs")
       .select("id")

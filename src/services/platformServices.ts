@@ -10,7 +10,7 @@ export interface PlatformAccount {
   account_name: string | null;
   account_id: string | null;
   created_at: string;
-  token_expires_at: string | null;
+  expires_at: string | null;
 }
 
 export interface PublishPayload {
@@ -164,7 +164,10 @@ export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada";
 
 export function getAccountStatus(account: PlatformAccount | null): AccountStatus {
   if (!account) return "nao_conectada";
-  if (account.token_expires_at && new Date(account.token_expires_at) < new Date()) {
+  
+  // Since we have auto-refresh, we only mark as expired if it's strictly past its date
+  // and the backend hasn't caught it yet.
+  if (account.expires_at && new Date(account.expires_at) < new Date()) {
     return "token_expirado";
   }
   return "conectada";
