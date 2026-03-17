@@ -109,19 +109,30 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
   const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
+  const format = meta.contentFormat || "reels";
 
-  if (mediaFiles.length === 1) {
-    // Single Media (Reel or Photo)
-    await logEvent(supabase, targetId, "enviando", "Iniciando upload single para Instagram");
+  if (mediaFiles.length === 1 && format !== "carousel") {
+    // Single Media (Reel, Photo or Story)
+    await logEvent(supabase, targetId, "enviando", `Iniciando upload single (${format}) para Instagram`);
     const media = mediaFiles[0];
     const isVideo = media.mime_type?.startsWith("video");
     
     const body: any = { caption, access_token: accessToken };
-    if (isVideo) {
+    
+    if (format === "story") {
+      body.media_type = "STORIES";
+    } else if (isVideo) {
       body.media_type = "REELS";
       body.video_url = media.publicUrl;
     } else {
       body.image_url = media.publicUrl;
+    }
+
+    if (isVideo && format !== "story") {
+      body.video_url = media.publicUrl;
+    } else if (format === "story") {
+      if (isVideo) body.video_url = media.publicUrl;
+      else body.image_url = media.publicUrl;
     }
 
     const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
@@ -213,7 +224,8 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
 }
 
 async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
-  const isCarousel = mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
+  const format = meta.contentFormat || "reels";
+  const isCarousel = format === "carousel" || format === "story" || mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
   
   await updateTargetStatus(supabase, targetId, "enviando");
   await logEvent(supabase, targetId, "enviando", `Iniciando upload para TikTok (${isCarousel ? 'Photo Carousel' : 'Video'})`);
@@ -376,6 +388,7 @@ Deno.serve(async (req) => {
       pPlatform = target.platform;
       pMeta = {
         title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
+        contentFormat: pub.content_format,
         privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
       };
       
