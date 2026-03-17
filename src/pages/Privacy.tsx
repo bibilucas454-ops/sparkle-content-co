@@ -36,28 +36,37 @@ const Privacy = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold border-b pb-2">2. Dados coletados</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Coletamos apenas os dados <strong>estritamente necessários</strong> para autenticação, conexão de contas e publicação de conteúdo. Isso inclui informações básicas de perfil público, tokens de acesso temporários e metadados das páginas/contas profissionais vinculadas.
+              Coletamos apenas os dados <strong>estritamente necessários</strong> para autenticação, conexão de contas e publicação de conteúdo. Isso inclui:
             </p>
+            <ul className="list-disc list-inside text-muted-foreground ml-4 space-y-1">
+              <li>Informações de perfil público (nome, foto de perfil, identificadores únicos).</li>
+              <li>Tokens de acesso OAuth para as plataformas Meta (Instagram/Facebook) e TikTok.</li>
+              <li>Metadados de vídeos e imagens que você escolhe publicar através da plataforma.</li>
+            </ul>
           </section>
 
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold border-b pb-2">3. Uso das informações</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Os dados são usados exclusivamente para a operação da plataforma CreatorOS e integração com as redes sociais autorizadas expressamente por você. Não usamos as informações para outros fins que não a automação e gerenciamento de conteúdo que você solicitou.
+              Os dados são usados exclusivamente para a operação da plataforma CreatorOS e integração com as redes sociais autorizadas expressamente por você. 
+              <strong> Para o TikTok</strong>, utilizamos os escopos de publicação para permitir que você envie vídeos e fotos diretamente do nosso dashboard para o seu perfil.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold border-b pb-2">4. Compartilhamento de dados</h2>
+            <h2 className="text-2xl font-semibold border-b pb-2">4. Compartilhamento e Armazenamento</h2>
             <p className="text-muted-foreground leading-relaxed">
-              O CreatorOS garante que <strong>não vende, aluga ou compartilha</strong> seus dados pessoais com terceiros. As comunicações de dados ocorrem apenas de forma criptografada entre nossa plataforma, os servidores da Meta e a sua interface de uso.
+              O CreatorOS <strong>não vende, aluga ou compartilha</strong> seus dados pessoais com terceiros. 
+              Tokens de acesso são armazenados de forma criptografada em nossos servidores seguros no Supabase e são usados apenas quando você solicita uma ação de publicação ou consulta de status.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold border-b pb-2">5. Exclusão de dados</h2>
+            <h2 className="text-2xl font-semibold border-b pb-2">5. Exclusão de dados e Revogação</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Você tem total controle sobre suas informações. O usuário pode solicitar a exclusão permanente de seus dados e revogar o acesso à conta a qualquer momento na nossa plataforma.
+              Você tem total controle sobre suas informações. 
+              Pode revogar o acesso do CreatorOS à sua conta TikTok ou Instagram a qualquer momento através das configurações de segurança das respectivas plataformas ou diretamente em nosso painel de "Contas Conectadas". 
+              Ao desconectar uma conta, todos os tokens associados são removidos permanentemente de nossos registros.
             </p>
           </section>
 

@@ -50,7 +50,8 @@ const Terms = () => {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold border-b border-border/40 pb-2">4. Integrações de Terceiros</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Nossa plataforma interage com APIs de terceiros (como Instagram, TikTok e YouTube). O acesso a essas redes sociais também está condicionado à aceitação dos termos de cada respectiva plataforma pelos nossos usuários. Nós não nos responsabilizamos por mudanças nas políticas dessas plataformas.
+              Nossa plataforma interage com APIs de terceiros (como Instagram, TikTok e YouTube). O acesso a essas redes sociais também está condicionado à aceitação dos termos de cada respectiva plataforma pelos nossos usuários. 
+              <strong> Ao conectar sua conta TikTok</strong>, você concorda em cumprir os Termos de Serviço do TikTok e as diretrizes da plataforma. Nós não nos responsabilizamos por mudanças nas políticas dessas plataformas ou por suspensões de contas decorrentes do uso inadequado de automações.
             </p>
           </section>
 
