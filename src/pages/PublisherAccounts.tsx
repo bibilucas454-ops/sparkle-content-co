@@ -179,9 +179,9 @@ export default function PublisherAccounts() {
                           disabled={isConnecting}
                         >
                           {isConnecting ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
                           ) : (
-                            <RefreshCw className="w-3.5 h-3.5" />
+                            <RefreshCw className="w-3.5 h-3.5 mr-2" />
                           )}
                           Reconectar
                         </Button>
@@ -203,9 +203,9 @@ export default function PublisherAccounts() {
                         disabled={isConnecting}
                       >
                         {isConnecting ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
                         ) : (
-                          <Link2 className="w-3.5 h-3.5" />
+                          <Link2 className="w-3.5 h-3.5 mr-2" />
                         )}
                         Conectar conta
                       </Button>

@@ -259,25 +259,37 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 
     let published = false;
     let attempts = 0;
-    while (!published && attempts < 20) {
+    const maxAttempts = 30; // Increased to 2.5 minutes total (5s * 30)
+    
+    while (!published && attempts < maxAttempts) {
+      console.log(`[TikTok Publish] Polling status for publishId: ${publishId} (Attempt ${attempts + 1}/${maxAttempts})`);
       await new Promise((r) => setTimeout(r, 5000));
+      
       const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        method: "POST", 
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ publish_id: publishId }),
       });
+      
       const statusData = await statusRes.json();
       const status = statusData.data?.status;
+      console.log(`[TikTok Publish] Status response:`, JSON.stringify(statusData));
 
       if (status === "PUBLISH_COMPLETE") {
         published = true;
         await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
+        await logEvent(supabase, targetId, "publicado", "Publicação no TikTok concluída com sucesso.");
       } else if (status === "FAILED") {
-        throw new Error(statusData.data?.fail_reason || "TikTok publicação falhou");
+        const reason = statusData.data?.fail_reason || "TikTok publicação falhou";
+        console.error(`[TikTok Publish] Failed: ${reason}`);
+        throw new Error(reason);
+      } else if (status === "PROCESSING_FAILED") {
+         throw new Error("TikTok reportou falha no processamento da mídia.");
       }
       attempts++;
     }
 
-    if (!published) throw new Error("Timeout: TikTok não finalizou o processamento das fotos");
+    if (!published) throw new Error("Timeout: O TikTok demorou muito para processar o carrossel de fotos.");
 
   } else {
     // Single Video mode via FILE_UPLOAD
