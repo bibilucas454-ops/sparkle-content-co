@@ -19,10 +19,18 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 
 const PLATFORMS = [
+  { id: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500" },
+  { id: "tiktok", label: "TikTok", icon: Play, color: "text-cyan-400" },
   { id: "youtube", label: "YouTube Shorts", icon: Youtube, color: "text-red-500" },
-  { id: "instagram", label: "Instagram Reels/Carrossel", icon: Instagram, color: "text-pink-500" },
-  { id: "tiktok", label: "TikTok Foto/Video", icon: Play, color: "text-cyan-400" },
 ];
+
+const CONTENT_FORMATS = [
+  { id: "reels", label: "Reels", icon: PlayCircle },
+  { id: "carrossel", label: "Carrossel", icon: ImageIcon },
+  { id: "story", label: "Story", icon: Flame },
+] as const;
+
+type ContentFormat = typeof CONTENT_FORMATS[number]["id"];
 
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro";
 
@@ -60,6 +68,7 @@ export default function PublisherHub() {
   const [hashtags, setHashtags] = useState("");
   const [cta, setCta] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedFormat, setSelectedFormat] = useState<ContentFormat>("reels");
   const [scheduledFor, setScheduledFor] = useState("");
 
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
@@ -152,6 +161,14 @@ export default function PublisherHub() {
     );
   };
 
+  const handleFormatChange = (formatId: ContentFormat) => {
+    setSelectedFormat(formatId);
+    // Auto-remove YouTube if format is not Reels (YouTube only supports Shorts/Reels in this context)
+    if (formatId !== "reels") {
+      setSelectedPlatforms(prev => prev.filter(p => p !== "youtube"));
+    }
+  };
+
   // Validation checklist
   const validationChecks = [
     { label: "Mídia(s) selecionada(s)", ok: mediaFiles.length > 0 },
@@ -163,8 +180,8 @@ export default function PublisherHub() {
       warning: true,
     },
     {
-      label: "YouTube não suporta carrossel",
-      ok: !(selectedPlatforms.includes('youtube') && mediaFiles.length > 1),
+      label: "YouTube não suporta carrossel ou stories",
+      ok: !(selectedPlatforms.includes('youtube') && (selectedFormat !== "reels" || mediaFiles.length > 1)),
     },
     {
       label: "Limite de 10 mídias respeitado",
@@ -216,6 +233,7 @@ export default function PublisherHub() {
         user_id: user!.id,
         upload_id: uploadRecords[0].id, // fallback for legacy safety
         title, caption, hashtags, cta,
+        content_format: selectedFormat,
         scheduled_for: schedule ? new Date(scheduledFor).toISOString() : null,
         overall_status: schedule ? "pendente" : "queued",
         music_metadata: selectedAudio ? {
@@ -288,6 +306,7 @@ export default function PublisherHub() {
     setHashtags("");
     setCta("");
     setSelectedPlatforms([]);
+    setSelectedFormat("reels");
     setSelectedAudio(null);
     setScheduledFor("");
     setPlatformStatuses({});
@@ -399,19 +418,51 @@ export default function PublisherHub() {
                   <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary border-border" />
                 </div>
               </div>
+            </div>
 
+            {/* Content Format Selection */}
+            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
+                <PlayCircle className="w-4 h-4 text-muted-foreground" /> Formato do Conteúdo
+              </h3>
+              <div className="flex gap-3 flex-wrap">
+                {CONTENT_FORMATS.map((f) => {
+                  const isSelected = selectedFormat === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => handleFormatChange(f.id)}
+                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-sm group relative ${isSelected
+                        ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/20"
+                        : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-secondary/50"
+                        }`}
+                    >
+                      <f.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isSelected ? "text-primary" : "opacity-70"}`} />
+                      <span className="font-semibold">{f.label}</span>
+                      {isSelected && (
+                        <div className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
+                          <CheckCircle2 className="w-3 h-3" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Platform Selection */}
             <div className="rounded-lg border border-border bg-card p-6 space-y-4">
               <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                <ExternalLink className="w-4 h-4 text-muted-foreground" /> Selecionar Plataformas
+                <ExternalLink className="w-4 h-4 text-muted-foreground" /> Plataformas
               </h3>
               <div className="flex gap-3 flex-wrap">
                 {PLATFORMS.map((p) => {
                   const isSelected = selectedPlatforms.includes(p.id);
                   const isConnected = connectedAccounts.includes(p.id);
                   const isYoutube = p.id === 'youtube';
+                  
+                  // Hide YouTube for Carrossel and Story formats
+                  if (isYoutube && selectedFormat !== "reels") return null;
 
                   return (
                     <button
@@ -441,7 +492,10 @@ export default function PublisherHub() {
                 })}
               </div>
               <p className="text-[10px] text-muted-foreground/60 italic">
-                * Selecione uma ou mais plataformas. Carrosséis não são suportados no YouTube.
+                {selectedFormat === "reels" 
+                  ? "* Selecione uma ou mais plataformas. Carrosséis não são suportados no YouTube."
+                  : `* Selecione canais de distribuição para seu ${selectedFormat}. YouTube Shorts não suporta este formato.`
+                }
               </p>
             </div>
 
@@ -478,7 +532,7 @@ export default function PublisherHub() {
                     <AccordionItem value="instagram">
                       <AccordionTrigger className="text-sm py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram Reels/Carrossel
+                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram {selectedFormat === "reels" ? "Reels" : selectedFormat === "carrossel" ? "Carrossel" : "Story"}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-2 space-y-3">
@@ -495,7 +549,7 @@ export default function PublisherHub() {
                     <AccordionItem value="tiktok">
                       <AccordionTrigger className="text-sm py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 text-cyan-400" /> TikTok Foto/Video
+                          <Play className="w-4 h-4 text-cyan-400" /> TikTok {selectedFormat === "reels" ? "Vídeo" : selectedFormat === "carrossel" ? "Foto/Carrossel" : "Story"}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-2 space-y-3">
