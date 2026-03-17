@@ -26,7 +26,7 @@ const PLATFORMS = [
 
 const CONTENT_FORMATS = [
   { id: "reels", label: "Reels", icon: PlayCircle },
-  { id: "carrossel", label: "Carrossel", icon: ImageIcon },
+  { id: "carousel", label: "Carrossel", icon: ImageIcon },
   { id: "story", label: "Story", icon: Flame },
 ] as const;
 
@@ -532,7 +532,7 @@ export default function PublisherHub() {
                     <AccordionItem value="instagram">
                       <AccordionTrigger className="text-sm py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram {selectedFormat === "reels" ? "Reels" : selectedFormat === "carrossel" ? "Carrossel" : "Story"}
+                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram {selectedFormat === "reels" ? "Reels" : selectedFormat === "carousel" ? "Carrossel" : "Story"}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-2 space-y-3">
@@ -549,7 +549,7 @@ export default function PublisherHub() {
                     <AccordionItem value="tiktok">
                       <AccordionTrigger className="text-sm py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 text-cyan-400" /> TikTok {selectedFormat === "reels" ? "Vídeo" : selectedFormat === "carrossel" ? "Foto/Carrossel" : "Story"}
+                          <Play className="w-4 h-4 text-cyan-400" /> TikTok {selectedFormat === "reels" ? "Vídeo" : selectedFormat === "carousel" ? "Foto/Carrossel" : "Story"}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-2 space-y-3">
