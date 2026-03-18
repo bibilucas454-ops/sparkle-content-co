@@ -25,7 +25,7 @@ export function PerformanceByTime() {
 
   if (loading) {
     return (
-      <Card className="glow-card border-border/50 bg-card/60 backdrop-blur-xl h-[300px] flex items-center justify-center">
+      <Card className="premium-card h-[300px] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </Card>
     );
@@ -35,7 +35,7 @@ export function PerformanceByTime() {
   const hasData = metrics.some(m => m.count > 0);
 
   return (
-    <Card className="glow-card border-border/50 bg-card/60 backdrop-blur-xl overflow-hidden">
+    <Card className="premium-card overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2 font-display">
           <TrendingUp className="w-5 h-5 text-accent" />

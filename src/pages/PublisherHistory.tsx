@@ -101,35 +101,44 @@ export default function PublisherHistory() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">
-            Histórico de Publicações
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Acompanhe todas as suas publicações e seus status por plataforma.
-          </p>
-        </div>
+        <header className="pb-8 border-b border-border/40">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-xl shadow-primary/10">
+                <History className="w-10 h-10 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+                  Histórico de Envios
+                </h1>
+                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                  Acompanhe todas as suas publicações e seus status por plataforma.
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card/40 p-5 rounded-2xl border border-border/40 backdrop-blur-xl shadow-sm">
+          <div className="relative flex-1 max-w-md w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
             <Input
               placeholder="Buscar por título..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-secondary border-border"
+              className="pl-11 bg-secondary/40 border-border/40 h-12 rounded-xl focus-visible:ring-primary/40 font-medium"
             />
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all border ${
                   filter === f.id
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                    : "bg-secondary text-muted-foreground/60 border-border/40 hover:border-border/80 hover:text-foreground"
                 }`}
               >
                 {f.label}
@@ -158,26 +167,28 @@ export default function PublisherHistory() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="rounded-lg border border-border bg-card glow-card overflow-hidden"
+                  className="premium-card overflow-hidden group border-border/40"
                 >
                   <div
                     className="p-4 flex items-center gap-4 cursor-pointer hover:bg-secondary/30 transition-colors"
                     onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                   >
                     {/* Thumbnail placeholder */}
-                    <div className="w-14 h-14 rounded-md bg-secondary flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    <div className="w-16 h-16 rounded-xl bg-secondary/80 flex-shrink-0 flex items-center justify-center overflow-hidden border border-border/40 shadow-inner">
                       {item.thumbnail_path ? (
-                        <img src={item.thumbnail_path} alt="" className="w-full h-full object-cover" />
+                        <img src={item.thumbnail_path} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
                       ) : (
-                        <Play className="w-5 h-5 text-muted-foreground" />
+                        <Play className="w-6 h-6 text-muted-foreground/40" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm text-foreground truncate">{item.title}</h3>
+                      <h3 className="font-bold text-lg md:text-xl text-foreground font-display tracking-tight group-hover:text-primary transition-colors truncate">
+                        {item.title}
+                      </h3>
                       <div className="flex flex-col gap-1 mt-1">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
-                          Criado em: {new Date(item.created_at).toLocaleDateString("pt-BR", {
+                        <p className="text-[10px] uppercase font-black tracking-[0.15em] text-muted-foreground/50">
+                          {new Date(item.created_at).toLocaleDateString("pt-BR", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",

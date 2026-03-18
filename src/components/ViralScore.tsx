@@ -31,7 +31,7 @@ export function ViralScore({ score, size = "md", showLabel = false }: ViralScore
 
   if (showLabel) {
     return (
-      <div className={`flex items-center gap-4 glow-card p-4 rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl ${theme.shadow}`}>
+      <div className={`flex items-center gap-4 premium-card p-4 ${theme.shadow}`}>
         <div className={`p-3 rounded-xl bg-background border border-border/50 shadow-sm flex items-center justify-center`}>
           <Icon className={`${iconSizes[size]} ${theme.color}`} />
         </div>
