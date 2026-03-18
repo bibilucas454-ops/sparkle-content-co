@@ -175,15 +175,43 @@ export default function PublisherHistory() {
 
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-sm text-foreground truncate">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(item.created_at).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+                      <div className="flex flex-col gap-1 mt-1">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-medium">
+                          Criado em: {new Date(item.created_at).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        
+                        {item.scheduled_for && (item.overall_status === "pendente" || item.overall_status === "queued") && (
+                          <div className="inline-flex items-center gap-2 mt-0.5 px-2 py-1 rounded-md bg-accent/10 border border-accent/20 w-fit">
+                            <Clock className="w-3 h-3 text-accent" />
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-accent">
+                              <span className="capitalize">
+                                {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'long' })}
+                              </span>
+                              <span className="opacity-40">•</span>
+                              <span>
+                                {new Date(item.scheduled_for).toLocaleDateString("pt-BR", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })}
+                              </span>
+                              <span className="opacity-40">•</span>
+                              <span>
+                                {new Date(item.scheduled_for).toLocaleTimeString("pt-BR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Platform status pills */}
@@ -227,9 +255,16 @@ export default function PublisherHistory() {
                             <div className="flex items-center gap-2">
                               <Icon className={`w-4 h-4 ${platInfo?.color}`} />
                               <span className="text-sm">{platInfo?.label}</span>
-                              <div className="flex items-center gap-1">
-                                <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
-                                <span className={`text-xs ${statusCfg.className}`}>{statusCfg.label}</span>
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-1">
+                                  <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
+                                  <span className={`text-xs font-medium ${statusCfg.className}`}>{statusCfg.label}</span>
+                                </div>
+                                {t.status === "pendente" && item.scheduled_for && (
+                                  <span className="text-[10px] text-muted-foreground mt-0.5 ml-4">
+                                    {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'short' })}, {new Date(item.scheduled_for).toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
