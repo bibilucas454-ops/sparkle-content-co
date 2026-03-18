@@ -415,7 +415,7 @@ Deno.serve(async (req) => {
 
     // ====== Account Resolution ======
     const { data: account, error: accError } = await supabaseAdmin
-      .from("social_tokens")
+      .from("social_accounts")
       .select("*")
       .eq("platform", pPlatform)
       .eq("user_id", userId)
@@ -428,7 +428,7 @@ Deno.serve(async (req) => {
 
     // Pre-flight Token Refresh: Check if expired or expiring in less than 5 minutes
     const now = new Date();
-    const expiry = account.expires_at ? new Date(account.expires_at) : null;
+    const expiry = account.token_expires_at ? new Date(account.token_expires_at) : null;
     
     if (expiry && expiry.getTime() < now.getTime() + 5 * 60 * 1000) {
       console.log(`Token ${pPlatform} expirado ou próximo da expiração. Iniciando refresh automático...`);
@@ -443,7 +443,7 @@ Deno.serve(async (req) => {
         
         // Re-fetch account to get new token
         const { data: updatedAccount } = await supabaseAdmin
-          .from("social_tokens")
+          .from("social_accounts")
           .select("*")
           .eq("id", account.id)
           .single();

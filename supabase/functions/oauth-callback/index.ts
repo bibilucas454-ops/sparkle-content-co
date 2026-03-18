@@ -272,8 +272,8 @@ Deno.serve(async (req) => {
       return redirectToApp("/oauth/callback?error=Plataforma desconhecida");
     }
 
-    // Store tokens in social_tokens (standardized table)
-    const expiresAt = result.expires_in
+    // Store tokens in social_accounts (standardized table)
+    const tokenExpiresAt = result.expires_in
       ? new Date(Date.now() + result.expires_in * 1000).toISOString()
       : null;
 
@@ -283,9 +283,9 @@ Deno.serve(async (req) => {
       ? await encryptToken(result.refresh_token) 
       : null;
 
-    // Upsert into social_tokens
+    // Upsert into social_accounts
     const { error: insertError } = await supabaseAdmin
-      .from("social_tokens")
+      .from("social_accounts")
       .upsert({
         user_id: userId,
         platform,
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
         account_id: result.accountId || null,
         access_token_encrypted: encryptedAccess,
         refresh_token_encrypted: encryptedRefresh,
-        expires_at: expiresAt,
+        token_expires_at: tokenExpiresAt,
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id,platform" });
 
