@@ -58,27 +58,27 @@ export function FeatureBlocks() {
           >
             <Link 
               to={f.link}
-              className="group block h-full p-6 glow-card rounded-2xl border border-border/50 bg-card/40 backdrop-blur-xl hover:bg-card/80 transition-all hover:border-border hover:-translate-y-1 relative overflow-hidden"
+              className="premium-card p-8 group block h-full relative overflow-hidden transition-all duration-300 hover:-translate-y-2"
             >
               <div className="absolute top-0 left-0 w-1 h-0 bg-primary group-hover:h-full transition-all duration-300 ease-out"></div>
               
               <div className="space-y-4">
-                <div className="p-3 bg-secondary/80 w-fit rounded-xl border border-border/40 shadow-inner group-hover:shadow-md transition-shadow">
+                <div className="p-4 bg-primary/10 w-fit rounded-2xl border border-primary/10 shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   {f.icon}
                 </div>
                 
                 <div>
-                  <h4 className="font-bold text-lg text-foreground tracking-tight mb-1 group-hover:text-primary transition-colors">
+                  <h4 className="font-bold text-xl text-foreground tracking-tight mb-2 group-hover:text-primary transition-colors">
                     {f.title}
                   </h4>
-                  <p className="text-sm text-muted-foreground/90 font-medium leading-relaxed">
+                  <p className="text-sm text-muted-foreground/80 font-medium leading-relaxed">
                     {f.description}
                   </p>
                 </div>
 
-                <div className="pt-4 flex items-center justify-between text-xs font-bold text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
+                <div className="pt-4 flex items-center justify-between text-[11px] font-black text-primary uppercase tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 duration-300">
                   <span>Acessar</span>
-                  <span>→</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
             </Link>

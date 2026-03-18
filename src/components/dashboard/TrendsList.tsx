@@ -18,19 +18,19 @@ export function TrendsList({ trends, loading }: TrendsListProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
     >
-      <Card className="glow-card h-full border-border/50 bg-card/60 backdrop-blur-xl">
-        <CardHeader className="pb-4 flex flex-row items-center justify-between">
+      <Card className="premium-card h-full">
+        <CardHeader className="pb-6 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2 font-display">
-              <Zap className="w-5 h-5 text-yellow-500" />
+            <CardTitle className="text-xl flex items-center gap-2 font-display font-bold">
+              <Zap className="w-5 h-5 text-amber-500 fill-current" />
               Tendências do Dia
             </CardTitle>
           </div>
           <Link
             to="/trends"
-            className="text-xs text-muted-foreground hover:text-accent transition-colors flex items-center gap-1"
+            className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all flex items-center gap-1.5"
           >
-            Ver todas <ArrowRight className="w-3 h-3" />
+            Ver todas <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -49,15 +49,15 @@ export function TrendsList({ trends, loading }: TrendsListProps) {
             trends.map((t) => (
               <div
                 key={t.id}
-                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/40 bg-background/50 hover:bg-muted/30 transition-colors"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-border/40 bg-secondary/20 hover:bg-secondary/40 hover:border-primary/20 transition-all duration-300"
               >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/10">
                       {t.platform}
                     </span>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                      <Hash className="w-3 h-3" /> {t.category}
+                    <span className="text-[11px] font-bold text-muted-foreground/80 flex items-center gap-1.5 truncate">
+                      <Hash className="w-3.5 h-3.5" /> {t.category}
                     </span>
                   </div>
                   <h3 className="font-medium text-sm text-foreground truncate">

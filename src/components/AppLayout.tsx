@@ -65,13 +65,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const renderNavLinks = (isMobile = false) => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {navGroups.map((group) => (
-        <div key={group.label} className="space-y-1 mb-6">
-          <h4 className="px-3 text-[10px] font-black text-muted-foreground/80 uppercase tracking-[0.15em] mb-3">
+        <div key={group.label} className="space-y-2">
+          <h4 className="px-4 text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-4">
             {group.label}
           </h4>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {group.items.map((item) => {
               const active = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
               return (
@@ -79,29 +79,29 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden ${
+                  className={`group flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[14px] font-bold transition-all duration-300 relative overflow-hidden ${
                     active
-                      ? "bg-secondary text-foreground shadow-sm ring-1 ring-border/50"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                      ? "bg-primary text-white shadow-glow ring-1 ring-white/10"
+                      : "text-muted-foreground/90 hover:text-foreground hover:bg-secondary/80"
                   }`}
                 >
                   {active && (
-                    <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-primary rounded-r-md"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                   )}
-                  <item.icon className={`w-4 h-4 transition-colors duration-300 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground/80"}`} />
-                  {item.label}
+                  <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${active ? "text-white scale-110" : "text-muted-foreground group-hover:text-foreground group-hover:scale-110"}`} strokeWidth={active ? 2.5 : 2} />
+                  <span className="relative z-10">{item.label}</span>
                 </Link>
               );
             })}
           </div>
         </div>
       ))}
-      <div className="pt-6 mt-8 border-t border-border/60">
+      <div className="pt-8 mt-10 border-t border-border/40">
         <button
           onClick={() => { signOut(); isMobile && setMobileOpen(false); }}
-          className="group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all w-full"
+          className="group flex items-center gap-3.5 px-5 py-4 rounded-2xl text-[14px] font-black text-muted-foreground/80 hover:text-destructive hover:bg-destructive/10 transition-all w-full"
         >
-          <LogOut className="w-4 h-4 group-hover:text-destructive transition-colors" />
+          <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
           Sair da conta
         </button>
       </div>
@@ -109,39 +109,39 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-background flex selection:bg-primary/30 text-foreground">
+    <div className="min-h-screen bg-background flex selection:bg-primary/20 text-foreground overflow-x-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card/40 backdrop-blur-xl p-5 fixed h-full overflow-y-auto custom-scrollbar z-50">
-        <div className="flex items-center justify-between mb-10 px-1 pt-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="w-5 h-5" />
+      <aside className="hidden md:flex w-72 flex-col border-r border-border/40 bg-card/60 backdrop-blur-2xl p-6 fixed h-full overflow-y-auto custom-scrollbar z-50">
+        <div className="flex items-center justify-between mb-12 px-2 pt-4">
+          <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="w-10 h-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 rotate-3 group hover:rotate-0 transition-transform duration-500">
+              <Zap className="w-6 h-6 fill-current" />
             </div>
-            <span className="text-xl font-black font-display tracking-tight text-gradient-silver">CreatorOS</span>
-          </div>
+            <span className="text-2xl font-black font-display tracking-tighter text-gradient-primary">CreatorOS</span>
+          </Link>
         </div>
         <nav className="flex-1">
           {renderNavLinks()}
         </nav>
-        <div className="pt-6 border-t border-border/60">
-          <div className="flex items-center justify-between px-2 bg-secondary/40 p-2 rounded-2xl border border-border/50">
-            <span className="text-xs font-bold text-muted-foreground px-2">Tema</span>
+        <div className="pt-8 border-t border-border/40">
+          <div className="flex items-center justify-between px-3 bg-secondary/50 p-2.5 rounded-2xl border border-border/20 backdrop-blur-sm">
+            <span className="text-[11px] font-black text-muted-foreground/80 uppercase tracking-widest px-2">Visual</span>
             <ThemeToggle />
           </div>
         </div>
       </aside>
 
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
-            <Zap className="w-4 h-4" />
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40 px-5 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
+            <Zap className="w-5 h-5 fill-current" />
           </div>
-          <span className="font-black font-display text-lg tracking-tight text-gradient-silver">CreatorOS</span>
+          <span className="font-black font-display text-xl tracking-tighter text-gradient-primary">CreatorOS</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground h-10 w-10 rounded-xl hover:bg-secondary">
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground h-11 w-11 rounded-2xl hover:bg-secondary border border-border/20">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </Button>
         </div>
@@ -149,20 +149,22 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile nav overlay */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-background pt-16 p-4 overflow-y-auto">
-          <nav className="mt-4">
+        <div className="md:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-2xl pt-24 p-6 overflow-y-auto animate-fade-in">
+          <nav>
             {renderNavLinks(true)}
           </nav>
         </div>
       )}
 
       {/* Main content */}
-      <main className="flex-1 md:ml-64 pt-16 md:pt-0 max-w-full overflow-hidden flex flex-col min-h-screen">
-        <div className="p-4 md:p-8 max-w-6xl mx-auto w-full flex-1 animate-fade-in flex flex-col">
-          <div className="flex-1">
+      <main className="flex-1 md:ml-72 pt-20 md:pt-0 max-w-full overflow-hidden flex flex-col min-h-screen">
+        <div className="p-5 md:p-10 max-w-7xl mx-auto w-full flex-1 flex flex-col">
+          <div className="flex-1 space-y-8">
             {children}
           </div>
-          <Footer />
+          <div className="mt-20">
+            <Footer />
+          </div>
         </div>
       </main>
     </div>

@@ -316,14 +316,14 @@ export default function PublisherHub() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">
+        <header className="pb-8 border-b border-border/40">
+          <h1 className="text-3xl md:text-4xl font-black font-display text-gradient-primary tracking-tighter">
             Central de Publicação
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-2 text-base md:text-lg font-medium max-w-2xl">
             Mande carrosséis, fotos ou vídeos e deixe o Motor de Publicação assíncrono agir.
           </p>
-        </div>
+        </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column: Upload + Preview */}
@@ -333,8 +333,9 @@ export default function PublisherHub() {
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`rounded-lg border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center p-8 min-h-[200px] ${dragging ? "border-accent bg-accent/10" : "border-border bg-card hover:bg-secondary/30"
-                }`}
+              className={`premium-card p-12 min-h-[240px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center ${
+                dragging ? "border-primary bg-primary/10" : "border-border/40 hover:border-primary/50 hover:bg-secondary/20"
+              }`}
             >
               <Upload className="w-10 h-10 text-muted-foreground mb-3" />
               <p className="text-sm text-muted-foreground text-center font-medium">
@@ -385,11 +386,10 @@ export default function PublisherHub() {
             )}
           </div>
 
-          {/* Right column: Form */}
-          <div className="lg:col-span-2 space-y-5">
-            <div className="rounded-lg border border-border bg-card p-6 space-y-5">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="premium-card p-6 md:p-8 space-y-6">
               <div>
-                <label className="text-sm text-muted-foreground mb-1.5 block">Título Interno</label>
+                <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Título Interno</label>
                 <Input
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
@@ -399,7 +399,7 @@ export default function PublisherHub() {
               </div>
 
               <div>
-                <label className="text-sm text-muted-foreground mb-1.5 block">Legenda Principal</label>
+                <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Legenda Principal</label>
                 <Textarea
                   placeholder="Escreva a legenda principal do post..."
                   value={caption}
@@ -410,20 +410,20 @@ export default function PublisherHub() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">Hashtags</label>
-                  <Input placeholder="#empreendedorismo #viral" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary border-border" />
+                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Hashtags</label>
+                  <Input placeholder="#empreendedorismo #viral" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border/40" />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1.5 block">CTA (opcional)</label>
-                  <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary border-border" />
+                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">CTA (opcional)</label>
+                  <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border/40" />
                 </div>
               </div>
             </div>
 
             {/* Content Format Selection */}
-            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                <PlayCircle className="w-4 h-4 text-muted-foreground" /> Formato do Conteúdo
+            <div className="premium-card p-6 md:p-8 space-y-6">
+              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
+                <PlayCircle className="w-5 h-5 text-primary" /> Formato do Conteúdo
               </h3>
               <div className="flex gap-3 flex-wrap">
                 {CONTENT_FORMATS.map((f) => {
@@ -451,9 +451,9 @@ export default function PublisherHub() {
             </div>
 
             {/* Platform Selection */}
-            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                <ExternalLink className="w-4 h-4 text-muted-foreground" /> Plataformas
+            <div className="premium-card p-6 md:p-8 space-y-6">
+              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
+                <ExternalLink className="w-5 h-5 text-primary" /> Distribuição Automática
               </h3>
               <div className="flex gap-3 flex-wrap">
                 {PLATFORMS.map((p) => {
@@ -500,9 +500,9 @@ export default function PublisherHub() {
             </div>
 
             {selectedPlatforms.length > 0 && (
-              <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-                <h3 className="text-sm font-medium flex items-center gap-2">
-                  <Save className="w-4 h-4 text-muted-foreground" /> Configurações Específicas
+              <div className="premium-card p-6 md:p-8 space-y-6">
+                <h3 className="text-lg font-bold font-display flex items-center gap-2">
+                  <Save className="w-5 h-5 text-primary" /> Configurações Específicas
                 </h3>
                 <Accordion type="single" collapsible className="w-full">
                   {selectedPlatforms.includes("youtube") && (
@@ -567,9 +567,9 @@ export default function PublisherHub() {
             )}
 
             {/* Audio Module */}
-            <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <h3 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                <Music className="w-4 h-4 text-muted-foreground" /> Música / Áudio do Post
+            <div className="premium-card p-6 md:p-8 space-y-6">
+              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
+                <Music className="w-5 h-5 text-primary" /> Música / Áudio do Post
               </h3>
 
               <div className="space-y-4">
@@ -600,9 +600,9 @@ export default function PublisherHub() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                        <Flame className="w-3 h-3 text-orange-500" /> Tendências Virais
+                    <div className="space-y-4">
+                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-orange-500 fill-current" /> Tendências Virais
                       </h4>
                       <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                         {trendAudio.length > 0 ? (
@@ -705,14 +705,14 @@ export default function PublisherHub() {
           </div>
         </div>
 
-        {/* Restore History Section */}
-        <div className="mt-12 space-y-4">
-          <h2 className="text-xl font-bold font-display text-gradient-silver flex items-center gap-2">
-            <Clock className="w-5 h-5" /> Histórico de Publicações
+        <div className="mt-16 space-y-6">
+          <h2 className="text-2xl font-black font-display text-gradient-primary flex items-center gap-3 tracking-tighter">
+            <Clock className="w-6 h-6" /> Histórico de Publicações
           </h2>
-          <div className="bg-card/30 rounded-2xl border border-border/50 overflow-hidden">
-            <div className="p-4 text-center text-muted-foreground text-sm italic">
-              As publicações recentes aparecerão aqui após o processamento.
+          <div className="premium-card p-12 text-center">
+            <div className="max-w-md mx-auto space-y-3">
+               <Clock className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+               <p className="text-muted-foreground font-medium">As publicações recentes aparecerão aqui após o processamento.</p>
             </div>
           </div>
         </div>

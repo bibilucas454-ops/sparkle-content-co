@@ -21,22 +21,22 @@ export function DashboardStats({
       label: "Conteúdos Criados",
       value: contentCount,
       icon: FileText,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
+      color: "text-indigo-500 dark:text-indigo-400",
+      bg: "bg-indigo-500/10 dark:bg-indigo-500/20",
     },
     {
       label: "Score Viral Médio",
       value: avgScore,
       icon: TrendingUp,
-      color: "text-green-500",
-      bg: "bg-green-500/10",
+      color: "text-emerald-500 dark:text-emerald-400",
+      bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
     },
     {
       label: "Temas em Alta",
       value: trendsCount,
       icon: Zap,
-      color: "text-yellow-500",
-      bg: "bg-yellow-500/10",
+      color: "text-amber-500 dark:text-amber-400",
+      bg: "bg-amber-500/10 dark:bg-amber-500/20",
     },
   ];
 
@@ -49,19 +49,19 @@ export function DashboardStats({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1, duration: 0.4 }}
         >
-          <Card className="glow-card overflow-hidden relative group hover:border-border/80 transition-all duration-300">
-            <CardContent className="p-7">
+          <Card className="premium-card overflow-hidden relative group">
+            <CardContent className="p-8">
               <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">
+                <div className="space-y-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">
                     {s.label}
                   </p>
-                  <p className="text-3xl font-black font-display tracking-tight text-foreground">
+                  <p className="text-4xl font-black font-display tracking-tighter text-foreground/90">
                     {loading ? "-" : s.value}
                   </p>
                 </div>
-                <div className={`p-3 rounded-xl ${s.bg}`}>
-                  <s.icon className={`w-6 h-6 ${s.color}`} />
+                <div className={`p-4 rounded-2xl ${s.bg} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
+                  <s.icon className={`w-7 h-7 ${s.color}`} />
                 </div>
               </div>
             </CardContent>

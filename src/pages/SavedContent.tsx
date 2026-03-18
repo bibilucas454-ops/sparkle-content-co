@@ -44,18 +44,20 @@ export default function SavedContent() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Conteúdo Salvo</h1>
-          <p className="text-muted-foreground mt-1">{items.length} conteúdos salvos</p>
-        </div>
+        <header className="pb-8 border-b border-border/40">
+          <h1 className="text-3xl md:text-4xl font-black font-display text-gradient-primary tracking-tighter">Conteúdo Salvo</h1>
+          <p className="text-muted-foreground mt-2 text-base md:text-lg font-medium">{items.length} peças no seu arsenal criativo</p>
+        </header>
 
         <div className="flex gap-2 flex-wrap">
           {types.map((t) => (
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                filter === t ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                filter === t 
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
+                  : "bg-secondary/40 border-border/40 text-muted-foreground hover:border-border/80 hover:bg-secondary/60 hover:text-foreground"
               }`}
             >
               {t}
@@ -67,18 +69,18 @@ export default function SavedContent() {
           {filtered.map((item, i) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className="rounded-lg border border-border bg-card p-5 space-y-3"
+              className="premium-card p-6 md:p-8 space-y-5 group transition-all duration-300 hover:border-primary/20"
             >
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground capitalize">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/10">
                     {item.type}
                   </span>
-                  <span className="text-xs text-muted-foreground">{item.platform}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] font-bold text-muted-foreground/60">{item.platform}</span>
+                  <span className="text-[11px] font-bold text-muted-foreground/40">
                     {new Date(item.created_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -86,12 +88,14 @@ export default function SavedContent() {
                   <ViralScore score={item.viral_score || 0} size="sm" />
                   <CopyButton text={item.content} />
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(item.id)}>
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    <Trash2 className="w-4 h-4 text-destructive/60 group-hover:text-destructive transition-colors" />
                   </Button>
                 </div>
               </div>
-              <p className="text-sm font-medium">{item.topic}</p>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{item.content}</p>
+              <p className="text-lg font-bold text-foreground font-display tracking-tight group-hover:text-primary transition-colors">{item.topic}</p>
+              <div className="bg-secondary/30 p-5 md:p-7 rounded-2xl border border-border/20">
+                <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed whitespace-pre-wrap">{item.content}</p>
+              </div>
             </motion.div>
           ))}
         </div>

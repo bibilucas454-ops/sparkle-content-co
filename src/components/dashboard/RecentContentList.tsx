@@ -22,17 +22,17 @@ export function RecentContentList({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
     >
-      <Card className="glow-card h-full border-border/50 bg-card/60 backdrop-blur-xl">
-        <CardHeader className="pb-4 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2 font-display">
-            <Clock className="w-5 h-5 text-blue-500" />
+      <Card className="premium-card h-full">
+        <CardHeader className="pb-6 flex flex-row items-center justify-between">
+          <CardTitle className="text-xl flex items-center gap-2 font-display font-bold">
+            <Clock className="w-5 h-5 text-indigo-500 fill-current" />
             Conteúdo Recente
           </CardTitle>
           <Link
             to="/saved"
-            className="text-xs text-muted-foreground hover:text-accent transition-colors flex items-center gap-1"
+            className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all flex items-center gap-1.5"
           >
-            Ver tudo <ArrowRight className="w-3 h-3" />
+            Ver tudo <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -55,20 +55,20 @@ export function RecentContentList({
             recentContent.map((c) => (
               <div
                 key={c.id}
-                className="group flex items-center justify-between p-4 rounded-xl border border-border/40 bg-background/50 hover:bg-muted/30 transition-colors"
+                className="group flex items-center justify-between p-5 rounded-2xl border border-border/40 bg-secondary/20 hover:bg-secondary/40 hover:border-primary/20 transition-all duration-300"
               >
-                <div className="space-y-1 min-w-0 pr-4">
-                  <h3 className="text-sm font-medium text-foreground truncate">
+                <div className="space-y-2 min-w-0 pr-4">
+                  <h3 className="text-sm font-semibold text-foreground truncate">
                     {c.topic}
                   </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-primary/70">
                       {c.type}
                     </span>
-                    <span className="text-[10px] text-muted-foreground/60">
+                    <span className="text-[10px] text-muted-foreground/40">
                       •
                     </span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[10px] font-bold text-muted-foreground/60">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                   </div>

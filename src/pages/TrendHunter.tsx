@@ -122,18 +122,18 @@ export default function TrendHunter() {
       <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-12">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card/30 p-6 md:p-8 rounded-3xl border border-border/50 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-full h-[200px] bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 premium-card p-8 md:p-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none"></div>
           
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-lg shadow-primary/10">
-              <Compass className="w-8 h-8 text-primary" />
+          <div className="relative z-10 flex items-center gap-6">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-xl shadow-primary/10">
+              <Compass className="w-10 h-10 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-black font-display tracking-tight text-foreground">
+              <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
                 Caçador de Tendências
               </h1>
-              <p className="text-muted-foreground mt-1.5 text-base md:text-lg font-medium max-w-xl">
+              <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                 Descubra padrões de conteúdo viral no seu nicho antes de todo mundo.
               </p>
             </div>
@@ -142,9 +142,8 @@ export default function TrendHunter() {
           <Button
             onClick={handleAnalyze}
             disabled={analyzing}
-            variant="glow"
-            size="lg"
-            className="w-full md:w-auto h-14 px-8 font-bold text-[15px] shadow-lg shadow-primary/20 hover:shadow-primary/40 rounded-xl gap-2 relative z-10"
+            variant="premium"
+            className="w-full md:w-auto h-16 px-10 font-bold text-[16px] gap-3 relative z-10"
           >
             {analyzing ? (
               <>
@@ -156,12 +155,12 @@ export default function TrendHunter() {
               </>
             )}
           </Button>
-        </div>
+        </header>
 
         {/* Filters Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
               <Filter className="w-4 h-4" /> Filtro de Nicho
             </h3>
             
@@ -237,19 +236,19 @@ export default function TrendHunter() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05 }}
-                  className="glow-card rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-6 flex flex-col h-full hover:border-border/80 transition-all hover:-translate-y-1 relative group"
+                  className="premium-card p-6 md:p-8 flex flex-col h-full relative group transition-all duration-300 hover:-translate-y-2"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   
                   {/* Visual Tags & Score */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex flex-col gap-2">
-                       <span className="inline-flex w-fit items-center px-2.5 py-1 rounded-md bg-secondary/80 border border-border/40 text-[10px] font-bold uppercase tracking-widest text-foreground/80">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex flex-col gap-3">
+                       <span className="inline-flex w-fit items-center px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/10 text-[10px] font-black uppercase tracking-[0.15em] text-primary">
                         {t.platform}
                       </span>
                       {radar && RadarBadgeIcon && (
-                        <span className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-md border ${radar.bg} ${radar.border} ${radar.color} text-[10px] font-bold uppercase tracking-widest shadow-sm`}>
-                          <RadarBadgeIcon className="w-3 h-3" />
+                        <span className={`inline-flex w-fit items-center gap-2 px-3 py-1.5 rounded-lg border ${radar.bg} ${radar.border} ${radar.color} text-[10px] font-black uppercase tracking-[0.15em] shadow-sm`}>
+                          <RadarBadgeIcon className="w-3.5 h-3.5" />
                           {radar.text}
                         </span>
                       )}
@@ -262,19 +261,19 @@ export default function TrendHunter() {
                   {/* Text Content */}
                   <div className="flex-1 space-y-5">
                     <div>
-                      <h3 className="font-bold text-lg text-foreground font-display leading-tight">{t.topic}</h3>
-                      <p className="text-sm text-muted-foreground font-medium mt-1.5 line-clamp-2 leading-relaxed">{t.description}</p>
+                      <h3 className="font-bold text-xl text-foreground font-display leading-tight group-hover:text-primary transition-colors">{t.topic}</h3>
+                      <p className="text-sm text-muted-foreground/80 font-medium mt-2 line-clamp-3 leading-relaxed">{t.description}</p>
                     </div>
 
                     <div className="space-y-3 pt-4 border-t border-border/30">
                       {t.hook && (
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                            <Zap className="w-3 h-3 text-yellow-500" /> Hook
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-current" /> Hook Gancho
                           </div>
-                          <div className="flex items-start justify-between gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
-                            <p className="text-sm font-medium text-foreground/90 italic">"{t.hook}"</p>
-                            <div className="shrink-0 bg-background rounded-md border border-border/50 shadow-sm">
+                          <div className="flex items-start justify-between gap-4 bg-secondary/40 p-4 rounded-2xl border border-border/20">
+                            <p className="text-sm font-semibold text-foreground/90 italic leading-relaxed">"{t.hook}"</p>
+                            <div className="shrink-0">
                               <CopyButton text={t.hook} />
                             </div>
                           </div>
@@ -282,13 +281,13 @@ export default function TrendHunter() {
                       )}
 
                       {t.hashtags && (
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                            <Hash className="w-3 h-3 text-pink-500" /> Hashtags
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                            <Hash className="w-3.5 h-3.5 text-indigo-400" /> Hashtags sugeridas
                           </div>
-                          <div className="flex items-center justify-between gap-3 bg-black/20 px-3 py-2 rounded-xl border border-white/5">
-                            <p className="text-xs text-primary font-medium truncate">{t.hashtags}</p>
-                            <div className="shrink-0 bg-background rounded-md border border-border/50 shadow-sm">
+                          <div className="flex items-center justify-between gap-4 bg-secondary/40 px-4 py-3 rounded-2xl border border-border/20">
+                            <p className="text-xs text-primary font-bold truncate">{t.hashtags}</p>
+                            <div className="shrink-0">
                               <CopyButton text={t.hashtags} />
                             </div>
                           </div>
@@ -298,13 +297,13 @@ export default function TrendHunter() {
                   </div>
 
                   {/* Footer Meta */}
-                  <div className="flex items-center gap-3 pt-5 mt-5 border-t border-border/30">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <div className="flex items-center gap-4 pt-6 mt-auto border-t border-border/30">
+                    <span className="inline-flex items-center px-3 py-1 rounded-lg bg-secondary/50 text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">
                       {t.category}
                     </span>
                     {t.format && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                        <Film className="w-3 h-3 opacity-70" />
+                      <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                        <Film className="w-3.5 h-3.5 opacity-70" />
                         {t.format}
                       </span>
                     )}

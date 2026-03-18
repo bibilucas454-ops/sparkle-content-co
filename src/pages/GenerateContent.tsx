@@ -240,14 +240,14 @@ export default function GenerateContent() {
           <div className="lg:col-span-12 space-y-6">
             
             {/* Context Card */}
-            <div className="glow-card rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-6 md:p-8">
+            <div className="premium-card p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <AlignLeft className="w-5 h-5 text-muted-foreground" />
                 <h3 className="text-lg font-semibold text-foreground font-display tracking-tight">Contexto do Conteúdo</h3>
               </div>
               <div className="space-y-6">
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 mb-3">
+                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                     Tema Principal <span className="text-destructive">*</span>
                   </label>
                   <Input
@@ -259,7 +259,7 @@ export default function GenerateContent() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 mb-3">
+                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                     Título Específico <span className="font-normal opacity-70 lowercase text-[10px]">(opcional)</span>
                   </label>
                   <Input
@@ -274,7 +274,7 @@ export default function GenerateContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Platform Card */}
-              <div className="glow-card rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-6 md:p-8">
+              <div className="premium-card p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Target className="w-5 h-5 text-muted-foreground" />
                   <h3 className="text-lg font-semibold text-foreground font-display tracking-tight">Plataforma Alvo</h3>
@@ -298,7 +298,7 @@ export default function GenerateContent() {
               </div>
 
               {/* Outputs Card */}
-              <div className="glow-card rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl p-6 md:p-8">
+              <div className="premium-card p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <Fingerprint className="w-5 h-5 text-muted-foreground" />
@@ -310,7 +310,7 @@ export default function GenerateContent() {
                         prev.length === contentTypes.length ? [] : contentTypes.map((ct) => ct.id)
                       )
                     }
-                    className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                    className="text-[11px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/80 transition-colors"
                   >
                     {selectedTypes.length === contentTypes.length ? "Limpar" : "Todos"}
                   </button>
@@ -424,9 +424,9 @@ export default function GenerateContent() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.3 }}
-                      className="rounded-2xl border border-border/50 bg-[#0A0A0A] p-6 md:p-8 relative overflow-hidden group shadow-2xl"
+                      className="premium-card p-6 md:p-10 relative overflow-hidden group shadow-2xl ring-1 ring-primary/10"
                     >
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-50"></div>
+                      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-400 to-primary opacity-80"></div>
                       <div className="flex justify-between items-start mb-6 w-full">
                         <div className="md:hidden mb-4">
                            <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="md" showLabel={true} />
@@ -456,7 +456,7 @@ export default function GenerateContent() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: i * 0.08 }}
-                          className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-6 space-y-5 hover:border-border/80 transition-colors shadow-sm group flex flex-col h-full"
+                          className="premium-card p-6 md:p-8 space-y-6 flex flex-col h-full"
                         >
                           <div className="flex items-start justify-between">
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/40 backdrop-blur-md">
@@ -475,7 +475,7 @@ export default function GenerateContent() {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm md:text-base whitespace-pre-wrap text-foreground/90 font-medium leading-relaxed bg-black/40 p-5 rounded-xl border border-white/5 h-full">
+                            <p className="text-sm md:text-base whitespace-pre-wrap text-foreground/90 font-medium leading-relaxed bg-secondary/30 p-5 md:p-7 rounded-2xl border border-border/20 h-full">
                               {r.content}
                             </p>
                           </div>
