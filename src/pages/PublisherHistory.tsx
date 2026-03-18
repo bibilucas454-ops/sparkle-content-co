@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Youtube, Instagram, Play, CheckCircle2, AlertCircle, Loader2,
-  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
+  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

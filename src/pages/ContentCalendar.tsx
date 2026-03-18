@@ -2,7 +2,7 @@ import { useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -40,46 +40,24 @@ export default function ContentCalendar() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header className="pb-8 border-b border-border/40">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-xl shadow-primary/10">
-                <CalendarIcon className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
-                  Calendário
-                </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
-                  Planeje sua estratégia de conteúdo e visualize seus agendamentos.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="h-12 px-6 rounded-xl font-bold gap-2">
-                <Filter className="w-4 h-4" /> FILTRAR
-              </Button>
-              <Button variant="premium" className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-primary/20">
-                NOVO AGENDAMENTO
-              </Button>
-            </div>
-          </div>
-        </header>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-gradient-silver">Calendário de Conteúdo</h1>
+          <p className="text-muted-foreground mt-1">Planeje e agende seu conteúdo</p>
+        </div>
 
-        <div className="flex items-center justify-between bg-card/40 p-4 rounded-2xl border border-border/40 backdrop-blur-xl shadow-sm">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10 rounded-xl hover:bg-secondary">
-            <ChevronLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-xl font-black font-display tracking-tight capitalize">{monthName}</h2>
-          <Button variant="ghost" size="icon" onClick={() => navigate(1)} className="h-10 w-10 rounded-xl hover:bg-secondary">
-            <ChevronRight className="w-5 h-5" />
+          <h2 className="font-display font-semibold">{monthName}</h2>
+          <Button variant="ghost" size="icon" onClick={() => navigate(1)}>
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-7 gap-1">
           {DAYS.map((d) => (
-            <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-4 italic">{d}</div>
+            <div key={d} className="text-center text-xs text-muted-foreground py-2">{d}</div>
           ))}
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`empty-${i}`} />
@@ -96,16 +74,16 @@ export default function ContentCalendar() {
             return (
               <div
                 key={day}
-                className={`min-h-[120px] md:min-h-[160px] premium-card p-3 text-xs cursor-pointer transition-all duration-300 relative group ${
-                  isToday ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20" : "border-border/30 hover:border-primary/20 hover:-translate-y-1"
+                className={`min-h-[80px] md:min-h-[100px] rounded-md border p-1.5 text-xs cursor-pointer transition-colors ${
+                  isToday ? "border-accent bg-accent/10" : "border-border bg-card hover:bg-secondary/50"
                 }`}
                 onClick={() => setShowAdd(showAdd === dateStr ? null : dateStr)}
               >
-                <span className={`text-[14px] font-black font-display ${isToday ? "text-primary" : "text-muted-foreground/40 group-hover:text-foreground/60 transition-colors"}`}>{day}</span>
-                <div className="mt-3 space-y-2">
+                <span className={`font-medium ${isToday ? "text-accent" : "text-muted-foreground"}`}>{day}</span>
+                <div className="mt-1 space-y-0.5">
                   {dayEvents.map((e, ei) => (
-                    <div key={ei} className="bg-primary/10 text-primary border border-primary/20 rounded-lg px-2.5 py-1.5 truncate text-[11px] font-bold shadow-sm">
-                      {e.platform}: {e.title}
+                    <div key={ei} className="bg-secondary rounded px-1 py-0.5 truncate text-[10px]">
+                      {e.title}
                     </div>
                   ))}
                 </div>
