@@ -28,7 +28,7 @@ export function TrendsList({ trends, loading }: TrendsListProps) {
           </div>
           <Link
             to="/trends"
-            className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all flex items-center gap-1.5"
+            className="text-[11px] font-black uppercase tracking-widest text-text-secondary hover:text-primary transition-all flex items-center gap-1.5"
           >
             Ver todas <ArrowRight className="w-3.5 h-3.5" />
           </Link>
@@ -56,14 +56,14 @@ export function TrendsList({ trends, loading }: TrendsListProps) {
                     <span className="text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/10">
                       {t.platform}
                     </span>
-                    <span className="text-[11px] font-bold text-muted-foreground/80 flex items-center gap-1.5 truncate">
+                    <span className="text-[11px] font-bold text-text-secondary flex items-center gap-1.5 truncate">
                       <Hash className="w-3.5 h-3.5" /> {t.category}
                     </span>
                   </div>
                   <h3 className="font-medium text-sm text-foreground truncate">
                     {t.topic}
                   </h3>
-                  <p className="text-xs text-muted-foreground line-clamp-1">
+                   <p className="text-xs text-text-secondary font-medium line-clamp-1">
                     {t.description}
                   </p>
                 </div>

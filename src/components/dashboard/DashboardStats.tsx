@@ -53,10 +53,10 @@ export function DashboardStats({
             <CardContent className="p-8">
               <div className="flex items-center justify-between">
                 <div className="space-y-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">
+                  <p className="text-[11px] font-black uppercase tracking-[0.15em] text-text-secondary">
                     {s.label}
                   </p>
-                  <p className="text-4xl font-black font-display tracking-tighter text-foreground/90">
+                  <p className="text-4xl font-black font-display tracking-tighter text-text-primary">
                     {loading ? "-" : s.value}
                   </p>
                 </div>

@@ -41,7 +41,7 @@ export function PerformanceByTime() {
           <TrendingUp className="w-5 h-5 text-accent" />
           Melhores Horários para Publicar
         </CardTitle>
-        <p className="text-xs text-muted-foreground font-medium">
+        <p className="text-xs text-text-secondary font-bold">
           Análise de performance baseada no histórico de publicações.
         </p>
       </CardHeader>
@@ -49,8 +49,8 @@ export function PerformanceByTime() {
       <CardContent className="space-y-6 pt-4">
         {!hasData ? (
           <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-            <AlertCircle className="w-10 h-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground font-medium max-w-[200px]">
+            <AlertCircle className="w-10 h-10 text-text-muted" />
+            <p className="text-sm text-text-secondary font-bold max-w-[200px]">
               Dados insuficientes para uma conclusão confiável.
             </p>
           </div>
@@ -74,21 +74,21 @@ export function PerformanceByTime() {
                   )}
                   
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">
                       {i + 1}º Lugar • {m.window}
                     </span>
                     <h4 className="font-bold text-foreground">{m.band}</h4>
                     
                     <div className="mt-3 flex items-end gap-1.5">
-                      <span className={`text-2xl font-black ${i === 0 ? "text-accent" : "text-foreground"}`}>
+                      <span className={`text-2xl font-black ${i === 0 ? "text-accent" : "text-text-primary"}`}>
                         {m.performanceScore}%
                       </span>
-                      <span className="text-[10px] text-muted-foreground font-bold pb-1 lowercase">
+                      <span className="text-[10px] text-text-secondary font-black pb-1 lowercase">
                         performance
                       </span>
                     </div>
                     
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-[10px] text-text-muted font-bold mt-1">
                       {m.count} post{m.count !== 1 ? 's' : ''} analisado{m.count !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -101,10 +101,10 @@ export function PerformanceByTime() {
               <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Insight Prático
               </h4>
-              <p className="text-sm font-medium text-foreground/90 leading-relaxed">
+              <p className="text-sm font-bold text-text-primary leading-relaxed">
                 {bestBand && bestBand.count > 0 ? (
                   <>
-                    Seu melhor horário hoje é <span className="text-accent font-bold">{bestBand.band} ({bestBand.window})</span>. 
+                    Seu melhor horário hoje é <span className="text-accent font-black">{bestBand.band} ({bestBand.window})</span>. 
                     {bestBand.band === "Noite" && " O engajamento noturno está superando as outras faixas significativamente."}
                     {bestBand.band === "Tarde" && " A audiência no meio do dia tem mostrado uma resposta muito positiva."}
                     {bestBand.band === "Manhã" && " O público está consumindo seu conteúdo logo cedo com alta retenção."}

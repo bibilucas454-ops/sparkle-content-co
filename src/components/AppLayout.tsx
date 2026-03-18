@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="space-y-8">
       {navGroups.map((group) => (
         <div key={group.label} className="space-y-2">
-          <h4 className="px-4 text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-4">
+          <h4 className="px-4 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-4">
             {group.label}
           </h4>
           <div className="space-y-1.5">
@@ -82,13 +82,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   className={`group flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[14px] font-bold transition-all duration-300 relative overflow-hidden ${
                     active
                       ? "bg-primary text-white shadow-glow ring-1 ring-white/10"
-                      : "text-muted-foreground/90 hover:text-foreground hover:bg-secondary/80"
+                      : "text-text-secondary hover:text-text-primary hover:bg-secondary/80"
                   }`}
                 >
                   {active && (
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                   )}
-                  <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${active ? "text-white scale-110" : "text-muted-foreground group-hover:text-foreground group-hover:scale-110"}`} strokeWidth={active ? 2.5 : 2} />
+                  <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${active ? "text-white scale-110" : "text-text-muted group-hover:text-text-primary group-hover:scale-110"}`} strokeWidth={active ? 2.5 : 2} />
                   <span className="relative z-10">{item.label}</span>
                 </Link>
               );
@@ -99,7 +99,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="pt-8 mt-10 border-t border-border/40">
         <button
           onClick={() => { signOut(); isMobile && setMobileOpen(false); }}
-          className="group flex items-center gap-3.5 px-5 py-4 rounded-2xl text-[14px] font-black text-muted-foreground/80 hover:text-destructive hover:bg-destructive/10 transition-all w-full"
+          className="group flex items-center gap-3.5 px-5 py-4 rounded-2xl text-[14px] font-black text-text-secondary hover:text-destructive hover:bg-destructive/10 transition-all w-full"
         >
           <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
           Sair da conta
@@ -125,7 +125,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </nav>
         <div className="pt-8 border-t border-border/40">
           <div className="flex items-center justify-between px-3 bg-secondary/50 p-2.5 rounded-2xl border border-border/20 backdrop-blur-sm">
-            <span className="text-[11px] font-black text-muted-foreground/80 uppercase tracking-widest px-2">Visual</span>
+            <span className="text-[11px] font-black text-text-secondary uppercase tracking-widest px-2">Visual</span>
             <ThemeToggle />
           </div>
         </div>
