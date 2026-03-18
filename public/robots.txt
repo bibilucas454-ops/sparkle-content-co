@@ -12,4 +12,3 @@ Allow: /
 
 User-agent: *
 Allow: /
-Allow: /tiktokSFwfoa7QmTvcTqcuUwk3Mkg9snzohUg5.txt
