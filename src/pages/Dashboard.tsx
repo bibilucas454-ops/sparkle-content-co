@@ -9,6 +9,7 @@ import { HeroQuickAction } from "@/components/dashboard/HeroQuickAction";
 import { TrendsList } from "@/components/dashboard/TrendsList";
 import { RecentContentList } from "@/components/dashboard/RecentContentList";
 import { FeatureBlocks } from "@/components/dashboard/FeatureBlocks";
+import { PerformanceByTime } from "@/components/dashboard/PerformanceByTime";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -38,6 +39,8 @@ export default function Dashboard() {
             trendsCount={trends.length}
             loading={loading}
           />
+
+          <PerformanceByTime />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
             <TrendsList trends={trends} loading={loading} />
