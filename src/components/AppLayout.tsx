@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Footer } from "./Footer";
+import { ThemeToggle } from "./ThemeToggle";
 
 type NavGroup = {
   label: string;
@@ -66,8 +67,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const renderNavLinks = (isMobile = false) => (
     <div className="space-y-6">
       {navGroups.map((group) => (
-        <div key={group.label} className="space-y-1 mb-4">
-          <h4 className="px-3 text-[11px] font-bold text-muted-foreground/50 uppercase tracking-widest mb-2">
+        <div key={group.label} className="space-y-1 mb-6">
+          <h4 className="px-3 text-[10px] font-black text-muted-foreground/80 uppercase tracking-[0.15em] mb-3">
             {group.label}
           </h4>
           <div className="space-y-1">
@@ -78,10 +79,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden ${
+                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden ${
                     active
-                      ? "bg-secondary/80 text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+                      ? "bg-secondary text-foreground shadow-sm ring-1 ring-border/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                   }`}
                 >
                   {active && (
@@ -95,13 +96,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       ))}
-      <div className="pt-4 mt-8 border-t border-border/50">
+      <div className="pt-6 mt-8 border-t border-border/60">
         <button
           onClick={() => { signOut(); isMobile && setMobileOpen(false); }}
-          className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors w-full"
+          className="group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all w-full"
         >
           <LogOut className="w-4 h-4 group-hover:text-destructive transition-colors" />
-          Sair
+          Sair da conta
         </button>
       </div>
     </div>
@@ -110,27 +111,40 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex selection:bg-primary/30 text-foreground">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card/50 backdrop-blur-sm p-4 fixed h-full overflow-y-auto custom-scrollbar">
-        <div className="flex items-center gap-2 mb-8 px-2 pt-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-primary" />
+      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card/40 backdrop-blur-xl p-5 fixed h-full overflow-y-auto custom-scrollbar z-50">
+        <div className="flex items-center justify-between mb-10 px-1 pt-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
+              <Zap className="w-5 h-5" />
+            </div>
+            <span className="text-xl font-black font-display tracking-tight text-gradient-silver">CreatorOS</span>
           </div>
-          <span className="text-xl font-bold font-display tracking-tight text-gradient-silver">CreatorOS</span>
         </div>
         <nav className="flex-1">
           {renderNavLinks()}
         </nav>
+        <div className="pt-6 border-t border-border/60">
+          <div className="flex items-center justify-between px-2 bg-secondary/40 p-2 rounded-2xl border border-border/50">
+            <span className="text-xs font-bold text-muted-foreground px-2">Tema</span>
+            <ThemeToggle />
+          </div>
+        </div>
       </aside>
 
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Zap className="w-5 h-5 text-primary" />
-          <span className="font-bold font-display text-lg tracking-tight text-gradient-silver">CreatorOS</span>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+            <Zap className="w-4 h-4" />
+          </div>
+          <span className="font-black font-display text-lg tracking-tight text-gradient-silver">CreatorOS</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)} className="text-muted-foreground">
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground h-10 w-10 rounded-xl hover:bg-secondary">
+            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile nav overlay */}

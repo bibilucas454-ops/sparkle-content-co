@@ -49,14 +49,14 @@ export function DashboardStats({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1, duration: 0.4 }}
         >
-          <Card className="glow-card border-border/50 bg-card/60 backdrop-blur-xl overflow-hidden relative group hover:border-border/80 transition-colors">
-            <CardContent className="p-6">
+          <Card className="glow-card overflow-hidden relative group hover:border-border/80 transition-all duration-300">
+            <CardContent className="p-7">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground/80">
                     {s.label}
                   </p>
-                  <p className="text-3xl font-bold font-display tracking-tight">
+                  <p className="text-3xl font-black font-display tracking-tight text-foreground">
                     {loading ? "-" : s.value}
                   </p>
                 </div>
