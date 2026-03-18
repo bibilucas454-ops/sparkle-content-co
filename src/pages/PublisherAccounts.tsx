@@ -28,7 +28,7 @@ interface Account {
   account_name: string | null;
   account_id: string | null;
   created_at: string;
-  token_expires_at: string | null;
+  expires_at: string | null;
 }
 
 export default function PublisherAccounts() {
@@ -45,8 +45,8 @@ export default function PublisherAccounts() {
   const fetchAccounts = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("social_accounts")
-      .select("id, platform, account_name, account_id, created_at, token_expires_at")
+      .from("social_tokens")
+      .select("id, platform, account_name, account_id, created_at, expires_at")
       .order("created_at", { ascending: false });
     setAccounts(data ?? []);
     setLoading(false);
@@ -77,7 +77,8 @@ export default function PublisherAccounts() {
   };
 
   const handleDisconnect = async (accountId: string) => {
-    const { error } = await supabase.from("social_accounts").delete().eq("id", accountId);
+    if (!confirm("Tem certeza que deseja desconectar esta conta?")) return;
+    const { error } = await supabase.from("social_tokens").delete().eq("id", accountId);
     if (error) {
       toast.error("Falha ao desconectar conta.");
     } else {
@@ -146,11 +147,11 @@ export default function PublisherAccounts() {
                           <p className="text-[10px] uppercase font-black tracking-[0.15em] text-muted-foreground/60">
                             Conectada em {new Date(account.created_at).toLocaleDateString("pt-BR")}
                           </p>
-                          {account.token_expires_at && (
+                          {account.expires_at && (
                             <p className={`text-xs ${status === "token_expirado" ? "text-yellow-500" : "text-muted-foreground"}`}>
                               {status === "token_expirado"
                                 ? "⚠️ Token expirado — tentando renovação automática"
-                                : `Token renovável até ${new Date(account.token_expires_at).toLocaleDateString("pt-BR")}`}
+                                : `Token renovável até ${new Date(account.expires_at).toLocaleDateString("pt-BR")}`}
                             </p>
                           )}
                         </div>

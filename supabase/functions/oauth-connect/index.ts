@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: accounts, error } = await supabaseAdmin.from("social_accounts").select("*");
+    const { data: accounts, error } = await supabaseAdmin.from("social_tokens").select("*");
     if (error) return new Response(error.message, { status: 500 });
 
     let migrated = 0;
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
          const encAccess = await encryptToken(acc.access_token_encrypted);
          const encRefresh = acc.refresh_token_encrypted ? await encryptToken(acc.refresh_token_encrypted) : null;
 
-         await supabaseAdmin.from("social_accounts").update({
+         await supabaseAdmin.from("social_tokens").update({
             access_token_encrypted: encAccess,
             refresh_token_encrypted: encRefresh
          }).eq("id", acc.id);

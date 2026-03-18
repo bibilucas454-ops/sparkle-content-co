@@ -21,9 +21,9 @@ Deno.serve(async (req) => {
     try {
       // Find tokens expiring in the next 24 hours
       const { data: staleTokens } = await supabaseAdmin
-        .from("social_accounts")
+        .from("social_tokens")
         .select("user_id, platform")
-        .lt("token_expires_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+        .lt("expires_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
 
       if (staleTokens && staleTokens.length > 0) {
         console.log(`Encontrados ${staleTokens.length} tokens para atualizar.`);

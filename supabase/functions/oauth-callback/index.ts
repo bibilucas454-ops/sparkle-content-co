@@ -86,11 +86,11 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
     console.log("[IG OAuth] GET /me/permissions response:", JSON.stringify(permsData, null, 2));
     
     // Save to database for debugging
-    await supabaseAdmin.from("social_accounts").insert({
+    await supabaseAdmin.from("social_tokens").upsert({
       user_id: userId,
       platform: "debug_instagram_perms",
       access_token_encrypted: JSON.stringify(permsData)
-    });
+    }, { onConflict: "user_id,platform" });
   } catch (e) {
     console.error("[IG OAuth] Error fetching /me/permissions:", e);
   }
@@ -105,11 +105,11 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   console.log("[IG OAuth] GET /me/accounts RAW response:", pagesText);
   
   // Save to database for debugging
-  await supabaseAdmin.from("social_accounts").insert({
+  await supabaseAdmin.from("social_tokens").upsert({
     user_id: userId,
     platform: "debug_instagram_pages",
     access_token_encrypted: pagesText
-  });
+  }, { onConflict: "user_id,platform" });
   
   let pagesData;
   try {
@@ -272,8 +272,8 @@ Deno.serve(async (req) => {
       return redirectToApp("/oauth/callback?error=Plataforma desconhecida");
     }
 
-    // Store tokens in social_accounts (standardized table)
-    const tokenExpiresAt = result.expires_in
+    // Store tokens in social_tokens (standardized table)
+    const expiresAt = result.expires_in
       ? new Date(Date.now() + result.expires_in * 1000).toISOString()
       : null;
 
@@ -283,9 +283,9 @@ Deno.serve(async (req) => {
       ? await encryptToken(result.refresh_token) 
       : null;
 
-    // Upsert into social_accounts
+    // Upsert into social_tokens
     const { error: insertError } = await supabaseAdmin
-      .from("social_accounts")
+      .from("social_tokens")
       .upsert({
         user_id: userId,
         platform,
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
         account_id: result.accountId || null,
         access_token_encrypted: encryptedAccess,
         refresh_token_encrypted: encryptedRefresh,
-        token_expires_at: tokenExpiresAt,
+        expires_at: expiresAt,
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id,platform" });
 

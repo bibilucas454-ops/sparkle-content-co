@@ -107,8 +107,9 @@ export default function PublisherHub() {
   };
 
   const fetchConnectedAccounts = async () => {
-    const { data } = await supabase.from("social_accounts").select("platform");
-    if (data) setConnectedAccounts(data.map((a) => a.platform));
+    const { data } = await supabase.from("social_tokens").select("platform");
+    const active = data?.map((d: any) => d.platform) || [];
+    setConnectedAccounts(active);
   };
 
   const processFiles = (files: FileList | File[]) => {

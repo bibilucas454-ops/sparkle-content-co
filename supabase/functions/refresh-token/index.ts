@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const targetUserId = bodyUserId || userId;
 
     const { data: account } = await supabaseAdmin
-      .from("social_accounts")
+      .from("social_tokens")
       .select("*")
       .eq("platform", platform)
       .eq("user_id", targetUserId)
@@ -121,14 +121,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    await supabaseAdmin.from("social_accounts").update({
+    await supabaseAdmin.from("social_tokens").update({
       access_token_encrypted: await encryptToken(tokenData.access_token),
       refresh_token_encrypted: tokenData.refresh_token 
         ? await encryptToken(tokenData.refresh_token) 
         : account.refresh_token_encrypted,
-      token_expires_at: tokenData.expires_in
+      expires_at: tokenData.expires_in
         ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
         : null,
+      last_refreshed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", account.id);
 
