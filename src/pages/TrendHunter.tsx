@@ -130,10 +130,10 @@ export default function TrendHunter() {
               <Compass className="w-10 h-10 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+              <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                 Caçador de Tendências
               </h1>
-              <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+              <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                 Descubra padrões de conteúdo viral no seu nicho antes de todo mundo.
               </p>
             </div>
@@ -159,8 +159,8 @@ export default function TrendHunter() {
 
         {/* Filters Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted flex items-center gap-2">
               <Filter className="w-4 h-4" /> Filtro de Nicho
             </h3>
             
@@ -204,10 +204,10 @@ export default function TrendHunter() {
                 <button
                   key={niche}
                   onClick={() => setNicheFilter(niche)}
-                  className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm transition-all border font-semibold whitespace-nowrap ${
+                  className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm transition-all border font-bold whitespace-nowrap ${
                     isActive
                       ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                      : "bg-card/40 border-border/40 text-muted-foreground hover:border-border/80 hover:bg-card/80 hover:text-foreground shadow-sm"
+                      : "bg-secondary/40 border-border text-text-secondary hover:border-border/80 hover:bg-secondary/80 hover:text-text-primary"
                   }`}
                 >
                   {niche}
@@ -259,20 +259,20 @@ export default function TrendHunter() {
                   </div>
 
                   {/* Text Content */}
-                  <div className="flex-1 space-y-5">
+                  <div className="flex-1 space-y-6">
                     <div>
-                      <h3 className="font-bold text-xl text-foreground font-display leading-tight group-hover:text-primary transition-colors">{t.topic}</h3>
-                      <p className="text-sm text-muted-foreground/80 font-medium mt-2 line-clamp-3 leading-relaxed">{t.description}</p>
+                      <h3 className="font-bold text-xl text-text-primary font-display leading-tight group-hover:text-primary transition-colors">{t.topic}</h3>
+                      <p className="text-[15px] text-text-secondary font-medium mt-3 line-clamp-3 leading-relaxed">{t.description}</p>
                     </div>
 
-                    <div className="space-y-3 pt-4 border-t border-border/30">
+                    <div className="space-y-4 pt-5 border-t border-border/60">
                       {t.hook && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-current" /> Hook Gancho
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted">
+                            <Zap className="w-4 h-4 text-primary fill-current" /> Hook Gancho
                           </div>
-                          <div className="flex items-start justify-between gap-4 bg-secondary/40 p-4 rounded-2xl border border-border/20">
-                            <p className="text-sm font-semibold text-foreground/90 italic leading-relaxed">"{t.hook}"</p>
+                          <div className="flex items-start justify-between gap-4 bg-secondary/30 p-4 rounded-xl border border-border/50">
+                            <p className="text-[13px] font-bold text-text-primary italic leading-relaxed">"{t.hook}"</p>
                             <div className="shrink-0">
                               <CopyButton text={t.hook} />
                             </div>
@@ -281,12 +281,12 @@ export default function TrendHunter() {
                       )}
 
                       {t.hashtags && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
-                            <Hash className="w-3.5 h-3.5 text-indigo-400" /> Hashtags sugeridas
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted">
+                            <Hash className="w-4 h-4 text-primary" /> Hashtags sugeridas
                           </div>
-                          <div className="flex items-center justify-between gap-4 bg-secondary/40 px-4 py-3 rounded-2xl border border-border/20">
-                            <p className="text-xs text-primary font-bold truncate">{t.hashtags}</p>
+                          <div className="flex items-center justify-between gap-4 bg-secondary/30 px-4 py-3 rounded-xl border border-border/50">
+                            <p className="text-xs text-primary font-black truncate tracking-tight">{t.hashtags}</p>
                             <div className="shrink-0">
                               <CopyButton text={t.hashtags} />
                             </div>

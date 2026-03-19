@@ -103,10 +103,10 @@ export default function PublisherAccounts() {
                 <Link2 className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Contas Conectadas
                 </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                   Gerencie suas contas de redes sociais para publicação automática.
                 </p>
               </div>
@@ -134,21 +134,21 @@ export default function PublisherAccounts() {
                     <div>
                       <h3 className="text-xl font-bold text-foreground font-display tracking-tight">{platform.label}</h3>
                       {account ? (
-                        <div className="text-sm text-muted-foreground space-y-0.5">
-                          <p className="flex items-center gap-1.5">
+                        <div className="text-sm text-text-secondary space-y-1">
+                          <p className="flex items-center gap-1.5 font-bold">
                             {getStatusIcon(status)}
                             <span className={getAccountStatusColor(status)}>
                               {getAccountStatusLabel(status)}
                             </span>
                             {account.account_name && (
-                              <span className="text-foreground ml-1">— {account.account_name}</span>
+                              <span className="text-text-primary ml-1 font-black">— {account.account_name}</span>
                             )}
                           </p>
-                          <p className="text-[10px] uppercase font-black tracking-[0.15em] text-muted-foreground/60">
+                          <p className="text-[10px] uppercase font-black tracking-[0.15em] text-text-muted">
                             Conectada em {new Date(account.created_at).toLocaleDateString("pt-BR")}
                           </p>
                           {account.expires_at && (
-                            <p className={`text-xs ${status === "token_expirado" ? "text-yellow-500" : "text-muted-foreground"}`}>
+                            <p className={`text-xs font-medium ${status === "token_expirado" ? "text-amber-500" : "text-text-muted"}`}>
                               {status === "token_expirado"
                                 ? "⚠️ Token expirado — tentando renovação automática"
                                 : `Token renovável até ${new Date(account.expires_at).toLocaleDateString("pt-BR")}`}
@@ -156,7 +156,7 @@ export default function PublisherAccounts() {
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                        <p className="text-sm text-text-secondary font-medium flex items-center gap-1.5">
                           {getStatusIcon(status)}
                           Não conectada
                         </p>
@@ -229,10 +229,10 @@ export default function PublisherAccounts() {
         </div>
 
         <div className="premium-card p-8 md:p-10 space-y-6">
-          <h3 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
+          <h3 className="text-lg font-bold text-text-primary font-display flex items-center gap-2">
             <Settings className="w-5 h-5 text-primary" /> Credenciais Necessárias
           </h3>
-          <p className="text-base text-muted-foreground font-medium leading-relaxed">
+          <p className="text-base text-text-secondary font-medium leading-relaxed">
             Para conectar suas contas, as seguintes variáveis de ambiente devem estar configuradas no Supabase (Edge Function Secrets):
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">

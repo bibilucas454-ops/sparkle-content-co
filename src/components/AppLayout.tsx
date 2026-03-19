@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="space-y-8">
       {navGroups.map((group) => (
         <div key={group.label} className="space-y-2">
-          <h4 className="px-4 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-4">
+          <h4 className="px-4 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-3">
             {group.label}
           </h4>
           <div className="space-y-1.5">
@@ -79,10 +79,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   key={item.path}
                   to={item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  className={`group flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[14px] font-bold transition-all duration-300 relative overflow-hidden ${
+                  className={`group flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[14px] font-bold transition-all duration-300 relative overflow-hidden ${
                     active
-                      ? "bg-primary text-white shadow-glow ring-1 ring-white/10"
-                      : "text-text-secondary hover:text-text-primary hover:bg-secondary/80"
+                      ? "bg-primary text-primary-foreground shadow-glow"
+                      : "text-text-secondary hover:text-text-primary hover:bg-secondary"
                   }`}
                 >
                   {active && (
@@ -99,7 +99,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       <div className="pt-8 mt-10 border-t border-border/40">
         <button
           onClick={() => { signOut(); isMobile && setMobileOpen(false); }}
-          className="group flex items-center gap-3.5 px-5 py-4 rounded-2xl text-[14px] font-black text-text-secondary hover:text-destructive hover:bg-destructive/10 transition-all w-full"
+          className="group flex items-center gap-3.5 px-5 py-3 rounded-xl text-[14px] font-bold text-text-secondary hover:text-destructive hover:bg-destructive/10 transition-all w-full mt-4"
         >
           <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
           Sair da conta
@@ -111,7 +111,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex selection:bg-primary/20 text-foreground overflow-x-hidden">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex w-72 flex-col border-r border-border/40 bg-card/60 backdrop-blur-2xl p-6 fixed h-full overflow-y-auto custom-scrollbar z-50">
+      <aside className="hidden md:flex w-72 flex-col border-r border-border/60 bg-card p-6 fixed h-full overflow-y-auto custom-scrollbar z-50">
         <div className="flex items-center justify-between mb-12 px-2 pt-4">
           <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 rotate-3 group hover:rotate-0 transition-transform duration-500">
@@ -124,8 +124,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           {renderNavLinks()}
         </nav>
         <div className="pt-8 border-t border-border/40">
-          <div className="flex items-center justify-between px-3 bg-secondary/50 p-2.5 rounded-2xl border border-border/20 backdrop-blur-sm">
-            <span className="text-[11px] font-black text-text-secondary uppercase tracking-widest px-2">Visual</span>
+          <div className="flex items-center justify-between px-3 bg-secondary p-2 rounded-xl border border-border/40">
+            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-widest px-2">Visual</span>
             <ThemeToggle />
           </div>
         </div>

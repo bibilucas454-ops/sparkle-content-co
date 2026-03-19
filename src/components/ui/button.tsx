@@ -9,15 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-premium hover:bg-primary/90 hover:shadow-glow",
+        default: "bg-primary text-primary-foreground shadow-premium hover:brightness-110 hover:shadow-glow",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-secondary hover:text-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "text-muted-foreground hover:text-foreground hover:bg-secondary/60",
+        outline: "border border-border bg-background text-text-secondary hover:bg-secondary hover:text-text-primary",
+        secondary: "bg-secondary text-text-primary hover:bg-secondary/80",
+        ghost: "text-text-secondary hover:text-text-primary hover:bg-secondary",
         link: "text-primary underline-offset-4 hover:underline",
-        glow: "bg-primary text-primary-foreground shadow-glow hover:bg-primary/90 hover:brightness-110",
-        premium: "bg-gradient-to-br from-primary via-primary to-[#818CF8] text-white shadow-premium hover:shadow-glow hover:-translate-y-0.5 transition-all duration-300",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90",
+        glow: "bg-primary text-primary-foreground shadow-glow hover:brightness-110",
+        premium: "bg-gradient-to-br from-primary via-primary to-[#818CF8] text-primary-foreground shadow-premium hover:shadow-glow hover:-translate-y-0.5 transition-all duration-300",
+        accent: "bg-accent text-accent-foreground hover:brightness-105",
       },
       size: {
         default: "h-11 px-5 py-2",

@@ -59,10 +59,10 @@ Formato:
                 <Bot className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Prompt Grok IA
                 </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                   Engenharia de prompt otimizada para o motor Grok da xAI produzir roteiros estelares.
                 </p>
               </div>
@@ -81,8 +81,8 @@ Formato:
           </div>
           
           <div className="space-y-4">
-            <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
-              Qual é o tema central? <span className="text-destructive">*</span>
+            <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+              Qual é o tema central? <span className="text-destructive font-black">*</span>
             </label>
             <Input
               placeholder="Ex: Como a inteligência artificial está mudando o mercado criativo em 2026..."
@@ -139,8 +139,8 @@ Formato:
                   </div>
                 </div>
 
-                <div className="bg-secondary/40 p-8 rounded-2xl border border-border/20 shadow-inner">
-                  <pre className="text-sm md:text-base font-mono whitespace-pre-wrap text-foreground/90 leading-relaxed font-medium custom-scrollbar overflow-x-auto">
+                <div className="bg-secondary/30 p-8 rounded-xl border border-border/60 shadow-inner">
+                  <pre className="text-sm md:text-[15px] font-mono whitespace-pre-wrap text-text-primary leading-relaxed font-bold custom-scrollbar overflow-x-auto">
                     {generatedPrompt}
                   </pre>
                 </div>

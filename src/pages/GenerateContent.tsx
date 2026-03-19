@@ -220,12 +220,14 @@ export default function GenerateContent() {
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold font-display tracking-tight text-foreground">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Gerar Conteúdo
                 </h1>
-                <p className="text-muted-foreground mt-2 text-base md:text-lg max-w-2xl">
-                  Crie peças avulsas ou ative a Máquina Viral para estruturas completas.
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
+                  Crie peças avulsas ou ative a <span className="text-primary font-bold">Máquina Viral</span> para estruturas completas.
                 </p>
+              </div>
               </div>
             </div>
             
@@ -247,8 +249,8 @@ export default function GenerateContent() {
               </div>
               <div className="space-y-6">
                 <div>
-                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
-                    Tema Principal <span className="text-destructive">*</span>
+                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                    Tema Principal <span className="text-destructive font-black">*</span>
                   </label>
                   <Input
                     placeholder="Ex: Como viralizar no Instagram com 3 ferramentas gratuitas..."
@@ -259,7 +261,7 @@ export default function GenerateContent() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                     Título Específico <span className="font-normal opacity-70 lowercase text-[10px]">(opcional)</span>
                   </label>
                   <Input
@@ -284,10 +286,10 @@ export default function GenerateContent() {
                     <button
                       key={p}
                       onClick={() => setPlatform(p)}
-                      className={`flex items-center justify-between px-5 py-4 rounded-xl text-sm font-semibold transition-all border ${
+                      className={`flex items-center justify-between px-5 py-4 rounded-xl text-sm font-bold transition-all border ${
                         platform === p
-                          ? "bg-primary/10 border-primary text-primary shadow-sm shadow-primary/10"
-                          : "bg-secondary/30 border-border/40 text-muted-foreground hover:bg-secondary/60 hover:border-border/60 hover:text-foreground"
+                          ? "bg-primary/5 border-primary text-text-primary shadow-sm ring-1 ring-primary/20"
+                          : "bg-secondary/30 border-border text-text-secondary hover:bg-secondary/60 hover:border-border/80 hover:text-text-primary"
                       }`}
                     >
                       {p}
@@ -324,8 +326,8 @@ export default function GenerateContent() {
                         onClick={() => toggleType(ct.id)}
                         className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm border transition-all ${
                           isActive
-                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 font-semibold"
-                            : "bg-secondary/30 border-border/40 text-muted-foreground hover:border-border/80 hover:bg-secondary/60 hover:text-foreground font-medium"
+                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 font-bold"
+                            : "bg-secondary/30 border-border text-text-secondary hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary font-bold"
                         }`}
                       >
                         <span className="text-base">{ct.emoji}</span> {ct.label}
@@ -438,10 +440,10 @@ export default function GenerateContent() {
                       
                       {/* Markdown-like output styling */}
                       <div className="prose prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
-                         <div dangerouslySetInnerHTML={{ __html: 
+                         <div className="text-text-primary leading-relaxed" dangerouslySetInnerHTML={{ __html: 
                             results[0].content
-                              .replace(/## (.*?)\n/g, '<h2>$1</h2>')
-                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/## (.*?)\n/g, '<h2 class="text-primary font-black mt-8 mb-4">$1</h2>')
+                              .replace(/\*\*(.*?)\*\*/g, '<strong class="text-text-primary font-black">$1</strong>')
                               .replace(/\n\n/g, '<br/><br/>')
                               .replace(/\n/g, '<br/>')
                          }} />
@@ -475,7 +477,7 @@ export default function GenerateContent() {
                             </div>
                           </div>
                           <div className="flex-1">
-                            <p className="text-sm md:text-base whitespace-pre-wrap text-foreground/90 font-medium leading-relaxed bg-secondary/30 p-5 md:p-7 rounded-2xl border border-border/20 h-full">
+                            <p className="text-[15px] md:text-base whitespace-pre-wrap text-text-primary font-bold leading-relaxed bg-secondary/30 p-6 md:p-8 rounded-2xl border border-border h-full">
                               {r.content}
                             </p>
                           </div>

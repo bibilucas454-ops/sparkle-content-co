@@ -35,11 +35,11 @@ type ContentFormat = typeof CONTENT_FORMATS[number]["id"];
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro";
 
 const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  pendente: { label: "Agendado", icon: Clock, className: "text-muted-foreground" },
-  queued: { label: "Na Fila do Motor", icon: Clock, className: "text-blue-500" },
-  enviando: { label: "Enviando", icon: Loader2, className: "text-warning animate-spin" },
-  processando: { label: "Processando", icon: Loader2, className: "text-accent animate-spin" },
-  publicado: { label: "Publicado", icon: CheckCircle2, className: "text-green-500" },
+  pendente: { label: "Agendado", icon: Clock, className: "text-text-secondary" },
+  queued: { label: "Na Fila do Motor", icon: Clock, className: "text-primary" },
+  enviando: { label: "Enviando", icon: Loader2, className: "text-amber-500 animate-spin" },
+  processando: { label: "Processando", icon: Loader2, className: "text-primary animate-spin" },
+  publicado: { label: "Publicado", icon: CheckCircle2, className: "text-emerald-500" },
   erro: { label: "Erro na Fila", icon: AlertCircle, className: "text-destructive" },
 };
 
@@ -317,12 +317,12 @@ export default function PublisherHub() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <header className="pb-8 border-b border-border/40">
-          <h1 className="text-3xl md:text-4xl font-black font-display text-gradient-primary tracking-tighter">
+        <header className="pb-8 border-b border-border/60">
+          <h1 className="text-3xl md:text-5xl font-black font-display text-text-primary tracking-tighter">
             Central de Publicação
           </h1>
-          <p className="text-muted-foreground mt-2 text-base md:text-lg font-medium max-w-2xl">
-            Mande carrosséis, fotos ou vídeos e deixe o Motor de Publicação assíncrono agir.
+          <p className="text-text-secondary mt-3 text-base md:text-lg font-medium max-w-2xl leading-relaxed">
+            Mande carrosséis, fotos ou vídeos e deixe o <span className="text-primary font-bold">Motor de Publicação</span> assíncrono agir.
           </p>
         </header>
 
@@ -390,33 +390,33 @@ export default function PublisherHub() {
           <div className="lg:col-span-2 space-y-6">
             <div className="premium-card p-6 md:p-8 space-y-6">
               <div>
-                <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Título Interno</label>
+                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Título Interno</label>
                 <Input
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="bg-secondary border-border"
+                  className="bg-secondary/50 border-border"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Legenda Principal</label>
+                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Legenda Principal</label>
                 <Textarea
                   placeholder="Escreva a legenda principal do post..."
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="bg-secondary border-border min-h-[80px]"
+                  className="bg-secondary/50 border-border min-h-[100px] rounded-xl text-text-primary font-medium"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">Hashtags</label>
-                  <Input placeholder="#empreendedorismo #viral" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border/40" />
+                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Hashtags</label>
+                  <Input placeholder="#empreendedorismo #viral" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-2 block">CTA (opcional)</label>
-                  <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border/40" />
+                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">CTA (opcional)</label>
+                  <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border" />
                 </div>
               </div>
             </div>
@@ -434,12 +434,12 @@ export default function PublisherHub() {
                       key={f.id}
                       onClick={() => handleFormatChange(f.id)}
                       className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-sm group relative ${isSelected
-                        ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/20"
-                        : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-secondary/50"
+                        ? "border-primary bg-primary/5 text-text-primary ring-1 ring-primary/20"
+                        : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80 hover:bg-secondary/50"
                         }`}
                     >
-                      <f.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isSelected ? "text-primary" : "opacity-70"}`} />
-                      <span className="font-semibold">{f.label}</span>
+                      <f.icon className={`w-4.5 h-4.5 transition-transform group-hover:scale-110 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                      <span className="font-bold">{f.label}</span>
                       {isSelected && (
                         <div className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
                           <CheckCircle2 className="w-3 h-3" />

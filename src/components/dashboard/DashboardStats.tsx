@@ -50,18 +50,18 @@ export function DashboardStats({
           transition={{ delay: i * 0.1, duration: 0.4 }}
         >
           <Card className="premium-card overflow-hidden relative group">
-            <CardContent className="p-8">
+            <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
-                <div className="space-y-3">
-                  <p className="text-[11px] font-black uppercase tracking-[0.15em] text-text-secondary">
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-[0.1em] text-text-secondary">
                     {s.label}
                   </p>
-                  <p className="text-4xl font-black font-display tracking-tighter text-text-primary">
+                  <p className="text-4xl font-black font-display tracking-tight text-text-primary">
                     {loading ? "-" : s.value}
                   </p>
                 </div>
-                <div className={`p-4 rounded-2xl ${s.bg} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
-                  <s.icon className={`w-7 h-7 ${s.color}`} />
+                <div className={`p-4 rounded-xl ${s.bg} transition-all duration-300 group-hover:scale-105 shadow-sm`}>
+                  <s.icon className={`w-6 h-6 ${s.color}`} />
                 </div>
               </div>
             </CardContent>

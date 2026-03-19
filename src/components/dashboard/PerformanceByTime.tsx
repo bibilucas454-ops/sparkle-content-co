@@ -36,12 +36,12 @@ export function PerformanceByTime() {
 
   return (
     <Card className="premium-card overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2 font-display">
-          <TrendingUp className="w-5 h-5 text-accent" />
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl flex items-center gap-3 font-display font-bold text-text-primary">
+          <TrendingUp className="w-5 h-5 text-primary" />
           Melhores Horários para Publicar
         </CardTitle>
-        <p className="text-xs text-text-secondary font-bold">
+        <p className="text-sm text-text-secondary font-medium">
           Análise de performance baseada no histórico de publicações.
         </p>
       </CardHeader>
@@ -73,22 +73,23 @@ export function PerformanceByTime() {
                     </div>
                   )}
                   
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-text-secondary">
                       {i + 1}º Lugar • {m.window}
                     </span>
-                    <h4 className="font-bold text-foreground">{m.band}</h4>
+                    <h4 className="text-lg font-bold text-text-primary">{m.band}</h4>
                     
-                    <div className="mt-3 flex items-end gap-1.5">
-                      <span className={`text-2xl font-black ${i === 0 ? "text-accent" : "text-text-primary"}`}>
+                    <div className="mt-4 flex items-baseline gap-2">
+                      <span className={`text-3xl font-black ${i === 0 ? "text-primary" : "text-text-primary"}`}>
                         {m.performanceScore}%
                       </span>
-                      <span className="text-[10px] text-text-secondary font-black pb-1 lowercase">
+                      <span className="text-[11px] text-text-secondary font-bold uppercase tracking-wider">
                         performance
                       </span>
                     </div>
                     
-                    <p className="text-[10px] text-text-muted font-bold mt-1">
+                    <p className="text-xs text-text-muted font-medium mt-2 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-border" />
                       {m.count} post{m.count !== 1 ? 's' : ''} analisado{m.count !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -97,14 +98,14 @@ export function PerformanceByTime() {
             </div>
 
             {/* Practical Insight */}
-            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> Insight Prático
+            <div className="p-5 rounded-xl bg-accent border border-accent-foreground/10 space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-accent-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Insight Prático
               </h4>
-              <p className="text-sm font-bold text-text-primary leading-relaxed">
+              <p className="text-[15px] font-medium text-text-primary leading-relaxed">
                 {bestBand && bestBand.count > 0 ? (
                   <>
-                    Seu melhor horário hoje é <span className="text-accent font-black">{bestBand.band} ({bestBand.window})</span>. 
+                    Seu melhor horário hoje é <span className="text-primary font-black underline underline-offset-4 decoration-primary/30">{bestBand.band} ({bestBand.window})</span>. 
                     {bestBand.band === "Noite" && " O engajamento noturno está superando as outras faixas significativamente."}
                     {bestBand.band === "Tarde" && " A audiência no meio do dia tem mostrado uma resposta muito positiva."}
                     {bestBand.band === "Manhã" && " O público está consumindo seu conteúdo logo cedo com alta retenção."}
