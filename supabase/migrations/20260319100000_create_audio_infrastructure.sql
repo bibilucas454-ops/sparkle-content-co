@@ -1,19 +1,25 @@
--- 1. Create Storage Bucket for Audios
+-- 1. Create Storage Bucket for Audio Uploads
 INSERT INTO storage.buckets (id, name, public) 
-VALUES ('audio_uploads', 'audio_uploads', false) -- Private bucket
+VALUES ('post-audio', 'post-audio', false) -- Private bucket
 ON CONFLICT (id) DO NOTHING;
 
--- Storage Policies for Audio Uploads
+-- Storage Policies for post-audio (Hyphenated for clarity)
 DO $$ 
 BEGIN
-    -- Policy: Allow users to view their own objects (standard pattern in this project)
-    -- This is often covered by a global policy, but we ensure it for this bucket specifically if needed.
-    -- However, the project already has a "Users can view their own private objects" policy.
-    -- We just need to make sure the bucket is created.
-END $$;
+    -- Policy: Allow users to upload their own audios to their own folder
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can upload audios' AND tablename = 'objects' AND schemaname = 'storage') THEN
+        CREATE POLICY "Users can upload audios" ON storage.objects 
+            FOR INSERT TO authenticated 
+            WITH CHECK (bucket_id = 'post-audio' AND (storage.foldername(name))[1] = auth.uid()::text);
+    END IF;
 
--- Ensure RLS is enabled and standard policies apply
--- (Existing global policies for storage.objects likely cover this if bucket is private)
+    -- Policy: Allow users to view their own audios
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own audios' AND tablename = 'objects' AND schemaname = 'storage') THEN
+        CREATE POLICY "Users can view own audios" ON storage.objects 
+            FOR SELECT TO authenticated 
+            USING (bucket_id = 'post-audio' AND (storage.foldername(name))[1] = auth.uid()::text);
+    END IF;
+END $$;
 
 -- 2. Create Music Library Table
 CREATE TABLE IF NOT EXISTS public.music_library (
