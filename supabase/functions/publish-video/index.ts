@@ -474,6 +474,12 @@ Deno.serve(async (req) => {
 
     // ====== Download Media Bytes ======
     console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
+    
+    // Log Music Metadata
+    if (pub.music_metadata) {
+       const music = pub.music_metadata;
+       console.log(`[Music] Áudio detectado para o post: "${music.title}" por ${music.artist}. URL: ${music.url || "Local Upload"}`);
+    }
     const mediaFilesReady = await Promise.all(mediaList.map(async (upload) => {
       const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
       if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
