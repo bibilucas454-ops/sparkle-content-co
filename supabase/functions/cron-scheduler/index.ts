@@ -19,24 +19,35 @@ Deno.serve(async (req) => {
     // 0. Token Refresh Maintenance
     console.log("Iniciando manutenção de tokens OAuth...");
     try {
-      // Find tokens expiring in the next 24 hours
+      // Find tokens that are expired, expiring in the next 24 hours, OR have no expiry date set (null = unknown)
+      const expiryThreshold = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { data: staleTokens } = await supabaseAdmin
         .from("social_tokens")
         .select("user_id, platform")
-        .lt("expires_at", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+        .or(`expires_at.is.null,expires_at.lt.${expiryThreshold}`);
+
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
       if (staleTokens && staleTokens.length > 0) {
         console.log(`Encontrados ${staleTokens.length} tokens para atualizar.`);
         for (const token of staleTokens) {
           try {
             console.log(`Atualizando token para ${token.platform} (User: ${token.user_id})...`);
-            await supabaseAdmin.functions.invoke("refresh-token", {
+            const result = await supabaseAdmin.functions.invoke("refresh-token", {
               body: { platform: token.platform, userId: token.user_id },
+              headers: { Authorization: `Bearer ${serviceRoleKey}` },
             });
+            if (result.error) {
+              console.error(`Erro ao atualizar token ${token.platform} para usuário ${token.user_id}:`, result.error);
+            } else {
+              console.log(`Token ${token.platform} atualizado com sucesso para usuário ${token.user_id}.`);
+            }
           } catch (e) {
             console.error(`Falha ao atualizar token ${token.platform} para usuário ${token.user_id}:`, e);
           }
         }
+      } else {
+        console.log("Nenhum token expirado ou sem data encontrado.");
       }
     } catch (e) {
       console.error("Erro na rotina de manutenção de tokens:", e);
