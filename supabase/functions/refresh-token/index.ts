@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
     }
 
     let tokenData: any;
+    console.log(`[Refresh Token] Iniciando renovação para o usuário ${targetUserId} na plataforma ${platform}...`);
 
     if (platform === "youtube") {
       const clientId = Deno.env.get("YOUTUBE_CLIENT_ID");
@@ -84,7 +85,15 @@ Deno.serve(async (req) => {
         }),
       });
       tokenData = await res.json();
-      if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
+      if (tokenData.error) {
+        console.error(`[Refresh Token] YouTube retornou erro:`, tokenData);
+        if (tokenData.error === "invalid_grant" || tokenData.error === "invalid_request") {
+          console.error(`[Refresh Token] Erro PERMANENTE (YouTube): O acesso foi revogado ou o refresh token expirou. Deletando credencial...`);
+          await supabaseAdmin.from("social_tokens").delete().eq("id", account.id);
+          throw new Error(`PERMANENT_AUTH_ERROR: ${tokenData.error_description || tokenData.error}`);
+        }
+        throw new Error(tokenData.error_description || tokenData.error);
+      }
     } else if (platform === "tiktok") {
       const clientKey = Deno.env.get("TIKTOK_CLIENT_KEY");
       const clientSecret = Deno.env.get("TIKTOK_CLIENT_SECRET");
@@ -105,14 +114,30 @@ Deno.serve(async (req) => {
         }),
       });
       tokenData = await res.json();
-      if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
+      if (tokenData.error) {
+        console.error(`[Refresh Token] TikTok retornou erro:`, tokenData);
+        if (tokenData.error === "invalid_grant" || tokenData.error === "invalid_request") {
+          console.error(`[Refresh Token] Erro PERMANENTE (TikTok): O acesso foi revogado ou o refresh token expirou. Deletando credencial...`);
+          await supabaseAdmin.from("social_tokens").delete().eq("id", account.id);
+          throw new Error(`PERMANENT_AUTH_ERROR: ${tokenData.error_description || tokenData.error}`);
+        }
+        throw new Error(tokenData.error_description || tokenData.error);
+      }
     } else if (platform === "instagram") {
       // Instagram long-lived tokens can be refreshed
       const res = await fetch(
         `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${Deno.env.get("INSTAGRAM_CLIENT_ID")}&client_secret=${Deno.env.get("INSTAGRAM_CLIENT_SECRET")}&fb_exchange_token=${await decryptToken(account.access_token_encrypted)}`
       );
       tokenData = await res.json();
-      if (tokenData.error) throw new Error(tokenData.error.message);
+      if (tokenData.error) {
+        console.error(`[Refresh Token] Instagram retornou erro:`, tokenData);
+        if (tokenData.error.code === 190 || tokenData.error.code === 104 || tokenData.error.type === "OAuthException") {
+          console.error(`[Refresh Token] Erro PERMANENTE (Instagram): Sessão expirada ou acesso revogado. Deletando credencial...`);
+          await supabaseAdmin.from("social_tokens").delete().eq("id", account.id);
+          throw new Error(`PERMANENT_AUTH_ERROR: ${tokenData.error.message}`);
+        }
+        throw new Error(tokenData.error.message);
+      }
       tokenData.refresh_token = tokenData.access_token;
     } else {
       return new Response(JSON.stringify({ error: "Plataforma não suportada" }), {
@@ -133,12 +158,16 @@ Deno.serve(async (req) => {
       updated_at: new Date().toISOString(),
     }).eq("id", account.id);
 
+    console.log(`[Refresh Token] Sucesso! Token atualizado e persistido para ${platform}.`);
+
     return new Response(JSON.stringify({ success: true, message: "Token atualizado com sucesso" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message || "Erro ao atualizar token" }), {
-      status: 500,
+    console.error(`[Refresh Token] Falha geral detectada:`, err.message);
+    const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR");
+    return new Response(JSON.stringify({ error: err.message || "Erro ao atualizar token", isPermanent }), {
+      status: isPermanent ? 401 : 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
