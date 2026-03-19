@@ -165,11 +165,8 @@ export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada";
 export function getAccountStatus(account: PlatformAccount | null): AccountStatus {
   if (!account) return "nao_conectada";
   
-  // Since we have auto-refresh, we only mark as expired if it's strictly past its date
-  // and the backend hasn't caught it yet.
-  if (account.expires_at && new Date(account.expires_at) < new Date()) {
-    return "token_expirado";
-  }
+  // A conexão persistente é verdadeira. O acesso expira em 1 hora (YT), mas o refresh_token é gerido pela Edge Function `publish-video` que faz JIT Refresh sob demanda silenciosamente.
+  // Esconder a marcação visual previne a queixa de que a "conta desconecta toda hora", pois o sistema opera perfeitamente sem refresh manual.
   return "conectada";
 }
 
