@@ -47,12 +47,14 @@ export default function ContentCalendar() {
                 <CalendarIcon className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Calendário
                 </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                   Planeje sua estratégia de conteúdo e visualize seus agendamentos.
                 </p>
+              </div>
               </div>
             </div>
             
@@ -79,7 +81,7 @@ export default function ContentCalendar() {
 
         <div className="grid grid-cols-7 gap-3">
           {DAYS.map((d) => (
-            <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 py-4 italic">{d}</div>
+            <div key={d} className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted py-4 italic">{d}</div>
           ))}
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`empty-${i}`} />
@@ -101,7 +103,7 @@ export default function ContentCalendar() {
                 }`}
                 onClick={() => setShowAdd(showAdd === dateStr ? null : dateStr)}
               >
-                <span className={`text-[14px] font-black font-display ${isToday ? "text-primary" : "text-muted-foreground/40 group-hover:text-foreground/60 transition-colors"}`}>{day}</span>
+                <span className={`text-[14px] font-black font-display ${isToday ? "text-primary" : "text-text-muted group-hover:text-text-primary transition-colors"}`}>{day}</span>
                 <div className="mt-3 space-y-2">
                   {dayEvents.map((e, ei) => (
                     <div key={ei} className="bg-primary/10 text-primary border border-primary/20 rounded-lg px-2.5 py-1.5 truncate text-[11px] font-bold shadow-sm">

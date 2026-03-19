@@ -108,12 +108,14 @@ export default function PublisherHistory() {
                 <History className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+              <div>
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Histórico de Envios
                 </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                   Acompanhe todas as suas publicações e seus status por plataforma.
                 </p>
+              </div>
               </div>
             </div>
           </div>
@@ -122,7 +124,7 @@ export default function PublisherHistory() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card/40 p-5 rounded-2xl border border-border/40 backdrop-blur-xl shadow-sm">
           <div className="relative flex-1 max-w-md w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <Input
               placeholder="Buscar por título..."
               value={search}
@@ -137,8 +139,8 @@ export default function PublisherHistory() {
                 onClick={() => setFilter(f.id)}
                 className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all border ${
                   filter === f.id
-                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                    : "bg-secondary text-muted-foreground/60 border-border/40 hover:border-border/80 hover:text-foreground"
+                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                    : "bg-secondary text-text-secondary border-border hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
                 }`}
               >
                 {f.label}
@@ -183,11 +185,11 @@ export default function PublisherHistory() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg md:text-xl text-foreground font-display tracking-tight group-hover:text-primary transition-colors truncate">
+                      <h3 className="font-bold text-lg md:text-xl text-text-primary font-display tracking-tight group-hover:text-primary transition-colors truncate">
                         {item.title}
                       </h3>
                       <div className="flex flex-col gap-1 mt-1">
-                        <p className="text-[10px] uppercase font-black tracking-[0.15em] text-muted-foreground/50">
+                        <p className="text-[10px] uppercase font-bold tracking-[0.15em] text-text-muted">
                           {new Date(item.created_at).toLocaleDateString("pt-BR", {
                             day: "2-digit",
                             month: "short",

@@ -71,10 +71,10 @@ export default function HookLibrary() {
                 <BookOpen className="w-10 h-10 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+                <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                   Biblioteca de Hooks
                 </h1>
-                <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium max-w-xl leading-relaxed">
+                <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-xl leading-relaxed">
                   Hooks psicológicos comprovados para captar atenção nos primeiros 3 segundos do seu vídeo.
                 </p>
               </div>
@@ -88,7 +88,7 @@ export default function HookLibrary() {
 
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between premium-card p-6 md:p-8">
           <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
             <Input 
               placeholder="Buscar hook magnético..." 
               value={searchTerm}
@@ -105,8 +105,8 @@ export default function HookLibrary() {
                 onClick={() => setFilter(c)}
                 className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[11px] font-black tracking-[0.15em] transition-all border ${
                   filter === c 
-                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
-                    : "bg-secondary/30 text-muted-foreground/60 border-border/40 hover:border-border/80 hover:bg-secondary/60 hover:text-foreground"
+                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20" 
+                    : "bg-secondary/40 text-text-secondary border-border hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
                 }`}
               >
                 {c.toUpperCase()}
@@ -129,20 +129,20 @@ export default function HookLibrary() {
               >
                 <div className="space-y-6 flex-1">
                   <div className="flex justify-between items-start gap-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/10">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
                       <Hash className="w-3.5 h-3.5 text-primary" />
                       <span className="text-[10px] font-black tracking-[0.15em] text-primary uppercase">
                         {h.category}
                       </span>
                     </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/20">
-                      <Smartphone className="w-3.5 h-3.5 text-muted-foreground/60" />
-                      <span className="text-[9px] uppercase font-black text-muted-foreground/50 tracking-[0.2em]">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/30 border border-border">
+                      <Smartphone className="w-3.5 h-3.5 text-text-muted" />
+                      <span className="text-[9px] uppercase font-black text-text-muted tracking-[0.2em]">
                         {h.platform}
                       </span>
                     </div>
                   </div>
-                  <p className="font-bold text-lg md:text-xl leading-relaxed text-foreground/90 group-hover:text-primary transition-colors line-clamp-4 font-display">
+                  <p className="font-bold text-lg md:text-xl leading-relaxed text-text-primary group-hover:text-primary transition-colors line-clamp-4 font-display">
                     "{h.hook_text}"
                   </p>
                 </div>

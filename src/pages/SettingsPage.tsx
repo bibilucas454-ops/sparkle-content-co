@@ -71,10 +71,10 @@ export default function SettingsPage() {
               <Settings className="w-10 h-10 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-foreground leading-none">
+              <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
                 Configurações
               </h1>
-              <p className="text-muted-foreground mt-3 text-base md:text-xl font-medium leading-relaxed">
+              <p className="text-text-secondary mt-4 text-base md:text-xl font-medium leading-relaxed max-w-xl">
                 Gerencie suas preferências e o algoritmo da plataforma.
               </p>
             </div>
@@ -89,8 +89,8 @@ export default function SettingsPage() {
             <div className="premium-card p-6 md:p-10 relative overflow-hidden">
               <div className="flex items-center justify-between border-b border-border/30 pb-6 mb-8">
                 <div>
-                  <h2 className="font-display font-black text-xl text-foreground tracking-tight">Motor de Nicho</h2>
-                  <p className="text-sm text-muted-foreground mt-1 font-medium">Defina o foco do seu conteúdo em toda a rede.</p>
+                  <h2 className="font-display font-black text-xl text-text-primary tracking-tight">Motor de Nicho</h2>
+                  <p className="text-sm text-text-secondary mt-1 font-medium">Defina o foco do seu conteúdo em toda a rede.</p>
                 </div>
                 <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/10">
                   <CheckCircle2 className="w-6 h-6" />
@@ -99,7 +99,7 @@ export default function SettingsPage() {
 
               <div className="space-y-5">
                 <div className="space-y-3">
-                  <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                  <label className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted ml-1">
                     Nicho Ativo Atual
                   </label>
                   <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20 font-black text-primary text-center text-2xl shadow-inner tracking-tight">
@@ -108,7 +108,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-3 pt-3">
-                  <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                  <label className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted ml-1">
                     Nichos Sugeridos
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -116,10 +116,10 @@ export default function SettingsPage() {
                       <button
                         key={n}
                         onClick={() => setNiche(n)}
-                        className={`px-4 py-2 rounded-xl text-sm transition-all border font-bold ${
+                        className={`px-4 py-2.5 rounded-xl text-sm transition-all border font-bold ${
                           niche === n
-                            ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
-                            : "bg-secondary/40 border-border/40 text-muted-foreground hover:border-border/80 hover:bg-secondary/60 hover:text-foreground"
+                            ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                            : "bg-secondary/40 border-border text-text-secondary hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
                         }`}
                       >
                         {n}
@@ -128,8 +128,8 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-6 border-t border-border/30">
-                  <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
+                <div className="space-y-4 pt-6 border-t border-border/60">
+                  <label className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted ml-1">
                     Criar Nicho Customizado
                   </label>
                   <form onSubmit={handleAddCustomNiche} className="flex gap-2">
@@ -178,8 +178,8 @@ export default function SettingsPage() {
                 <h2 className="font-display font-black text-lg text-foreground tracking-tight">Perfil</h2>
               </div>
               <div>
-                <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Email da Conta</label>
-                <p className="text-sm font-bold mt-2 p-4 bg-secondary/50 rounded-2xl border border-border/40 truncate text-foreground">{user?.email}</p>
+                <label className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-muted">Email da Conta</label>
+                <p className="text-sm font-bold mt-2 p-4 bg-secondary/30 rounded-2xl border border-border/60 truncate text-text-primary">{user?.email}</p>
               </div>
             </div>
 

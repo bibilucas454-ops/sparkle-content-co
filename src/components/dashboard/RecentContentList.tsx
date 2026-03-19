@@ -55,20 +55,20 @@ export function RecentContentList({
             recentContent.map((c) => (
               <div
                 key={c.id}
-                className="group flex items-center justify-between p-5 rounded-2xl border border-border/40 bg-secondary/20 hover:bg-secondary/40 hover:border-primary/20 transition-all duration-300"
+                className="group flex items-center justify-between p-4 rounded-xl border border-border/50 bg-secondary/10 hover:bg-secondary/20 hover:border-primary/30 transition-all duration-300"
               >
-                <div className="space-y-2 min-w-0 pr-4">
-                  <h3 className="text-sm font-semibold text-foreground truncate">
+                <div className="space-y-1.5 min-w-0 pr-4">
+                  <h3 className="text-[15px] font-bold text-text-primary truncate">
                     {c.topic}
                   </h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
                       {c.type}
                     </span>
-                    <span className="text-[10px] text-text-muted">
+                    <span className="text-[11px] text-text-muted/40">
                       •
                     </span>
-                    <span className="text-[10px] font-bold text-text-secondary">
+                    <span className="text-[11px] font-medium text-text-secondary">
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                   </div>

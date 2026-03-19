@@ -3,6 +3,7 @@ import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
+import { TrendingUp } from "lucide-react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { HeroQuickAction } from "@/components/dashboard/HeroQuickAction";
@@ -22,6 +23,14 @@ export default function Dashboard() {
         
         {/* Superior Hero Section */}
         <section className="space-y-6">
+          <header className="mb-10 last:mb-0">
+            <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-tight">
+              Bem-vindo, {user?.email?.split('@')[0]}
+            </h1>
+            <p className="text-text-secondary mt-3 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
+              Aqui está uma visão geral da sua performance e ações rápidas.
+            </p>
+          </header>
           <HeroQuickAction />
         </section>
 
@@ -31,8 +40,10 @@ export default function Dashboard() {
         </section>
 
         {/* Metrics and Recent */}
-        <section className="space-y-6 pt-6 border-t border-border/40">
-          <h3 className="text-xl font-display font-bold text-foreground">Visão Geral da Conta</h3>
+        <section className="space-y-8 pt-10 border-t border-border/60">
+          <h3 className="text-2xl font-display font-black text-text-primary tracking-tight flex items-center gap-3">
+             <TrendingUp className="w-6 h-6 text-primary" /> Visão Geral de Performance
+          </h3>
           <DashboardStats
             contentCount={contentCount}
             avgScore={avgScore}
