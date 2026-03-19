@@ -319,10 +319,10 @@ export default function PublisherHub() {
       <div className="space-y-8">
         <header className="pb-8 border-b border-border/60">
           <h1 className="text-3xl md:text-5xl font-black font-display text-text-primary tracking-tighter">
-            Central de Publicação
+            Distribuição em Massa
           </h1>
           <p className="text-text-secondary mt-3 text-base md:text-lg font-medium max-w-2xl leading-relaxed">
-            Mande carrosséis, fotos ou vídeos e deixe o <span className="text-primary font-bold">Motor de Publicação</span> assíncrono agir.
+            Gere escala em minutos. Deixe o <span className="text-primary font-bold">Motor Assíncrono</span> publicar e crescer suas redes por você.
           </p>
         </header>
 
