@@ -426,15 +426,20 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: `Conta ${pPlatform} não encontrada` }), { status: 400, headers: corsHeaders });
     }
 
-    // Pre-flight Token Refresh: Check if expired or expiring in less than 5 minutes
+    // Pre-flight Token Refresh: Check if expired or expiring in less than 5 minutes,
+    // OR if expires_at is null (unknown expiry — treat as possibly expired).
     const now = new Date();
     const expiry = account.expires_at ? new Date(account.expires_at) : null;
+    const shouldRefresh = !expiry || expiry.getTime() < now.getTime() + 5 * 60 * 1000;
     
-    if (expiry && expiry.getTime() < now.getTime() + 5 * 60 * 1000) {
-      console.log(`[Publish Video] Token ${pPlatform} expirado ou próximo da expiração. Iniciando refresh automático...`);
+    if (shouldRefresh) {
+      console.log(`[Publish Video] Token ${pPlatform} expirado/próximo da expiração (expires_at=${account.expires_at || "null"}). Iniciando refresh automático...`);
       try {
+        // Pass the service-role key as Authorization so refresh-token accepts internal calls
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const { data: refreshData, error: refreshError } = await supabaseAdmin.functions.invoke("refresh-token", {
           body: { platform: pPlatform, userId: userId },
+          headers: { Authorization: `Bearer ${serviceRoleKey}` },
         });
         
         if (refreshError || refreshData?.error) {

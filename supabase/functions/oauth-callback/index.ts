@@ -279,23 +279,40 @@ Deno.serve(async (req) => {
 
     // Encrypt the sensitive tokens before saving
     const encryptedAccess = await encryptToken(result.access_token);
-    const encryptedRefresh = result.refresh_token 
-      ? await encryptToken(result.refresh_token) 
+    const encryptedRefresh = result.refresh_token
+      ? await encryptToken(result.refresh_token)
       : null;
+
+    // IMPORTANT: Google only sends refresh_token on the FIRST authorization.
+    // On subsequent reconnects, refresh_token will be undefined/null.
+    // We MUST NOT overwrite an existing refresh_token with null — only update it when a new one is received.
+    if (result.refresh_token) {
+      console.log(`[OAuth Callback] refresh_token RECEBIDO do Google para platform=${platform}. Salvando novo token.`);
+    } else {
+      console.warn(`[OAuth Callback] refresh_token NÃO recebido do Google para platform=${platform}. Mantendo token existente no banco (se houver).`);
+    }
+
+    // Build the upsert payload — only include refresh_token_encrypted if we have a new value
+    const upsertPayload: Record<string, unknown> = {
+      user_id: userId,
+      platform,
+      account_name: result.accountName || null,
+      account_id: result.accountId || null,
+      access_token_encrypted: encryptedAccess,
+      expires_at: expiresAt,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only set refresh_token_encrypted if we actually got a new one from Google.
+    // This prevents wiping the existing token when Google omits it (which it does after first auth).
+    if (encryptedRefresh) {
+      upsertPayload.refresh_token_encrypted = encryptedRefresh;
+    }
 
     // Upsert into social_tokens
     const { error: insertError } = await supabaseAdmin
       .from("social_tokens")
-      .upsert({
-        user_id: userId,
-        platform,
-        account_name: result.accountName || null,
-        account_id: result.accountId || null,
-        access_token_encrypted: encryptedAccess,
-        refresh_token_encrypted: encryptedRefresh,
-        expires_at: expiresAt,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id,platform" });
+      .upsert(upsertPayload, { onConflict: "user_id,platform" });
 
     if (insertError) {
       return redirectToApp(`/oauth/callback?error=${encodeURIComponent("Erro ao salvar conta: " + insertError.message)}`);
