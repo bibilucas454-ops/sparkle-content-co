@@ -222,10 +222,10 @@ export default function GenerateContent() {
               <div>
               <div>
                 <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-none">
-                  Gerar Conteúdo
+                  Multiplique sua Audiência
                 </h1>
                 <p className="text-text-secondary mt-4 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
-                  Crie peças avulsas ou ative a <span className="text-primary font-bold">Máquina Viral</span> para estruturas completas.
+                  Gere peças avulsas de alta conversão ou ative a <span className="text-primary font-bold">Máquina Viral</span> para uma estratégia completa.
                 </p>
               </div>
               </div>
@@ -366,7 +366,7 @@ export default function GenerateContent() {
                   </>
                 ) : (
                   <>
-                    <Rocket className="w-6 h-6 mr-3 text-primary-foreground/90" /> GERAR VÍDEO VIRAL
+                    <Rocket className="w-6 h-6 mr-3 text-primary-foreground/90" /> DESBLOQUEAR MÁQUINA VIRAL
                   </>
                 )}
               </Button>

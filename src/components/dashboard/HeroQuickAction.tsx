@@ -15,21 +15,24 @@ export function HeroQuickAction() {
       
       <div className="space-y-5 relative z-10 max-w-3xl">
         <h1 className="text-4xl md:text-5xl lg:text-7xl font-black font-display tracking-tighter text-foreground leading-[1] text-gradient-primary">
-          Seu Império de Conteúdo <br className="hidden lg:block"/> Começa Aqui.
+          Desbloqueie o Crescimento <br className="hidden lg:block"/> do Seu Perfil.
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground/80 font-medium leading-relaxed max-w-2xl">
-          Use inteligência artificial para dominar algoritmos, capturar atenção e escalar sua presença digital com CreatorOS.
+          Transforme ideias em conteúdo viral em segundos e deixe a IA otimizar sua retenção e conversão.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 relative z-10">
         <Link 
           to="/generate"
-          className="w-full sm:w-auto flex items-center justify-center gap-3 px-10 py-4 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-glow hover:-translate-y-1 transition-all text-[16px] relative overflow-hidden group"
+          className="w-full sm:w-auto flex flex-col items-center justify-center gap-1 px-10 py-3 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-glow hover:-translate-y-1 transition-all relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-          <Zap className="w-5 h-5 relative z-10 fill-current" />
-          <span className="relative z-10">Novo Conteúdo Viral</span>
+          <div className="flex items-center gap-2 text-[16px] relative z-10">
+            <Zap className="w-5 h-5 fill-current" />
+            <span>Gerar Conteúdo Viral</span>
+          </div>
+          <span className="text-[10px] text-white/70 font-medium uppercase tracking-wider relative z-10">Leva menos de 1 minuto</span>
         </Link>
         
         <Link 

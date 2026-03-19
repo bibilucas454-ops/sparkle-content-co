@@ -25,10 +25,10 @@ export default function Dashboard() {
         <section className="space-y-6">
           <header className="mb-10 last:mb-0">
             <h1 className="text-3xl md:text-5xl font-black font-display tracking-tighter text-text-primary leading-tight">
-              Bem-vindo, {user?.email?.split('@')[0]}
+              Seu motor de crescimento está ativo, {user?.email?.split('@')[0]}
             </h1>
             <p className="text-text-secondary mt-3 text-base md:text-xl font-medium max-w-2xl leading-relaxed">
-              Aqui está uma visão geral da sua performance e ações rápidas.
+              Acompanhe o impacto do seu conteúdo e descubra onde focar hoje para escalar sua audiência.
             </p>
           </header>
           <HeroQuickAction />

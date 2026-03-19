@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, TrendingUp, Trophy, AlertCircle, Loader2 } from "lucide-react";
+import { Clock, TrendingUp, Trophy, AlertCircle, Loader2, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { analyticsService, TimeBandMetric } from "@/services/analytics.service";
 
@@ -97,24 +97,40 @@ export function PerformanceByTime() {
               ))}
             </div>
 
-            {/* Practical Insight */}
-            <div className="p-5 rounded-xl bg-accent border border-accent-foreground/10 space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-accent-foreground flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Insight Prático
-              </h4>
-              <p className="text-[15px] font-medium text-text-primary leading-relaxed">
-                {bestBand && bestBand.count > 0 ? (
-                  <>
-                    Seu melhor horário hoje é <span className="text-primary font-black underline underline-offset-4 decoration-primary/30">{bestBand.band} ({bestBand.window})</span>. 
-                    {bestBand.band === "Noite" && " O engajamento noturno está superando as outras faixas significativamente."}
-                    {bestBand.band === "Tarde" && " A audiência no meio do dia tem mostrado uma resposta muito positiva."}
-                    {bestBand.band === "Manhã" && " O público está consumindo seu conteúdo logo cedo com alta retenção."}
-                  </>
-                ) : (
-                  "Continue publicando em horários variados para que possamos identificar o melhor padrão para seu perfil."
-                )}
-              </p>
-            </div>
+            {/* Actionable Golden Insight */}
+            {bestBand && bestBand.count > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-2 relative overflow-hidden group hover:shadow-glow transition-all">
+                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-1.5"><Zap className="w-3 h-3" /> O QUE FAZER</h4>
+                   <p className="text-sm font-bold text-text-primary">Programe seu próximo post para <span className="underline decoration-primary/40 underline-offset-2">{bestBand.band}</span> <span className="text-text-secondary">({bestBand.window})</span>.</p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary flex items-center gap-1.5"><Clock className="w-3 h-3" /> POR QUE FUNCIONA</h4>
+                   <p className="text-[13px] font-medium text-text-secondary leading-relaxed">
+                    {bestBand.band === "Noite" && "Este horário concentra o pico de engajamento do seu nicho, com menor concorrência no feed."}
+                    {bestBand.band === "Tarde" && "Sua audiência tem mostrado picos de resposta e compartilhamento no meio do dia."}
+                    {bestBand.band === "Manhã" && "O algoritmo prioriza seu conteúdo logo cedo, garantindo alta retenção inicial."}
+                    {!["Noite", "Tarde", "Manhã"].includes(bestBand.band) && "Este é o momento de maior atividade histórica da sua base de seguidores."}
+                   </p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-12 h-12 text-emerald-500" /></div>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 relative z-10">IMPACTO ESPERADO</h4>
+                   <p className="text-[13px] font-bold text-emerald-700 dark:text-emerald-300 relative z-10 leading-relaxed">
+                     Potencial de +30% na taxa de retenção inicial e maior distribuição orgânica nas primeiras 2 horas.
+                   </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 rounded-xl bg-secondary/30 border border-border/40 text-center">
+                <p className="text-[14px] font-medium text-text-secondary">
+                  Continue publicando em horários variados para que a IA identifique o melhor padrão de crescimento para seu perfil.
+                </p>
+              </div>
+            )}
           </>
         )}
       </CardContent>
