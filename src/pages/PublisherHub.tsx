@@ -158,10 +158,10 @@ export default function PublisherHub() {
     const toastId = toast.loading("Subindo áudio...");
     try {
       const filePath = `${user!.id}/audio-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const { error: uploadError } = await supabase.storage.from("audios").upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from("audio_uploads").upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const { data: publicURL } = supabase.storage.from("audios").getPublicUrl(filePath);
+      const { data: publicURL } = supabase.storage.from("audio_uploads").getPublicUrl(filePath);
 
       setSelectedAudio({
         id: `upload-${Date.now()}`,
