@@ -49,14 +49,23 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
 
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
-  const videoBytes = mediaFiles[0].bytes;
+  const media = mediaFiles[0];
+  const sizeBytes = media.size_bytes; // From DB uploads table
   
+  if (!sizeBytes) {
+      console.warn("[YouTube] size_bytes não encontrado no objeto media, tentando fallback para bytes.length");
+  }
+  const finalSizeBytes = sizeBytes || media.bytes?.length;
+  if (!finalSizeBytes) throw new Error("Tamanho do vídeo (size_bytes) não encontrado.");
+
   await updateTargetStatus(supabase, targetId, "enviando");
-  await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
+  await logEvent(supabase, targetId, "enviando", "Iniciando upload via STREAM para YouTube Shorts");
 
   const title = meta.platformSpecificTitle || meta.title;
   const description = (meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts";
   const privacy = meta.privacyStatus || "public";
+
+  console.log(`[YouTube] Iniciando sessão ressumível. Tamanho: ${finalSizeBytes} bytes.`);
 
   const initRes = await fetch(
     "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
@@ -66,7 +75,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "X-Upload-Content-Type": "video/mp4",
-        "X-Upload-Content-Length": videoBytes.length.toString(),
+        "X-Upload-Content-Length": finalSizeBytes.toString(),
       },
       body: JSON.stringify({
         snippet: { title, description, categoryId: "22" },
@@ -84,16 +93,30 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   if (!uploadUrl) throw new Error("YouTube não retornou URL de upload");
 
   await updateTargetStatus(supabase, targetId, "processando");
+  await logEvent(supabase, targetId, "processando", "Transmitindo vídeo do Storage para YouTube...");
+
+  console.log(`[YouTube] Transmitindo (streaming) do Storage para a URL de upload...`);
+  
+  // Iniciamos o stream do Storage
+  const mediaRes = await fetch(media.publicUrl);
+  if (!mediaRes.ok || !mediaRes.body) {
+    throw new Error(`Falha ao obter stream da mídia no Storage: ${mediaRes.status}`);
+  }
 
   const uploadRes = await fetch(uploadUrl, {
     method: "PUT",
-    headers: { "Content-Type": "video/mp4" },
-    body: videoBytes,
+    headers: { 
+      "Content-Type": "video/mp4",
+      "Content-Length": finalSizeBytes.toString(),
+      "Content-Range": `bytes 0-${finalSizeBytes - 1}/${finalSizeBytes}`
+    },
+    body: mediaRes.body,
   });
 
   if (!uploadRes.ok) {
-    const err = await uploadRes.json();
-    throw new Error(err.error?.message || `YouTube upload failed: ${uploadRes.status}`);
+    const errText = await uploadRes.text();
+    console.error(`[YouTube] Erro no PUT stream: ${uploadRes.status}`, errText);
+    throw new Error(`YouTube upload failed (${uploadRes.status}): ${errText}`);
   }
 
   const videoData = await uploadRes.json();
@@ -103,7 +126,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
     platform_post_url: `https://youtube.com/shorts/${videoData.id}`,
     published_at: new Date().toISOString(),
   });
-  await logEvent(supabase, targetId, "publicado", `Publicado: https://youtube.com/shorts/${videoData.id}`);
+  await logEvent(supabase, targetId, "publicado", `Publicado com sucesso: https://youtube.com/shorts/${videoData.id}`);
 }
 
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
@@ -481,11 +504,23 @@ Deno.serve(async (req) => {
        console.log(`[Music] Áudio detectado para o post: "${music.title}" por ${music.artist}. URL: ${music.url || "Local Upload"}`);
     }
     const mediaFilesReady = await Promise.all(mediaList.map(async (upload) => {
-      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
-      if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
-      const bytes = new Uint8Array(await fileData.arrayBuffer());
+      // Always get signed URL as it's needed for streaming or direct platform usage
       const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
       if (signedUrlError) throw new Error(`Falha ao gerar URL assinada: ${signedUrlError.message}`);
+      
+      let bytes: Uint8Array | null = null;
+      
+      // OPTIMIZATION: YouTube uses streaming via publicUrl + size_bytes.
+      // We skip downloading all bytes into memory to avoid OOM for large videos.
+      if (pPlatform !== "youtube") {
+        console.log(`[Publish Video] Baixando bytes para ${pPlatform} (File: ${upload.file_name})`);
+        const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
+        if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
+        bytes = new Uint8Array(await fileData.arrayBuffer());
+      } else {
+        console.log(`[Publish Video] Ignorando download de bytes para YouTube (usará streaming).`);
+      }
+      
       return { ...upload, bytes, publicUrl: signedUrlData.signedUrl };
     }));
 
