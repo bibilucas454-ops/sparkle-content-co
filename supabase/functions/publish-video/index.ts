@@ -50,13 +50,8 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
   const media = mediaFiles[0];
-  const sizeBytes = media.size_bytes; // From DB uploads table
-  
-  if (!sizeBytes) {
-      console.warn("[YouTube] size_bytes não encontrado no objeto media, tentando fallback para bytes.length");
-  }
-  const finalSizeBytes = sizeBytes || media.bytes?.length;
-  if (!finalSizeBytes) throw new Error("Tamanho do vídeo (size_bytes) não encontrado.");
+  const finalSizeBytes = media.bytes?.length;
+  if (!finalSizeBytes) throw new Error("Tamanho do vídeo (bytes) não encontrado.");
 
   await updateTargetStatus(supabase, targetId, "enviando");
   await logEvent(supabase, targetId, "enviando", "Iniciando upload via STREAM para YouTube Shorts");
@@ -95,13 +90,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await updateTargetStatus(supabase, targetId, "processando");
   await logEvent(supabase, targetId, "processando", "Transmitindo vídeo do Storage para YouTube...");
 
-  console.log(`[YouTube] Transmitindo (streaming) do Storage para a URL de upload...`);
-  
-  // Iniciamos o stream do Storage
-  const mediaRes = await fetch(media.publicUrl);
-  if (!mediaRes.ok || !mediaRes.body) {
-    throw new Error(`Falha ao obter stream da mídia no Storage: ${mediaRes.status}`);
-  }
+  console.log(`[YouTube] Enviando binário do vídeo para a URL de upload segura...`);
 
   const uploadRes = await fetch(uploadUrl, {
     method: "PUT",
@@ -110,7 +99,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
       "Content-Length": finalSizeBytes.toString(),
       "Content-Range": `bytes 0-${finalSizeBytes - 1}/${finalSizeBytes}`
     },
-    body: mediaRes.body,
+    body: media.bytes,
   });
 
   if (!uploadRes.ok) {
@@ -366,6 +355,9 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") { return new Response(null, { headers: corsHeaders }); }
 
+  let captureJobId: string | undefined;
+  let captureTargetId: string | undefined;
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -387,8 +379,10 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
     const { jobId } = payload;
+    captureJobId = jobId;
     
     let pTargetId = payload.targetId;
+    captureTargetId = pTargetId;
     let pPlatform = payload.platform;
     let pMeta = { 
       title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
@@ -403,6 +397,7 @@ Deno.serve(async (req) => {
       const { data: job, error: jobErr } = await supabaseAdmin.from("publication_jobs").select("publication_target_id").eq("id", jobId).single();
       if (jobErr || !job) throw new Error("Job não encontrado");
       pTargetId = job.publication_target_id;
+      captureTargetId = pTargetId;
 
       const { data: target, error: targetErr } = await supabaseAdmin.from("publication_targets").select("*, publications(*)").eq("id", pTargetId).single();
       if (targetErr || !target) throw new Error("Target não encontrado");
@@ -508,18 +503,10 @@ Deno.serve(async (req) => {
       const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
       if (signedUrlError) throw new Error(`Falha ao gerar URL assinada: ${signedUrlError.message}`);
       
-      let bytes: Uint8Array | null = null;
-      
-      // OPTIMIZATION: YouTube uses streaming via publicUrl + size_bytes.
-      // We skip downloading all bytes into memory to avoid OOM for large videos.
-      if (pPlatform !== "youtube") {
-        console.log(`[Publish Video] Baixando bytes para ${pPlatform} (File: ${upload.file_name})`);
-        const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
-        if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
-        bytes = new Uint8Array(await fileData.arrayBuffer());
-      } else {
-        console.log(`[Publish Video] Ignorando download de bytes para YouTube (usará streaming).`);
-      }
+      console.log(`[Publish Video] Baixando bytes de vídeo para processamento seguro (File: ${upload.file_name})...`);
+      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
+      if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
+      const bytes = new Uint8Array(await fileData.arrayBuffer());
       
       return { ...upload, bytes, publicUrl: signedUrlData.signedUrl };
     }));
@@ -543,13 +530,11 @@ Deno.serve(async (req) => {
   } catch (err: any) {
     console.error("Publish Fatal Error:", err);
     try {
-      const { jobId, targetId } = await req.clone().json().catch(() => ({}));
+      const targetIdToUpdate = captureTargetId;
       const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       
-      if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
-      if (jobId) {
-         // Actually, if it fails, cron-scheduler is wrapping this call and dealing with `publication_jobs`
-         // It's safer to let cron-scheduler handle the job failing by throwing.
+      if (targetIdToUpdate) {
+         await updateTargetStatus(supabaseAdmin, targetIdToUpdate, "erro", { error_message: err.message });
       }
     } catch (_) {}
     return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
