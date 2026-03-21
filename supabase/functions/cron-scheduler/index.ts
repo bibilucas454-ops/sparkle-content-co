@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
           // Also mark corresponding target as error
           const { data: jobTarget } = await supabaseAdmin.from("publication_jobs").select("publication_target_id").eq("id", jobId).single();
           if (jobTarget?.publication_target_id) {
-            await supabaseAdmin.from("publication_targets").update({status: "erro", error_message: "Falha final de agendamento"}).eq("id", jobTarget.publication_target_id);
+            await supabaseAdmin.from("publication_targets").update({status: "erro", error_message: errorMsg}).eq("id", jobTarget.publication_target_id);
           }
         } else {
           // Transient failure (Queue again for next minute)

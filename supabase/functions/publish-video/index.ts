@@ -96,7 +96,6 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
     method: "PUT",
     headers: { 
       "Content-Type": "video/mp4",
-      "Content-Length": finalSizeBytes.toString(),
       "Content-Range": `bytes 0-${finalSizeBytes - 1}/${finalSizeBytes}`
     },
     body: media.bytes,
@@ -537,6 +536,6 @@ Deno.serve(async (req) => {
          await updateTargetStatus(supabaseAdmin, targetIdToUpdate, "erro", { error_message: err.message });
       }
     } catch (_) {}
-    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
