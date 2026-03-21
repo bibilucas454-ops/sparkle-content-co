@@ -79,8 +79,7 @@ Deno.serve(async (req) => {
       .from("publication_jobs")
       .update({ 
         status: "processing", 
-        locked_at: new Date().toISOString(),
-        attempt_count: 1 // We'll increment on failure handled by the worker
+        locked_at: new Date().toISOString()
       })
       .in("id", jobIds);
 
