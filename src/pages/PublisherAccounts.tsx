@@ -58,7 +58,10 @@ export default function PublisherAccounts() {
       await connectFn();
       // Will redirect to OAuth, so no need to handle success here
     } catch (err: any) {
-      toast.error(err.message || "Falha ao conectar conta.");
+      console.error("Connect error:", err);
+      // Extrair mensagem real se for erro do Supabase Function
+      const errorMessage = err?.context?.message || err?.message || "Falha ao iniciar conexão OAuth. Verifique as configurações do projeto.";
+      toast.error(errorMessage);
       setConnecting(null);
     }
   };

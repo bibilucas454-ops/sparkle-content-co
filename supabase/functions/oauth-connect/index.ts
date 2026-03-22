@@ -109,9 +109,12 @@ Deno.serve(async (req) => {
     }
 
     const { platform, redirectUri } = await req.json();
+    console.log(`[OAuth Connect] Request for platform: ${platform}`);
+    console.log(`[OAuth Connect] Callback URI requested: ${redirectUri || "default"}`);
 
     if (!platform || !PLATFORM_CONFIG[platform]) {
-      return new Response(JSON.stringify({ error: "Plataforma inválida" }), {
+      console.error(`[OAuth Connect] Invalid platform: ${platform}`);
+      return new Response(JSON.stringify({ error: "Plataforma inválida ou não suportada" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -121,6 +124,7 @@ Deno.serve(async (req) => {
     const clientId = Deno.env.get(config.clientIdEnv);
 
     if (!clientId) {
+      console.error(`[OAuth Connect] Missing Client ID for ${platform}: ${config.clientIdEnv}`);
       return new Response(
         JSON.stringify({
           error: `Credencial ausente: ${config.clientIdEnv}. Configure nas variáveis de ambiente do Supabase.`,
@@ -132,8 +136,7 @@ Deno.serve(async (req) => {
 
     const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
 
-    // Build state param with user info
-    // Generate state in DB to prevent CSRF / State tampering
+    console.log(`[OAuth Connect] Generating secure state for userId: ${userId}`);
     const { data: stateData, error: stateError } = await supabase
       .from("oauth_states")
       .insert({
@@ -145,14 +148,15 @@ Deno.serve(async (req) => {
       .single();
 
     if (stateError || !stateData) {
-      console.error("Error creating oauth state:", stateError);
-      return new Response(JSON.stringify({ error: "Erro ao gerar estado seguro para autenticação." }), {
+      console.error("[OAuth Connect] Error creating oauth state record in DB:", stateError);
+      return new Response(JSON.stringify({ error: `Erro no banco de dados (oauth_states): ${stateError.message}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const state = stateData.id;
+    console.log(`[OAuth Connect] State generated: ${state}`);
 
     // Build OAuth URL per platform
     let authorizationUrl: string;
