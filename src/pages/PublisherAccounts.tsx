@@ -59,20 +59,33 @@ export default function PublisherAccounts() {
       // Will redirect to OAuth, so no need to handle success here
     } catch (err: any) {
       console.error(`[Connect Error] ${platformId}:`, err);
-      // Detailed error extraction for Supabase Edge Functions
-      const errorMessage = err?.context?.message || err?.message || `Falha ao conectar com ${platformId}. Verifique as configurações.`;
+      
+      let errorMessage = `Erro ao conectar ${platformId}.`;
+      
+      if (err?.context?.message) {
+        errorMessage = err.context.message;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+      
+      // Se a mensagem ainda for genérica "Edge Function returned a non-2xx status code",
+      // tentamos buscar no corpo da resposta se disponível
+      if (errorMessage.includes("non-2xx") || errorMessage.includes("FunctionsHttpError")) {
+        errorMessage = `Erro no Servidor (${platformId}): Verifique se as chaves (API Keys) estão configuradas no Supabase.`;
+      }
+
       toast.error(errorMessage);
       setConnecting(null);
     }
   };
 
-  const handleReconnect = async (platformId: string) => {
+  const handleReconnect = async (platformId: string, connectFn: () => Promise<void>) => {
     try {
       setConnecting(platformId);
-      await handleConnect(platformId);
+      await handleConnect(platformId, connectFn);
     } catch (err: any) {
       console.error(`[Reconnect Error] ${platformId}:`, err);
-      const errorMessage = err?.context?.message || err?.message || `Falha ao reconectar ${platformId}.`;
+      const errorMessage = err?.message || `Falha ao reconectar ${platformId}.`;
       toast.error(errorMessage);
       setConnecting(null);
     }
