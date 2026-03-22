@@ -389,6 +389,7 @@ Deno.serve(async (req) => {
     };
     
     let mediaList: any[] = [];
+    let pub: any = null;
 
     // ====== Job & Payload Resolution ======
     if (jobId) {
@@ -401,7 +402,7 @@ Deno.serve(async (req) => {
       const { data: target, error: targetErr } = await supabaseAdmin.from("publication_targets").select("*, publications(*)").eq("id", pTargetId).single();
       if (targetErr || !target) throw new Error("Target não encontrado");
       
-      const pub = target.publications;
+      pub = target.publications;
       pPlatform = target.platform;
       pMeta = {
         title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
@@ -493,7 +494,7 @@ Deno.serve(async (req) => {
     console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
     
     // Log Music Metadata
-    if (pub.music_metadata) {
+    if (pub && pub.music_metadata) {
        const music = pub.music_metadata;
        console.log(`[Music] Áudio detectado para o post: "${music.title}" por ${music.artist}. URL: ${music.url || "Local Upload"}`);
     }
