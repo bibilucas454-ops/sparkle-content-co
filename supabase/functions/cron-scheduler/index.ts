@@ -53,16 +53,24 @@ Deno.serve(async (req) => {
       console.error("Erro na rotina de manutenção de tokens:", e);
     }
 
-    // 1. Fetch pending jobs
-    const { data: jobs, error: fetchError } = await supabaseAdmin
+    // 1. Fetch pending jobs (queued OR stuck in processing for > 5mins)
+    const now = new Date();
+    const fiveMinsAgo = new Date(now.getTime() - 5 * 60000);
+
+    const { data: rawJobs, error: fetchError } = await supabaseAdmin
       .from("publication_jobs")
-      .select("id")
-      .eq("status", "queued")
-      .lte("run_at", new Date().toISOString())
+      .select("id, status, run_at, locked_at")
+      .in("status", ["queued", "processing"])
       .order("run_at", { ascending: true })
-      .limit(5);
+      .limit(20);
 
     if (fetchError) throw fetchError;
+
+    const jobs = (rawJobs || []).filter((j: any) => {
+      if (j.status === "queued" && new Date(j.run_at) <= now) return true;
+      if (j.status === "processing" && j.locked_at && new Date(j.locked_at) < fiveMinsAgo) return true;
+      return false;
+    }).slice(0, 5);
 
     if (!jobs || jobs.length === 0) {
       return new Response(
@@ -71,7 +79,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const jobIds = jobs.map((j) => j.id);
+    const jobIds = jobs.map((j: any) => j.id);
     console.log(`Encontrados ${jobIds.length} jobs para processar. IDs:`, jobIds);
 
     // 2. Lock jobs (atomically update to 'processing')
