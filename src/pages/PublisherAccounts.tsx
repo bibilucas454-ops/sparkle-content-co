@@ -58,7 +58,7 @@ export default function PublisherAccounts() {
       await connectFn();
       // Will redirect to OAuth, so no need to handle success here
     } catch (err: any) {
-      console.error(`[Connect Error] ${platform}:`, err);
+      console.error(`[Connect Error] ${platformId}:`, err);
       // Detailed error extraction for Supabase Edge Functions
       const errorMessage = err?.context?.message || err?.message || `Falha ao conectar com ${platformId}. Verifique as configurações.`;
       toast.error(errorMessage);
