@@ -193,11 +193,13 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     console.error(`[OAuth Connect] GLOBAL CRASH:`, err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
     return new Response(
       JSON.stringify({ 
         error: "Exceção inesperada na Edge Function", 
-        message: err.message,
-        stack: err.stack 
+        message: msg,
+        stack
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -44,10 +44,23 @@ async function initiateOAuth(platform: string): Promise<void> {
     
     // Attempt to extract detail from the error context (Edge Function body)
     try {
-      if (error instanceof Error && 'context' in error) {
+      if (error && typeof error === 'object' && 'context' in error) {
         const context = (error as any).context;
-        if (context) {
-          errorMessage += ` - Detalhes do Servidor: ${JSON.stringify(context)}`;
+        // FunctionsHttpError often attaches the Response object as `context`
+        if (context && typeof context.text === 'function') {
+           const cloned = context.clone();
+           const textData = await cloned.text();
+           try {
+             const jsonData = JSON.parse(textData);
+             errorMessage += ` - Detalhes: ${jsonData.error || jsonData.message || textData}`;
+             if (jsonData.missingSecret) {
+               errorMessage += ` (Falta Secret: ${jsonData.missingSecret})`;
+             }
+           } catch {
+             errorMessage += ` - Detalhes: ${textData}`;
+           }
+        } else if (context) {
+          errorMessage += ` - Detalhes: ${JSON.stringify(context)}`;
         }
       }
     } catch (e) {

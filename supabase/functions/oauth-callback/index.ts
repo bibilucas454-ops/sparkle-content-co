@@ -321,7 +321,8 @@ Deno.serve(async (req) => {
     return redirectToApp(`/oauth/callback?success=true&platform=${platform}`);
   } catch (err) {
     console.error("OAuth callback error:", err);
-    return redirectToApp(`/oauth/callback?error=${encodeURIComponent(err.message || "Erro no callback OAuth")}`);
+    const msg = err instanceof Error ? err.message : String(err);
+    return redirectToApp(`/oauth/callback?error=${encodeURIComponent(msg || "Erro no callback OAuth")}`);
   }
 });
 
