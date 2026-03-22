@@ -38,12 +38,23 @@ async function initiateOAuth(platform: string): Promise<void> {
     body: { platform, redirectUri: callbackUrl },
   });
 
-  if (error) throw new Error(error.message || "Erro ao iniciar autenticação");
-  if (data?.error) {
-    if (data.missingSecret) {
-      throw new Error(`Credencial ausente: ${data.missingSecret}. Configure nas variáveis de ambiente do Supabase (Edge Function Secrets).`);
+  if (error) {
+    console.error(`[Auth Error] ${platform}:`, error);
+    let errorMessage = error.message || "Erro ao iniciar autenticação";
+    
+    // Attempt to extract detail from the error context (Edge Function body)
+    try {
+      if (error instanceof Error && 'context' in error) {
+        const context = (error as any).context;
+        if (context) {
+          errorMessage += ` - Detalhes do Servidor: ${JSON.stringify(context)}`;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse error context", e);
     }
-    throw new Error(data.error);
+    
+    throw new Error(errorMessage);
   }
 
   if (data?.url) {

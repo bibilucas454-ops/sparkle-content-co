@@ -39,49 +39,47 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Ad hoc endpoint: Encrypt existing tokens to migrate old data
-  if (new URL(req.url).pathname.endsWith("encrypt-migrator")) {
-    const authHeader = req.headers.get("Authorization");
-    if (authHeader !== `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    const { data: accounts, error } = await supabaseAdmin.from("social_tokens").select("*");
-    if (error) return new Response(error.message, { status: 500 });
-
-    let migrated = 0;
-    for (const acc of accounts) {
-      // Very basic check to try and prevent double encryption (AES output is base64 and longer than typical oauth tokens but doesn't have a specific header. If it decrypts cleanly it might be encrypted, but if it throws or returns same string it's plain text)
-      const testAccess = acc.access_token_encrypted;
-      let alreadyEncrypted = false;
-      try {
-         // Attempt to decrypt it. If it successfully decrypts to something different or the same length, but throws otherwise. Our decrypt function catches and returns the original if it fails.
-         const res = await decryptToken(testAccess);
-         if (res !== testAccess) alreadyEncrypted = true; 
-      } catch (e) {}
-
-      if (!alreadyEncrypted) {
-         const encAccess = await encryptToken(acc.access_token_encrypted);
-         const encRefresh = acc.refresh_token_encrypted ? await encryptToken(acc.refresh_token_encrypted) : null;
-
-         await supabaseAdmin.from("social_tokens").update({
-            access_token_encrypted: encAccess,
-            refresh_token_encrypted: encRefresh
-         }).eq("id", acc.id);
-         migrated++;
-      }
-    }
-    
-    return new Response(`Migrated ${migrated} accounts to AES-GCM.`, { status: 200 });
-  }
-
   try {
-    // Authenticate user
+    // Ad hoc endpoint: Encrypt existing tokens to migrate old data
+    if (new URL(req.url).pathname.endsWith("encrypt-migrator")) {
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader !== `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      const { data: accounts, error } = await supabaseAdmin.from("social_tokens").select("*");
+      if (error) return new Response(error.message, { status: 500 });
+
+      let migrated = 0;
+      for (const acc of accounts) {
+        const testAccess = acc.access_token_encrypted;
+        let alreadyEncrypted = false;
+        try {
+           const res = await decryptToken(testAccess);
+           if (res !== testAccess) alreadyEncrypted = true; 
+        } catch (e) {}
+
+        if (!alreadyEncrypted) {
+           const encAccess = await encryptToken(acc.access_token_encrypted);
+           const encRefresh = acc.refresh_token_encrypted ? await encryptToken(acc.refresh_token_encrypted) : null;
+
+           await supabaseAdmin.from("social_tokens").update({
+              access_token_encrypted: encAccess,
+              refresh_token_encrypted: encRefresh
+           }).eq("id", acc.id);
+           migrated++;
+        }
+      }
+      
+      return new Response(`Migrated ${migrated} accounts to AES-GCM.`, { status: 200 });
+    }
+
+    // --- Main OAuth logic ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -102,7 +100,7 @@ Deno.serve(async (req) => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       userId = payload.sub;
     } catch (e) {
-      return new Response(JSON.stringify({ error: "Token inválido ou malformatado" }), {
+      return new Response(JSON.stringify({ error: "Token inválido", details: e.message }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -123,7 +121,7 @@ Deno.serve(async (req) => {
     if (!clientId) {
       return new Response(
         JSON.stringify({
-          error: `Credencial ausente: ${config.clientIdEnv}. Configure nas variáveis de ambiente do Supabase.`,
+          error: `Credencial ausente: ${config.clientIdEnv}.`,
           missingSecret: config.clientIdEnv,
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -145,8 +143,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (stateError || !stateData) {
-      console.error("Error creating oauth state:", stateError);
-      return new Response(JSON.stringify({ error: "Erro ao gerar estado seguro para autenticação." }), {
+      console.error("[OAuth Connect] Error creating state:", stateError);
+      return new Response(JSON.stringify({ error: "Erro ao gerar estado seguro.", details: stateError?.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -194,8 +192,13 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error(`[OAuth Connect] GLOBAL CRASH:`, err);
     return new Response(
-      JSON.stringify({ error: err.message || "Erro interno" }),
+      JSON.stringify({ 
+        error: "Exceção inesperada na Edge Function", 
+        message: err.message,
+        stack: err.stack 
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
