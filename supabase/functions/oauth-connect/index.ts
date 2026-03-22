@@ -17,7 +17,8 @@ const PLATFORM_CONFIG: Record<string, {
 }> = {
   youtube: {
     authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    scopes: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile",
+    scopes:
+      "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile",
     clientIdEnv: "YOUTUBE_CLIENT_ID",
     clientSecretEnv: "YOUTUBE_CLIENT_SECRET",
   },
@@ -57,11 +58,9 @@ Deno.serve(async (req) => {
 
     let migrated = 0;
     for (const acc of accounts) {
-      // Very basic check to try and prevent double encryption (AES output is base64 and longer than typical oauth tokens but doesn't have a specific header. If it decrypts cleanly it might be encrypted, but if it throws or returns same string it's plain text)
       const testAccess = acc.access_token_encrypted;
       let alreadyEncrypted = false;
       try {
-         // Attempt to decrypt it. If it successfully decrypts to something different or the same length, but throws otherwise. Our decrypt function catches and returns the original if it fails.
          const res = await decryptToken(testAccess);
          if (res !== testAccess) alreadyEncrypted = true; 
       } catch (e) {}
@@ -77,9 +76,10 @@ Deno.serve(async (req) => {
          migrated++;
       }
     }
-    
     return new Response(`Migrated ${migrated} accounts to AES-GCM.`, { status: 200 });
   }
+
+  let platform: string | undefined;
 
   try {
     // 1. JWT Auth
@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
 
     // 2. Parse Payload
     const body = await req.json().catch(() => ({}));
-    const { platform, redirectUri } = body;
+    platform = body.platform;
+    const redirectUri = body.redirectUri;
     console.log(`[OAuth Connect] Request for ${platform} by user ${userId}`);
 
     if (!platform || !PLATFORM_CONFIG[platform]) {
@@ -196,9 +197,18 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" } 
     });
 
-  } catch (err) {
+  } catch (err: any) {
     console.error("[OAuth Connect] Fatal Exception:", err.message);
-    return new Response(JSON.stringify({ error: "Erro interno no servidor de autenticação.", details: err.message }), {
+    return new Response(JSON.stringify({ 
+      error: "Erro interno no servidor de autenticação.", 
+      details: err.message,
+      debug: {
+        platform: platform || "unknown",
+        hasKey: platform ? !!Deno.env.get(PLATFORM_CONFIG[platform]?.clientIdEnv || "") : false,
+        dbError: !!err.code, 
+        stack: err.stack?.split('\n')[0]
+      }
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -72,6 +72,12 @@ export default function PublisherAccounts() {
       // tentamos buscar no corpo da resposta se disponível
       if (errorMessage.includes("non-2xx") || errorMessage.includes("FunctionsHttpError")) {
         errorMessage = `Erro no Servidor (${platformId}): Verifique se as chaves (API Keys) estão configuradas no Supabase.`;
+        
+        // Debug info extraction
+        if (err?.context?.debug) {
+          const debug = err.context.debug;
+          errorMessage += ` [Debug: hasKey=${debug.hasKey}, dbErr=${debug.dbError}, platform=${debug.platform}]`;
+        }
       }
 
       toast.error(errorMessage);
