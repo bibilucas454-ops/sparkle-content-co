@@ -3,8 +3,9 @@ import { encryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-supabase-auth-token",
 };
 
 interface TokenResponse {
@@ -295,7 +296,7 @@ Deno.serve(async (req) => {
       console.warn(`[OAuth Callback] refresh_token NÃO recebido do Google para platform=${platform}. Mantendo token existente no banco (se houver).`);
     }
 
-    // Build the upsert payload — only include refresh_token_encrypted if we have a new value
+    // Build payload including raw metadata
     const upsertPayload: Record<string, unknown> = {
       user_id: userId,
       platform,
@@ -305,28 +306,35 @@ Deno.serve(async (req) => {
       expires_at: expiresAt,
       token_type: result.token_type || null,
       scope: result.scope || null,
+      raw_response: result, 
       updated_at: new Date().toISOString(),
     };
 
-    // Only set refresh_token_encrypted if we actually got a new one from Google.
-    // This prevents wiping the existing token when Google omits it (which it does after first auth).
     if (encryptedRefresh) {
       upsertPayload.refresh_token_encrypted = encryptedRefresh;
     }
 
-    // Upsert into social_tokens
+    console.log(`[OAuth Callback] Persisting ${platform} tokens for user ${userId}`);
     const { error: insertError } = await supabaseAdmin
       .from("social_tokens")
       .upsert(upsertPayload, { onConflict: "user_id,platform" });
 
     if (insertError) {
-      return redirectToApp(`/oauth/callback?error=${encodeURIComponent("Erro ao salvar conta: " + insertError.message)}`);
+      console.error("[OAuth Callback] DB Insert Error:", insertError);
+      throw new Error(`Erro ao salvar tokens no banco: ${insertError.message}`);
     }
 
-    return redirectToApp(`/oauth/callback?success=true&platform=${platform}`);
-  } catch (err) {
-    console.error("OAuth callback error:", err);
-    return redirectToApp(`/oauth/callback?error=${encodeURIComponent(err.message || "Erro no callback OAuth")}`);
+    // Standardize redirection
+    const searchParams = new URLSearchParams();
+    if (result.accountName) searchParams.set("account", result.accountName);
+    searchParams.set("success", "true");
+    searchParams.set("platform", platform);
+
+    return redirectToApp(`/oauth/callback?${searchParams.toString()}`);
+
+  } catch (err: any) {
+    console.error("[OAuth Callback] Fatal Exception:", err.message);
+    return redirectToApp(`/oauth/callback?error=${encodeURIComponent(err.message || "Falha crítica na autenticação.")}`);
   }
 });
 

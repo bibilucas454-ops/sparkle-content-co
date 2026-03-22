@@ -32,7 +32,7 @@ async function initiateOAuth(platform: string): Promise<void> {
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData?.session) throw new Error("Faça login primeiro.");
 
-  const callbackUrl = "https://rwjztxngpulinubmgnfz.supabase.co/functions/v1/oauth-callback";
+  const callbackUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oauth-callback`;
 
   const { data, error } = await supabase.functions.invoke("oauth-connect", {
     body: { platform, redirectUri: callbackUrl },

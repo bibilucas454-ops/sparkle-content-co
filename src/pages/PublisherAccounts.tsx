@@ -58,9 +58,21 @@ export default function PublisherAccounts() {
       await connectFn();
       // Will redirect to OAuth, so no need to handle success here
     } catch (err: any) {
-      console.error("Connect error:", err);
-      // Extrair mensagem real se for erro do Supabase Function
-      const errorMessage = err?.context?.message || err?.message || "Falha ao iniciar conexão OAuth. Verifique as configurações do projeto.";
+      console.error(`[Connect Error] ${platform}:`, err);
+      // Detailed error extraction for Supabase Edge Functions
+      const errorMessage = err?.context?.message || err?.message || `Falha ao conectar com ${platformId}. Verifique as configurações.`;
+      toast.error(errorMessage);
+      setConnecting(null);
+    }
+  };
+
+  const handleReconnect = async (platformId: string) => {
+    try {
+      setConnecting(platformId);
+      await handleConnect(platformId);
+    } catch (err: any) {
+      console.error(`[Reconnect Error] ${platformId}:`, err);
+      const errorMessage = err?.context?.message || err?.message || `Falha ao reconectar ${platformId}.`;
       toast.error(errorMessage);
       setConnecting(null);
     }
