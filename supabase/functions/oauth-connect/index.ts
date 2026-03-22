@@ -3,8 +3,9 @@ import { encryptToken, decryptToken } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, x-supabase-auth-token",
 };
 
 // Platform OAuth configurations
@@ -81,10 +82,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
+    // 1. JWT Auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      console.error("[OAuth Connect] Missing or invalid Authorization header");
+      return new Response(JSON.stringify({ error: "Sessão expirada. Faça login novamente." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -102,19 +104,20 @@ Deno.serve(async (req) => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       userId = payload.sub;
     } catch (e) {
-      return new Response(JSON.stringify({ error: "Token inválido ou malformatado" }), {
+      console.error("[OAuth Connect] Failed to parse JWT payload:", e.message);
+      return new Response(JSON.stringify({ error: "Token de acesso inválido. Reconecte ao app." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { platform, redirectUri } = await req.json();
-    console.log(`[OAuth Connect] Request for platform: ${platform}`);
-    console.log(`[OAuth Connect] Callback URI requested: ${redirectUri || "default"}`);
+    // 2. Parse Payload
+    const body = await req.json().catch(() => ({}));
+    const { platform, redirectUri } = body;
+    console.log(`[OAuth Connect] Request for ${platform} by user ${userId}`);
 
     if (!platform || !PLATFORM_CONFIG[platform]) {
-      console.error(`[OAuth Connect] Invalid platform: ${platform}`);
-      return new Response(JSON.stringify({ error: "Plataforma inválida ou não suportada" }), {
+      return new Response(JSON.stringify({ error: `Plataforma '${platform}' não suportada.` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -124,83 +127,80 @@ Deno.serve(async (req) => {
     const clientId = Deno.env.get(config.clientIdEnv);
 
     if (!clientId) {
-      console.error(`[OAuth Connect] Missing Client ID for ${platform}: ${config.clientIdEnv}`);
+      console.error(`[OAuth Connect] Missing env var: ${config.clientIdEnv}`);
       return new Response(
         JSON.stringify({
-          error: `Credencial ausente: ${config.clientIdEnv}. Configure nas variáveis de ambiente do Supabase.`,
+          error: `Configuração ausente no Supabase: ${config.clientIdEnv}.`,
           missingSecret: config.clientIdEnv,
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const callbackUrl = redirectUri || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
+    // 3. Resolve Redirect URI
+    const callbackUrl = redirectUri || Deno.env.get("TIKTOK_REDIRECT_URI") || `${Deno.env.get("SUPABASE_URL")}/functions/v1/oauth-callback`;
+    console.log(`[OAuth Connect] Using Redirect URI: ${callbackUrl}`);
 
-    console.log(`[OAuth Connect] Generating secure state for userId: ${userId}`);
+    // 4. Generate State
     const { data: stateData, error: stateError } = await supabase
       .from("oauth_states")
-      .insert({
-        user_id: userId,
-        platform,
-        redirect_uri: callbackUrl,
-      })
+      .insert({ user_id: userId, platform, redirect_uri: callbackUrl })
       .select("id")
       .single();
 
     if (stateError || !stateData) {
-      console.error("[OAuth Connect] Error creating oauth state record in DB:", stateError);
-      return new Response(JSON.stringify({ error: `Erro no banco de dados (oauth_states): ${stateError.message}` }), {
+      console.error("[OAuth Connect] DB Error generating state:", stateError);
+      return new Response(JSON.stringify({ error: "Erro ao iniciar sessão segura de autenticação. Tente novamente." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const state = stateData.id;
-    console.log(`[OAuth Connect] State generated: ${state}`);
 
-    // Build OAuth URL per platform
+    // 5. Build Authorization URL
     let authorizationUrl: string;
+    const commonParams = { response_type: "code", state };
 
     if (platform === "youtube") {
       const params = new URLSearchParams({
+        ...commonParams,
         client_id: clientId,
         redirect_uri: callbackUrl,
-        response_type: "code",
         scope: config.scopes,
         access_type: "offline",
         prompt: "consent",
-        state,
       });
       authorizationUrl = `${config.authUrl}?${params.toString()}`;
     } else if (platform === "instagram") {
       const params = new URLSearchParams({
+        ...commonParams,
         client_id: clientId,
         redirect_uri: callbackUrl,
-        response_type: "code",
         scope: config.scopes,
-        state,
       });
       authorizationUrl = `${config.authUrl}?${params.toString()}`;
     } else {
       // TikTok
       const params = new URLSearchParams({
+        ...commonParams,
         client_key: clientId,
         redirect_uri: callbackUrl,
-        response_type: "code",
         scope: config.scopes,
-        state,
       });
       authorizationUrl = `${config.authUrl}?${params.toString()}`;
     }
 
-    return new Response(
-      JSON.stringify({ url: authorizationUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.log(`[OAuth Connect] Redirecting user to: ${authorizationUrl}`);
+    return new Response(JSON.stringify({ url: authorizationUrl }), { 
+      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    });
+
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message || "Erro interno" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.error("[OAuth Connect] Fatal Exception:", err.message);
+    return new Response(JSON.stringify({ error: "Erro interno no servidor de autenticação.", details: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
