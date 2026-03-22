@@ -28,7 +28,7 @@ const PLATFORM_CONFIG: Record<string, {
   },
   tiktok: {
     authUrl: "https://www.tiktok.com/v2/auth/authorize/",
-    scopes: "user.info.basic,video.publish,video.upload",
+    scopes: "user.info.basic,video.upload",
     clientIdEnv: "TIKTOK_CLIENT_KEY",
     clientSecretEnv: "TIKTOK_CLIENT_SECRET",
   },

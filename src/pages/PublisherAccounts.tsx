@@ -256,7 +256,7 @@ export default function PublisherAccounts() {
           <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
             <p className="text-xs text-muted-foreground font-medium">
               Configure a URL de callback OAuth em cada plataforma como:<br />
-              <code className="text-primary font-black mt-2 block select-all">https://wjzxntgpuimiubrnqfnz.supabase.co/functions/v1/oauth-callback</code>
+              <code className="text-primary font-black mt-2 block select-all">https://rwjztxngpulinubmgnfz.supabase.co/functions/v1/oauth-callback</code>
             </p>
           </div>
         </div>
