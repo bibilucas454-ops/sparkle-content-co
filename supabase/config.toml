@@ -2,6 +2,9 @@
 [functions.oauth-callback]
 verify_jwt = false
 
+[functions.oauth-connect]
+verify_jwt = false
+
 [functions.publish-video]
 verify_jwt = false
 
