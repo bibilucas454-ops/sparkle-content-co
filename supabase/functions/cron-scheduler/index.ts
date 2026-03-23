@@ -53,24 +53,23 @@ Deno.serve(async (req) => {
       console.error("Erro na rotina de manutenção de tokens:", e);
     }
 
-    // 1. Fetch pending jobs (queued OR stuck in processing for > 5mins)
+    // 1. Fetch pending jobs (ready OR stuck in processing for > 5mins)
     const now = new Date();
     const fiveMinsAgo = new Date(now.getTime() - 5 * 60000);
 
     const { data: rawJobs, error: fetchError } = await supabaseAdmin
       .from("publication_jobs")
-      .select("id, status, run_at, locked_at")
-      .in("status", ["queued", "processing"])
+      .select("id, status, run_at, locked_at, publication_target_id")
+      .or(`status.eq.ready,status.eq.queued,and(status.eq.processing,locked_at.lt.${fiveMinsAgo.toISOString()})`)
       .order("run_at", { ascending: true })
-      .limit(20);
+      .limit(50); // Fetch more to filter
 
     if (fetchError) throw fetchError;
 
     const jobs = (rawJobs || []).filter((j: any) => {
-      if (j.status === "queued" && new Date(j.run_at) <= now) return true;
-      if (j.status === "processing" && j.locked_at && new Date(j.locked_at) < fiveMinsAgo) return true;
-      return false;
-    }).slice(0, 5);
+      // Logic: Only process if run_at is now or past
+      return new Date(j.run_at) <= now && j.status !== 'cancelled';
+    }).slice(0, 20); // Professional SaaS: Process up to 20 concurrently
 
     if (!jobs || jobs.length === 0) {
       return new Response(
@@ -80,7 +79,7 @@ Deno.serve(async (req) => {
     }
 
     const jobIds = jobs.map((j: any) => j.id);
-    console.log(`Encontrados ${jobIds.length} jobs para processar. IDs:`, jobIds);
+    console.log(`[Scheduler] Iniciando processamento de ${jobIds.length} jobs.`, jobIds);
 
     // 2. Lock jobs (atomically update to 'processing')
     const { error: lockError } = await supabaseAdmin
@@ -92,25 +91,30 @@ Deno.serve(async (req) => {
       .in("id", jobIds);
 
     if (lockError) {
-      console.error("Falha ao travar jobs:", lockError);
+      console.error("[Scheduler] Falha ao travar jobs:", lockError);
       throw lockError;
     }
 
     // 3. Invoke publish-video worker for each job concurrently
-    // We pass the JWT token to bypass or use service_role. The worker uses Admin naturally.
     const results = await Promise.allSettled(
-      jobIds.map(async (jobId) => {
+      jobs.map(async (job) => {
+        const correlationId = job.id; // Use Job ID as Correlation ID
+        
+        await supabaseAdmin.rpc("log_audit_event", {
+          p_user_id: null, // Will be resolved by the worker or we could fetch it here
+          p_event_type: "publish_started",
+          p_publication_id: null, // Resolved in worker
+          p_message: `Scheduler iniciando processamento do job ${job.id}`,
+          p_correlation_id: correlationId
+        });
+
         const { data, error } = await supabaseAdmin.functions.invoke("publish-video", {
-          body: { jobId }, // New signature: worker will take jobId and handle the rest
+          body: { jobId: job.id, correlationId }, 
         });
 
         if (error) {
-           console.error(`Erro ao invocar publish-video para jobId ${jobId}:`, error);
+           console.error(`[Scheduler] Erro fatal na invocação do worker (Job: ${job.id}):`, error);
            throw error;
-        }
-        if (data?.error) {
-           console.error(`publish-video reportou erro para jobId ${jobId}:`, data.error);
-           throw new Error(data.error);
         }
         return data;
       })

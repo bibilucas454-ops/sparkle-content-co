@@ -32,15 +32,21 @@ const CONTENT_FORMATS = [
 
 type ContentFormat = typeof CONTENT_FORMATS[number]["id"];
 
-type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro";
+type PubStatus = "pendente" | "draft" | "ready" | "scheduled" | "queued" | "processing" | "published" | "failed" | "retrying" | "cancelled" | "enviando" | "erro";
 
 const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
   pendente: { label: "Agendado", icon: Clock, className: "text-text-secondary" },
-  queued: { label: "Na Fila do Motor", icon: Clock, className: "text-primary" },
+  draft: { label: "Rascunho", icon: Save, className: "text-text-muted" },
+  ready: { label: "Pronto", icon: CheckCircle2, className: "text-primary" },
+  scheduled: { label: "Cronometrado", icon: Clock, className: "text-amber-500" },
+  queued: { label: "Na Fila", icon: Clock, className: "text-primary" },
+  processing: { label: "Processando", icon: Loader2, className: "text-primary animate-spin" },
+  published: { label: "Publicado", icon: CheckCircle2, className: "text-emerald-500" },
+  failed: { label: "Falha", icon: AlertCircle, className: "text-destructive" },
+  retrying: { label: "Tentando Novamente", icon: Loader2, className: "text-amber-500 animate-spin" },
+  cancelled: { label: "Cancelado", icon: X, className: "text-muted-foreground" },
   enviando: { label: "Enviando", icon: Loader2, className: "text-amber-500 animate-spin" },
-  processando: { label: "Processando", icon: Loader2, className: "text-primary animate-spin" },
-  publicado: { label: "Publicado", icon: CheckCircle2, className: "text-emerald-500" },
-  erro: { label: "Erro na Fila", icon: AlertCircle, className: "text-destructive" },
+  erro: { label: "Erro Crítico", icon: AlertCircle, className: "text-destructive" },
 };
 
 interface PlatformSettings {
@@ -78,8 +84,9 @@ export default function PublisherHub() {
     tiktok: { caption: "", useGlobalHashtags: true },
   });
 
+  const [approved, setApproved] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string }>>({});
+  const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string; jobId?: string }>>({});
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
 
@@ -96,8 +103,8 @@ export default function PublisherHub() {
   }, []);
 
   const fetchMusicLibrary = async () => {
-    const { data } = await supabase
-      .from("music_library")
+    const { data } = await (supabase
+      .from("music_library" as any) as any)
       .select("*")
       .order("created_at", { ascending: false });
     if (data) {
@@ -237,7 +244,7 @@ export default function PublisherHub() {
     if (schedule && !scheduledFor) { toast.error("Selecione a data de agendamento."); return; }
 
     setPublishing(true);
-    const statuses: Record<string, { status: PubStatus; error?: string }> = {};
+    const statuses: Record<string, { status: PubStatus; error?: string; jobId?: string }> = {};
     selectedPlatforms.forEach((p) => { statuses[p] = { status: "enviando" }; });
     setPlatformStatuses({ ...statuses });
 
@@ -276,7 +283,8 @@ export default function PublisherHub() {
         title, caption, hashtags, cta,
         content_format: selectedFormat,
         scheduled_for: schedule ? new Date(scheduledFor).toISOString() : null,
-        overall_status: schedule ? "pendente" : "queued",
+        overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
+        approval_status: approved ? "approved" : "draft",
         music_metadata: selectedAudio ? {
           id: selectedAudio.id,
           title: selectedAudio.title,
@@ -311,16 +319,21 @@ export default function PublisherHub() {
         }).select().single();
         if (targetError || !target) throw targetError;
 
-        // Define Job for the Background Worker
+        // Define Job for the Background Worker (Only if approved or scheduled)
         const jobDate = schedule && scheduledFor ? new Date(scheduledFor) : new Date();
-        const { error: jobError } = await supabase.from("publication_jobs").insert({
+        const initialStatus = schedule ? "scheduled" : (approved ? "ready" : "draft");
+        
+        const { data: job, error: jobError } = await supabase.from("publication_jobs").insert({
           publication_target_id: target.id,
           run_at: jobDate.toISOString(),
-          status: "queued"
-        });
+          status: initialStatus
+        }).select("id").single();
         if (jobError) throw jobError;
 
-        statuses[platform] = { status: schedule ? "pendente" : "queued" };
+        statuses[platform] = { status: initialStatus as PubStatus, jobId: job?.id };
+        if (initialStatus === "ready" && job?.id) {
+          pollJobStatus(job.id, platform);
+        }
       }
 
       setPlatformStatuses({ ...statuses });
@@ -339,6 +352,58 @@ export default function PublisherHub() {
       setPublishing(false);
     }
   };
+
+  const cancelJob = async (id: string, platform: string) => {
+    try {
+      const { error } = await supabase
+        .from("publication_jobs")
+        .update({ status: "cancelled" })
+        .eq("id", id);
+      
+      if (error) throw error;
+      
+      setPlatformStatuses(prev => ({
+        ...prev,
+        [platform]: { ...prev[platform], status: "erro", error: "Publicação cancelada pelo usuário." }
+      }));
+      toast.success("Publicação cancelada.");
+    } catch (err: any) {
+      toast.error("Erro ao cancelar: " + err.message);
+    }
+  };
+
+  const pollJobStatus = useCallback(async (jobId: string, platform: string) => {
+    let attempts = 0;
+    const maxAttempts = 30; // 2.5 minutes total (5s * 30)
+    
+    const interval = setInterval(async () => {
+      attempts++;
+      const { data, error } = await supabase
+        .from("publication_jobs")
+        .select("status, last_error")
+        .eq("id", jobId)
+        .single();
+      
+      if (error || !data) {
+        clearInterval(interval);
+        return;
+      }
+
+      const currentStatus = data.status as PubStatus;
+      setPlatformStatuses(prev => ({
+        ...prev,
+        [platform]: { 
+          status: currentStatus,
+          error: data.last_error as string,
+          jobId: jobId // ensure it's preserved
+        }
+      }));
+
+      if (currentStatus === "published" || currentStatus === "failed" || currentStatus === "cancelled" || attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 5000);
+  }, []);
 
   const clearForm = () => {
     setMediaFiles([]);
@@ -769,6 +834,16 @@ export default function PublisherHub() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between premium-card p-6 bg-primary/5 border-primary/20">
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação de Conteúdo
+                </h4>
+                <p className="text-[10px] text-muted-foreground">Marque como aprovado para autorizar o motor de publicação.</p>
+              </div>
+              <Switch checked={approved} onCheckedChange={setApproved} />
+            </div>
+
             <div className="rounded-lg border border-border bg-card p-4">
               <label className="text-sm text-muted-foreground mb-1.5 block">Agendar para (Opcional - Motor Assíncrono)</label>
               <Input
@@ -797,13 +872,34 @@ export default function PublisherHub() {
                   <h3 className="text-sm font-medium">Status da Fila de Processamento</h3>
                   {Object.entries(platformStatuses).map(([platform, info]) => {
                     const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.pendente;
+                    const canCancel = info.status === "queued" || info.status === "ready" || info.status === "pendente";
+                    
                     return (
-                      <div key={platform} className="flex items-center justify-between rounded-md bg-secondary/50 px-3 py-2.5">
-                        <span className="text-sm capitalize">{platform}</span>
-                        <div className="flex items-center gap-2">
-                          <cfg.icon className={`w-4 h-4 ${cfg.className}`} />
-                          <span className={`text-xs ${cfg.className}`}>{cfg.label}</span>
+                      <div key={platform} className="space-y-2">
+                        <div className="flex items-center justify-between rounded-md bg-secondary/50 px-3 py-2.5">
+                          <span className="text-sm capitalize font-bold">{platform}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <cfg.icon className={`w-4 h-4 ${cfg.className}`} />
+                              <span className={`text-xs font-medium ${cfg.className}`}>{cfg.label}</span>
+                            </div>
+                            {canCancel && info.jobId && (
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon" 
+                                 className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                 onClick={() => cancelJob(info.jobId, platform)}
+                               >
+                                 <X className="w-3.5 h-3.5" />
+                               </Button>
+                            )}
+                          </div>
                         </div>
+                        {info.error && (
+                          <p className="text-[10px] text-destructive px-3 font-medium animate-in fade-in slide-in-from-top-1">
+                            {info.error}
+                          </p>
+                        )}
                       </div>
                     );
                   })}
