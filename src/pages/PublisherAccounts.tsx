@@ -44,10 +44,12 @@ export default function PublisherAccounts() {
 
   const fetchAccounts = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("social_tokens")
       .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at")
       .order("created_at", { ascending: false });
+      
+    console.log("[Diagnostics] fetchAccounts result:", { data, error });
     setAccounts(data as any[] ?? []);
     setLoading(false);
   };
@@ -113,6 +115,16 @@ export default function PublisherAccounts() {
                 </p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="default"
+              onClick={fetchAccounts}
+              disabled={loading}
+              className="gap-2 shrink-0 bg-background/50 hover:bg-secondary/80 backdrop-blur-sm"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Sincronizar Status
+            </Button>
           </div>
         </header>
 

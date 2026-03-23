@@ -75,7 +75,7 @@ async function initiateOAuth(platform: string): Promise<void> {
   }
 
   if (data?.url) {
-    window.open(data.url, "_blank", "noopener,noreferrer");
+    window.location.href = data.url;
   } else {
     throw new Error("URL de autenticação não retornada");
   }
@@ -191,7 +191,7 @@ export function validateVideoForPlatforms(
 
 // ---------- Account Status helpers ----------
 
-export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada" | "erro" | "precisa_reautenticar";
+export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada" | "erro" | "precisa_reautenticar" | "desconectada";
 
 export function getAccountStatus(account: PlatformAccount | null): AccountStatus {
   if (!account) return "nao_conectada";
@@ -199,6 +199,7 @@ export function getAccountStatus(account: PlatformAccount | null): AccountStatus
   if (account.status === 'needs_reauth') return "precisa_reautenticar";
   if (account.status === 'expired') return "token_expirado";
   if (account.status === 'error') return "erro";
+  if (account.status === 'disconnected') return "desconectada";
   
   return "conectada";
 }
@@ -209,7 +210,8 @@ export function getAccountStatusLabel(status: AccountStatus): string {
     token_expirado: "Token expirado",
     nao_conectada: "Não conectada",
     erro: "Erro de conexão",
-    precisa_reautenticar: "Reautenticação necessária"
+    precisa_reautenticar: "Reautenticação necessária",
+    desconectada: "Desconectada"
   };
   return labels[status];
 }
@@ -220,7 +222,8 @@ export function getAccountStatusColor(status: AccountStatus): string {
     token_expirado: "text-yellow-500",
     nao_conectada: "text-muted-foreground",
     erro: "text-red-500",
-    precisa_reautenticar: "text-orange-500"
+    precisa_reautenticar: "text-orange-500",
+    desconectada: "text-muted-foreground"
   };
   return colors[status];
 }
