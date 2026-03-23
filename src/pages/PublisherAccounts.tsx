@@ -46,9 +46,9 @@ export default function PublisherAccounts() {
     setLoading(true);
     const { data } = await supabase
       .from("social_tokens")
-      .select("id, platform, account_name, account_id, created_at, expires_at")
+      .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at")
       .order("created_at", { ascending: false });
-    setAccounts(data ?? []);
+    setAccounts(data as any[] ?? []);
     setLoading(false);
   };
 
@@ -90,6 +90,8 @@ export default function PublisherAccounts() {
   const getStatusIcon = (status: AccountStatus) => {
     if (status === "conectada") return <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />;
     if (status === "token_expirado") return <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />;
+    if (status === "precisa_reautenticar") return <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />;
+    if (status === "erro") return <XCircle className="w-3.5 h-3.5 text-red-500" />;
     return <XCircle className="w-3.5 h-3.5 text-muted-foreground" />;
   };
 
@@ -144,14 +146,21 @@ export default function PublisherAccounts() {
                               <span className="text-text-primary ml-1 font-black">— {account.account_name}</span>
                             )}
                           </p>
-                          <p className="text-[10px] uppercase font-black tracking-[0.15em] text-text-muted">
-                            Conectada em {new Date(account.created_at).toLocaleDateString("pt-BR")}
+                          <p className={`text-[10px] uppercase font-black tracking-[0.15em] text-text-muted`}>
+                            Conectada em {new Date((account as any).created_at).toLocaleDateString("pt-BR")}
+                            {(account as any).last_sync_at && ` • Sincronizada: ${new Date((account as any).last_sync_at).toLocaleString("pt-BR")}`}
                           </p>
-                          {account.expires_at && (
+                          {(account as any).last_error && (
+                            <div className="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20 text-[10px] text-red-400 font-medium">
+                              <p className="font-bold uppercase tracking-wider mb-1">Último Erro [{(account as any).last_error_code}]</p>
+                              <p>{(account as any).last_error}</p>
+                            </div>
+                          )}
+                          {(account as any).expires_at && (
                             <p className={`text-xs font-medium ${status === "token_expirado" ? "text-amber-500" : "text-text-muted"}`}>
                               {status === "token_expirado"
                                 ? "⚠️ Token expirado — tentando renovação automática"
-                                : `Token renovável até ${new Date(account.expires_at).toLocaleDateString("pt-BR")}`}
+                                : `Token renovável até ${new Date((account as any).expires_at).toLocaleDateString("pt-BR")}`}
                             </p>
                           )}
                         </div>

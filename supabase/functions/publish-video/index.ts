@@ -1,11 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/crypto.ts";
+import { corsHeaders, jsonResponse } from "../_shared/responses.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// corsHeaders imported from _shared
 
 async function updateTargetStatus(supabase: any, targetId: string, status: string, extra?: Record<string, string | null>) {
   await supabase
@@ -352,7 +349,7 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") { return new Response(null, { headers: corsHeaders }); }
+  if (req.method === "OPTIONS") { return jsonResponse({ success: true, message: "OK" }); }
 
   let captureJobId: string | undefined;
   let captureTargetId: string | undefined;
@@ -360,7 +357,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: corsHeaders });
+      return jsonResponse({ success: false, message: "Não autorizado" }, 401);
     }
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
@@ -377,8 +374,22 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { jobId } = payload;
+    const { jobId, idempotencyKey } = payload;
     captureJobId = jobId;
+
+    // ====== Idempotency Check ======
+    if (idempotencyKey || jobId) {
+      const { data: existingJob, error: checkError } = await supabaseAdmin
+        .from("publication_jobs")
+        .select("id, status")
+        .or(`id.eq.${jobId},idempotency_key.eq.${idempotencyKey}`)
+        .maybeSingle();
+
+      if (existingJob && (existingJob.status === "completed" || existingJob.status === "processing")) {
+        console.log(`[Idempotency] Job já processado ou em processamento: ${existingJob.id} (Status: ${existingJob.status})`);
+        return jsonResponse({ success: true, message: "Processamento já realizado ou em andamento", jobId: existingJob.id });
+      }
+    }
     
     let pTargetId = payload.targetId;
     captureTargetId = pTargetId;
@@ -406,8 +417,7 @@ Deno.serve(async (req) => {
       pPlatform = target.platform;
       pMeta = {
         title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
-        contentFormat: pub.content_format,
-        privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
+        privacyStatus: pub.privacy_status, platformSpecificTitle: pub.platform_settings?.title, platformSpecificCaption: pub.platform_settings?.caption 
       };
       
       // Override userId to the publication owner so we can fetch their account
@@ -441,7 +451,7 @@ Deno.serve(async (req) => {
       
     if (accError || !account) {
       await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: `Conta ${pPlatform} não conectada/encontrada.` });
-      return new Response(JSON.stringify({ error: `Conta ${pPlatform} não encontrada` }), { status: 400, headers: corsHeaders });
+      return jsonResponse({ success: false, message: `Conta ${pPlatform} não encontrada` }, 400);
     }
 
     // Pre-flight Token Refresh: Check if expired or expiring in less than 5 minutes,
@@ -479,9 +489,10 @@ Deno.serve(async (req) => {
           Object.assign(account, updatedAccount);
           console.log(`[Publish Video] Token ${pPlatform} renovado com sucesso via pre-flight.`);
         }
-      } catch (e) {
-        console.error(`[Publish Video] Erro no refresh preventivo:`, e);
-        if (e.message?.includes("PERMANENT_AUTH_ERROR")) {
+      } catch (e: any) {
+        console.error("[Pre-flight Token Refresh] Erro capturado:", e);
+        const isPermanent = e.message?.includes("PERMANENT_AUTH_ERROR");
+        if (isPermanent) {
           throw new Error(`Acesso revogado na plataforma (${pPlatform}). Por favor, reconecte a conta.`);
         }
         // Tenta prosseguir com o token antigo se for um erro temporário (ex: 500 network)
@@ -525,7 +536,7 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("publication_jobs").update({ status: "completed" }).eq("id", jobId);
     }
 
-    return new Response(JSON.stringify({ success: true, publishedMediaCount: mediaFilesReady.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return jsonResponse({ success: true, message: "Publicado com sucesso", data: { publishedMediaCount: mediaFilesReady.length } });
 
   } catch (err: any) {
     console.error("Publish Fatal Error:", err);
@@ -536,7 +547,14 @@ Deno.serve(async (req) => {
       if (targetIdToUpdate) {
          await updateTargetStatus(supabaseAdmin, targetIdToUpdate, "erro", { error_message: err.message });
       }
+      
+      await supabaseAdmin.rpc("log_integration_event", {
+        p_user_id: '00000000-0000-0000-0000-000000000000', // System or derive from job
+        p_platform: 'system',
+        p_event_type: 'publication_failure',
+        p_payload: { error: err.message, jobId: captureJobId, targetId: captureTargetId }
+      });
     } catch (_) {}
-    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return jsonResponse({ success: false, message: err.message || "Erro de publicação" });
   }
 });

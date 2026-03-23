@@ -11,6 +11,10 @@ export interface PlatformAccount {
   account_id: string | null;
   created_at: string;
   expires_at: string | null;
+  status?: string;
+  last_sync_at?: string | null;
+  last_error?: string | null;
+  last_error_code?: string | null;
 }
 
 export interface PublishPayload {
@@ -130,7 +134,10 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
   });
 
   if (error) throw new Error(error.message || "Erro ao publicar");
-  if (data?.error) throw new Error(data.error);
+  const responseData = data as any;
+  if (responseData && !responseData.success) {
+    throw new Error(responseData.message || "Erro ao publicar");
+  }
 }
 
 export async function retryPublication(targetId: string, platform: string, payload: PublishPayload): Promise<void> {
@@ -184,13 +191,15 @@ export function validateVideoForPlatforms(
 
 // ---------- Account Status helpers ----------
 
-export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada";
+export type AccountStatus = "conectada" | "token_expirado" | "nao_conectada" | "erro" | "precisa_reautenticar";
 
 export function getAccountStatus(account: PlatformAccount | null): AccountStatus {
   if (!account) return "nao_conectada";
   
-  // A conexão persistente é verdadeira. O acesso expira em 1 hora (YT), mas o refresh_token é gerido pela Edge Function `publish-video` que faz JIT Refresh sob demanda silenciosamente.
-  // Esconder a marcação visual previne a queixa de que a "conta desconecta toda hora", pois o sistema opera perfeitamente sem refresh manual.
+  if (account.status === 'needs_reauth') return "precisa_reautenticar";
+  if (account.status === 'expired') return "token_expirado";
+  if (account.status === 'error') return "erro";
+  
   return "conectada";
 }
 
@@ -199,6 +208,8 @@ export function getAccountStatusLabel(status: AccountStatus): string {
     conectada: "Conectada",
     token_expirado: "Token expirado",
     nao_conectada: "Não conectada",
+    erro: "Erro de conexão",
+    precisa_reautenticar: "Reautenticação necessária"
   };
   return labels[status];
 }
@@ -208,6 +219,8 @@ export function getAccountStatusColor(status: AccountStatus): string {
     conectada: "text-green-500",
     token_expirado: "text-yellow-500",
     nao_conectada: "text-muted-foreground",
+    erro: "text-red-500",
+    precisa_reautenticar: "text-orange-500"
   };
   return colors[status];
 }

@@ -1,11 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encryptToken } from "../_shared/crypto.ts";
+import { corsHeaders, jsonResponse } from "../_shared/responses.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// corsHeaders imported from _shared
 
 interface TokenResponse {
   access_token: string;
@@ -300,11 +297,14 @@ Deno.serve(async (req) => {
       account_id: result.accountId || null,
       access_token_encrypted: encryptedAccess,
       expires_at: expiresAt,
+      status: 'connected',
+      last_sync_at: new Date().toISOString(),
+      last_error: null,
+      last_error_code: null,
       updated_at: new Date().toISOString(),
     };
 
     // Only set refresh_token_encrypted if we actually got a new one from Google.
-    // This prevents wiping the existing token when Google omits it (which it does after first auth).
     if (encryptedRefresh) {
       upsertPayload.refresh_token_encrypted = encryptedRefresh;
     }
@@ -315,8 +315,22 @@ Deno.serve(async (req) => {
       .upsert(upsertPayload, { onConflict: "user_id,platform" });
 
     if (insertError) {
+      await supabaseAdmin.rpc("log_integration_event", {
+        p_user_id: userId,
+        p_platform: platform,
+        p_event_type: 'auth_failure',
+        p_payload: { error: insertError.message, phase: 'database_upsert' }
+      });
       return redirectToApp(`/oauth/callback?error=${encodeURIComponent("Erro ao salvar conta: " + insertError.message)}`);
     }
+
+    // Log success event
+    await supabaseAdmin.rpc("log_integration_event", {
+      p_user_id: userId,
+      p_platform: platform,
+      p_event_type: 'auth_success',
+      p_payload: { account_name: result.accountName, account_id: result.accountId }
+    });
 
     return redirectToApp(`/oauth/callback?success=true&platform=${platform}`);
   } catch (err) {
