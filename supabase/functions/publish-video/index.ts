@@ -289,11 +289,33 @@ Deno.serve(async (req) => {
   } catch (err: any) {
     console.error("Worker Error:", err.message);
     if (captureJobId) {
-       const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR") || err.message?.includes("invalid_grant");
-       await supabaseAdmin.from("publication_jobs").update({
-         status: isPermanent ? "failed" : "queued",
-         last_error: err.message
-       }).eq("id", captureJobId);
+       const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR") || err.message?.includes("invalid_grant") || err.message?.includes("token");
+       
+       const { data: job } = await supabaseAdmin.from("publication_jobs").select("attempt_count").eq("id", captureJobId).single();
+       const attempts = (job?.attempt_count || 0) + 1;
+       
+       await supabaseAdmin.from("publication_attempts").insert({
+         publication_job_id: captureJobId,
+         attempt_number: attempts,
+         error_message: err.message,
+         http_status: 500
+       });
+       
+       if (attempts >= 3 || isPermanent) {
+         await supabaseAdmin.from("publication_jobs").update({
+           status: "failed",
+           last_error: `Falha permanente após ${attempts} tentativas. Último erro: ${err.message}`
+         }).eq("id", captureJobId);
+       } else {
+         const nextRun = new Date(Date.now() + 60000 * 5);
+         await supabaseAdmin.from("publication_jobs").update({
+           status: "queued",
+           attempt_count: attempts,
+           run_at: nextRun.toISOString(),
+           last_error: err.message,
+           locked_at: null
+         }).eq("id", captureJobId);
+       }
     }
     if (captureTargetId) await updateTargetStatus(supabaseAdmin, captureTargetId, "erro", { error_message: err.message });
     return jsonResponse({ success: false, message: err.message }, 500);

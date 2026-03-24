@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Sparkles, Compass, BookOpen, Save,
-  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon
+  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ const navGroups: NavGroup[] = [
       { path: "/publisher", label: "Publicar", icon: Upload },
       { path: "/saved", label: "Conteúdo Salvo", icon: Save },
       { path: "/publisher/history", label: "Histórico de Publicações", icon: History },
+      { path: "/metrics", label: "Métricas", icon: BarChart3 },
       { path: "/calendar", label: "Calendário", icon: Calendar },
     ]
   },

@@ -18,6 +18,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PublisherHub from "./pages/PublisherHub";
 import PublisherHistory from "./pages/PublisherHistory";
 import PublisherAccounts from "./pages/PublisherAccounts";
+import MetricsPage from "./pages/MetricsPage";
 import OAuthCallback from "./pages/OAuthCallback";
 import InstagramCallback from "./pages/InstagramCallback";
 import Privacy from "./pages/Privacy";
@@ -57,6 +58,7 @@ const App = () => (
                 <Route path="/publisher" element={<ProtectedRoute><PublisherHub /></ProtectedRoute>} />
                 <Route path="/publisher/history" element={<ProtectedRoute><PublisherHistory /></ProtectedRoute>} />
                 <Route path="/publisher/accounts" element={<ProtectedRoute><PublisherAccounts /></ProtectedRoute>} />
+                <Route path="/metrics" element={<ProtectedRoute><MetricsPage /></ProtectedRoute>} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
                 <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
                 <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />

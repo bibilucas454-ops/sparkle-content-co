@@ -53,14 +53,14 @@ Deno.serve(async (req) => {
       console.error("Erro na rotina de manutenção de tokens:", e);
     }
 
-    // 1. Fetch pending jobs (ready OR stuck in processing for > 5mins)
+    // 1. Fetch pending jobs (ready, scheduled, queued OR stuck in processing for > 5mins)
     const now = new Date();
     const fiveMinsAgo = new Date(now.getTime() - 5 * 60000);
 
     const { data: rawJobs, error: fetchError } = await supabaseAdmin
       .from("publication_jobs")
       .select("id, status, run_at, locked_at, publication_target_id")
-      .or(`status.eq.ready,status.eq.queued,and(status.eq.processing,locked_at.lt.${fiveMinsAgo.toISOString()})`)
+      .or(`status.eq.ready,status.eq.scheduled,status.eq.queued,and(status.eq.processing,locked_at.lt.${fiveMinsAgo.toISOString()})`)
       .order("run_at", { ascending: true })
       .limit(50); // Fetch more to filter
 
