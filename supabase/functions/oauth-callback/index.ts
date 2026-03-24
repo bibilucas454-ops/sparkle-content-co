@@ -180,40 +180,6 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   };
 }
 
-async function exchangeTikTokCode(code: string, redirectUri: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
-  const clientKey = Deno.env.get("TIKTOK_CLIENT_KEY")!;
-  const clientSecret = Deno.env.get("TIKTOK_CLIENT_SECRET")!;
-
-  const tokenRes = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_key: clientKey,
-      client_secret: clientSecret,
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-    }),
-  });
-
-  const tokenData = await tokenRes.json();
-  if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
-
-  // Get user info
-  const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name,open_id", {
-    headers: { Authorization: `Bearer ${tokenData.access_token}` },
-  });
-  const userData = await userRes.json();
-
-  return {
-    access_token: tokenData.access_token,
-    refresh_token: tokenData.refresh_token,
-    expires_in: tokenData.expires_in,
-    accountName: userData.data?.user?.display_name || "Conta TikTok",
-    accountId: tokenData.open_id || userData.data?.user?.open_id,
-  };
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -263,10 +229,8 @@ Deno.serve(async (req) => {
       result = await exchangeYouTubeCode(code, callbackUrl);
     } else if (platform === "instagram") {
       result = await exchangeInstagramCode(code, callbackUrl, supabaseAdmin, userId);
-    } else if (platform === "tiktok") {
-      result = await exchangeTikTokCode(code, callbackUrl);
     } else {
-      return redirectToApp("/oauth/callback?error=Plataforma desconhecida");
+      return redirectToApp("/oauth/callback?error=Plataforma não suportada");
     }
 
     // Store tokens in social_tokens (standardized table)

@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
   AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon,
-  Music, Search, Flame, PlayCircle, PauseCircle, TrendingUp
+  Search, Flame, PlayCircle, PauseCircle, TrendingUp
 } from "lucide-react";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
@@ -20,7 +20,6 @@ import { Progress } from "@/components/ui/progress";
 
 const PLATFORMS = [
   { id: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500" },
-  { id: "tiktok", label: "TikTok", icon: Play, color: "text-cyan-400" },
   { id: "youtube", label: "YouTube Shorts", icon: Youtube, color: "text-red-500" },
 ];
 
@@ -52,7 +51,6 @@ const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle
 interface PlatformSettings {
   youtube: { title: string; description: string; privacy: string };
   instagram: { caption: string; useGlobalHashtags: boolean };
-  tiktok: { caption: string; useGlobalHashtags: boolean };
 }
 
 interface MediaFile {
@@ -65,7 +63,6 @@ interface MediaFile {
 export default function PublisherHub() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const audioFileInputRef = useRef<HTMLInputElement>(null);
 
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -81,7 +78,6 @@ export default function PublisherHub() {
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     youtube: { title: "", description: "", privacy: "public" },
     instagram: { caption: "", useGlobalHashtags: true },
-    tiktok: { caption: "", useGlobalHashtags: true },
   });
 
   const [approved, setApproved] = useState(false);
@@ -90,27 +86,9 @@ export default function PublisherHub() {
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
 
-  // Audio state
-  const [selectedAudio, setSelectedAudio] = useState<{ id: string, title: string, artist: string, url: string } | null>(null);
-  const [trendAudio, setTrendAudio] = useState<any[]>([]);
-  const [audioSearch, setAudioSearch] = useState("");
-  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
   useEffect(() => {
     fetchConnectedAccounts();
-    fetchMusicLibrary();
   }, []);
-
-  const fetchMusicLibrary = async () => {
-    const { data } = await (supabase
-      .from("music_library" as any) as any)
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (data) {
-      setTrendAudio(data);
-    }
-  };
 
   const fetchConnectedAccounts = async () => {
     const { data } = await supabase.from("social_tokens").select("platform");
@@ -146,47 +124,6 @@ export default function PublisherHub() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) processFiles(e.target.files);
-  };
-
-  const handleAudioSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("audio/")) {
-      toast.error("Por favor, selecione um arquivo de áudio (MP3).");
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Áudio muito grande (Max 10MB).");
-      return;
-    }
-
-    const toastId = toast.loading("Subindo áudio...");
-    try {
-      const filePath = `${user!.id}/audio-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      console.log(`[Storage] Tentando upload para bucket 'post-audio', path: ${filePath}`);
-      
-      const { error: uploadError } = await supabase.storage.from("post-audio").upload(filePath, file);
-      if (uploadError) {
-        console.error("[Storage Error] Detalhes:", uploadError);
-        throw uploadError;
-      }
-
-      console.log("[Storage] Upload sucesso, buscando URL pública...");
-      const { data: publicURL } = supabase.storage.from("post-audio").getPublicUrl(filePath);
-
-      setSelectedAudio({
-        id: `upload-${Date.now()}`,
-        title: file.name,
-        artist: "Meu Áudio",
-        url: publicURL.publicUrl
-      });
-      toast.success("Áudio carregado!", { id: toastId });
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro no upload do áudio: " + err.message, { id: toastId });
-    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -285,12 +222,6 @@ export default function PublisherHub() {
         scheduled_for: schedule ? new Date(scheduledFor).toISOString() : null,
         overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
         approval_status: approved ? "approved" : "draft",
-        music_metadata: selectedAudio ? {
-          id: selectedAudio.id,
-          title: selectedAudio.title,
-          artist: selectedAudio.artist,
-          url: selectedAudio.url
-        } : null,
       }).select().single();
       if (pubError) throw pubError;
 
@@ -413,27 +344,9 @@ export default function PublisherHub() {
     setCta("");
     setSelectedPlatforms([]);
     setSelectedFormat("reels");
-    setSelectedAudio(null);
     setScheduledFor("");
     setPlatformStatuses({});
     setUploadProgress(0);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setPlayingAudio(null);
-    }
-  };
-
-  const togglePlayback = (url: string) => {
-    if (playingAudio === url) {
-      audioRef.current?.pause();
-      setPlayingAudio(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.src = url;
-        audioRef.current.play();
-        setPlayingAudio(url);
-      }
-    }
   };
 
   return (
@@ -668,156 +581,9 @@ export default function PublisherHub() {
                       </AccordionContent>
                     </AccordionItem>
                   )}
-                  {selectedPlatforms.includes("tiktok") && (
-                    <AccordionItem value="tiktok">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
-                        <div className="flex items-center gap-2">
-                          <Play className="w-4 h-4 text-cyan-400" /> TikTok {selectedFormat === "reels" ? "Vídeo" : selectedFormat === "carousel" ? "Foto/Carrossel" : "Story"}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
-                        <Textarea
-                          placeholder="Legenda específica para TikTok"
-                          value={platformSettings.tiktok.caption}
-                          onChange={(e) => setPlatformSettings(prev => ({ ...prev, tiktok: { ...prev.tiktok, caption: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  )}
                 </Accordion>
               </div>
             )}
-
-            {/* Audio Module */}
-            <div className="premium-card p-6 md:p-8 space-y-6">
-              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
-                <Music className="w-5 h-5 text-primary" /> Música / Áudio do Post
-              </h3>
-
-              <div className="space-y-4">
-                <audio ref={audioRef} className="hidden" onEnded={() => setPlayingAudio(null)} />
-                
-                {selectedAudio ? (
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-primary/10 border border-primary/20 animate-in fade-in zoom-in duration-300">
-                    <div className="flex items-center gap-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 rounded-full bg-primary/20 text-primary hover:bg-primary/30"
-                        onClick={() => togglePlayback(selectedAudio.url)}
-                      >
-                        {playingAudio === selectedAudio.url ? <PauseCircle className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
-                      </Button>
-                      <div>
-                        <p className="text-sm font-bold text-foreground leading-none">{selectedAudio.title}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{selectedAudio.artist}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => {
-                        setSelectedAudio(null);
-                        if (audioRef.current) {
-                          audioRef.current.pause();
-                          setPlayingAudio(null);
-                        }
-                      }} 
-                      className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Buscar na biblioteca..."
-                          value={audioSearch}
-                          onChange={(e) => setAudioSearch(e.target.value)}
-                          className="pl-9 bg-secondary/50 border-border/50 focus:border-primary/50 transition-colors"
-                        />
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => audioFileInputRef.current?.click()}
-                        className="border-dashed border-2 hover:border-primary/50 hover:bg-primary/5"
-                      >
-                        <Upload className="w-3.5 h-3.5 mr-2" />
-                        Subir MP3
-                      </Button>
-                      <input 
-                        type="file" 
-                        ref={audioFileInputRef} 
-                        accept="audio/mpeg" 
-                        className="hidden" 
-                        onChange={handleAudioSelect} 
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-primary" /> Biblioteca Royalty-Free
-                      </h4>
-                      <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                        {trendAudio.length > 0 ? (
-                          trendAudio
-                            .filter(track => 
-                              track.title?.toLowerCase().includes(audioSearch.toLowerCase()) || 
-                              track.artist?.toLowerCase().includes(audioSearch.toLowerCase()) ||
-                              track.category?.toLowerCase().includes(audioSearch.toLowerCase())
-                            )
-                            .map((track) => (
-                              <div
-                                key={track.id}
-                                className="flex items-center justify-between p-2 rounded-lg bg-secondary/20 border border-transparent hover:border-border/50 hover:bg-secondary/40 transition-all group cursor-pointer"
-                                onClick={() => setSelectedAudio({
-                                  id: track.id,
-                                  title: track.title,
-                                  artist: track.artist || "Artista Desconhecido",
-                                  url: track.url
-                                })}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 rounded-full bg-black/20 group-hover:bg-primary/10 transition-colors"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      togglePlayback(track.url);
-                                    }}
-                                  >
-                                    {playingAudio === track.url ? <PauseCircle className="w-4 h-4 text-primary" /> : <PlayCircle className="w-4 h-4 text-primary" />}
-                                  </Button>
-                                  <div>
-                                    <p className="text-xs font-semibold text-foreground leading-tight">{track.title}</p>
-                                    <p className="text-[10px] text-muted-foreground mt-0.5">{track.artist} • {track.category}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {track.category && (
-                                    <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded italic">
-                                      {track.category.toUpperCase()}
-                                    </span>
-                                  )}
-                                  <CheckCircle2 className={`w-4 h-4 text-primary transition-opacity ${selectedAudio?.id === track.id ? "opacity-100" : "opacity-0"}`} />
-                                </div>
-                              </div>
-                            ))
-                        ) : (
-                          <p className="text-[10px] text-muted-foreground text-center py-4 italic">Carregando biblioteca...</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
 
             {/* Validation checklist */}
             <div className="rounded-lg border border-border bg-card p-4">

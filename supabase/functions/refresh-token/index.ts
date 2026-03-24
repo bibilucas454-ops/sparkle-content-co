@@ -129,44 +129,6 @@ Deno.serve(async (req) => {
         }).eq("id", account.id);
         throw new Error(tokenData.error_description || tokenData.error);
       }
-    } else if (platform === "tiktok") {
-      const clientKey = Deno.env.get("TIKTOK_CLIENT_KEY");
-      const clientSecret = Deno.env.get("TIKTOK_CLIENT_SECRET");
-      if (!clientKey || !clientSecret) {
-        return new Response(JSON.stringify({ error: "Credenciais TikTok não configuradas" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const res = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_key: clientKey,
-          client_secret: clientSecret,
-          refresh_token: await decryptToken(account.refresh_token_encrypted),
-          grant_type: "refresh_token",
-        }),
-      });
-      tokenData = await res.json();
-      if (tokenData.error) {
-        console.error(`[Refresh Token] TikTok retornou erro:`, tokenData);
-        if (tokenData.error === "invalid_grant" || tokenData.error === "invalid_request") {
-          console.error(`[Refresh Token] Erro PERMANENTE (TikTok): O acesso foi revogado ou o refresh token expirou.`);
-          await supabaseAdmin.from("social_tokens").update({ 
-            status: 'needs_reauth', 
-            last_error: tokenData.error_description || tokenData.error,
-            last_error_code: tokenData.error
-          }).eq("id", account.id);
-          throw new Error(`PERMANENT_AUTH_ERROR: ${tokenData.error_description || tokenData.error}`);
-        }
-        await supabaseAdmin.from("social_tokens").update({ 
-          status: 'error', 
-          last_error: tokenData.error_description || tokenData.error,
-          last_error_code: tokenData.error
-        }).eq("id", account.id);
-        throw new Error(tokenData.error_description || tokenData.error);
-      }
     } else if (platform === "instagram") {
       // Instagram long-lived tokens can be refreshed
       const res = await fetch(

@@ -17,7 +17,7 @@ export default function ContentCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [showAdd, setShowAdd] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
-  const [newPlatform, setNewPlatform] = useState("TikTok");
+  const [newPlatform, setNewPlatform] = useState("Instagram");
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();

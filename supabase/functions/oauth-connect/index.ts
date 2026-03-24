@@ -176,15 +176,10 @@ Deno.serve(async (req) => {
       });
       authorizationUrl = `${config.authUrl}?${params.toString()}`;
     } else {
-      // TikTok
-      const params = new URLSearchParams({
-        client_key: clientId,
-        redirect_uri: callbackUrl,
-        response_type: "code",
-        scope: config.scopes,
-        state,
-      });
-      authorizationUrl = `${config.authUrl}?${params.toString()}`;
+      return new Response(
+        JSON.stringify({ error: "Plataforma não suportada. Apenas YouTube e Instagram disponíveis." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(

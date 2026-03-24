@@ -18,13 +18,9 @@ interface Hook {
 const defaultHooks: Hook[] = [
   { id: "dh-1", hook_text: "Pare de rolar o feed. Isso pode mudar tudo.", category: "Atenção", platform: "Instagram Reels" },
   { id: "dh-2", hook_text: "Ninguém está falando disso no Instagram.", category: "Curiosidade", platform: "Instagram Reels" },
-  { id: "dh-3", hook_text: "Testei isso por 30 dias e o resultado foi absurdo.", category: "Resultados", platform: "TikTok" },
   { id: "dh-4", hook_text: "Se eu começasse do zero hoje, faria isso.", category: "Valor", platform: "YouTube Shorts" },
-  { id: "dh-5", hook_text: "O algoritmo não quer que você descubra isso.", category: "Conspiração", platform: "TikTok" },
   { id: "dh-6", hook_text: "3 coisas que eu queria saber antes de começar.", category: "Lista", platform: "Instagram Reels" },
   { id: "dh-7", hook_text: "Esse detalhe pode estar travando seu crescimento.", category: "Dor", platform: "Instagram Reels" },
-  { id: "dh-8", hook_text: "Você está fazendo isso errado a vida toda e não sabia.", category: "Correção", platform: "TikTok" },
-  { id: "dh-9", hook_text: "POV: Você descobriu o segredo para viralizar em 2026.", category: "POV", platform: "TikTok" },
   { id: "dh-10", hook_text: "O final desse vídeo vai bugar sua mente.", category: "Suspense", platform: "YouTube Shorts" },
   { id: "dh-11", hook_text: "Aja rápido antes que essa estratégia sature.", category: "FOMO", platform: "Instagram Reels" },
   { id: "dh-12", hook_text: "De 0 a 10K seguidores: A história real de como eu fiz.", category: "Story", platform: "YouTube Shorts" },

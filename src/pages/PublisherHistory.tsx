@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Youtube, Instagram, Play, CheckCircle2, AlertCircle, Loader2,
+  Youtube, Instagram, CheckCircle2, AlertCircle, Loader2,
   Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,7 +26,6 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; 
 const PLATFORM_ICONS: Record<string, { icon: typeof Youtube; color: string; label: string }> = {
   youtube: { icon: Youtube, color: "text-red-500", label: "YouTube Shorts" },
   instagram: { icon: Instagram, color: "text-pink-500", label: "Instagram Reels" },
-  tiktok: { icon: Play, color: "text-cyan-400", label: "TikTok" },
 };
 
 const FILTERS = [

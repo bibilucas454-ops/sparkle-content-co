@@ -184,80 +184,6 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
   }
 }
 
-async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
-  const format = meta.contentFormat || "reels";
-  const isCarousel = format === "carousel" || format === "story" || mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
-  await updateTargetStatus(supabase, targetId, "enviando");
-  const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
-
-  if (isCarousel) {
-    const photoUrls = mediaFiles.map(m => m.publicUrl);
-    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
-    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
-      method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
-        source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_urls: photoUrls },
-        media_type: "PHOTO"
-      }),
-    });
-    const initData = await initRes.json();
-    if (initData.error?.code) throw new Error(initData.error.message);
-    const publishId = initData.data?.publish_id;
-    await updateTargetStatus(supabase, targetId, "processando");
-
-    let published = false;
-    for (let i = 0; i < 20 && !published; i++) {
-      await new Promise(r => setTimeout(r, 5000));
-      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ publish_id: publishId }),
-      });
-      const statusData = await statusRes.json();
-      if (statusData.data?.status === "PUBLISH_COMPLETE") {
-        published = true;
-        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
-      } else if (statusData.data?.status === "FAILED") throw new Error(statusData.data?.fail_reason);
-    }
-  } else {
-    // Video logic...
-    const videoBytes = mediaFiles[0].bytes;
-    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
-    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/video/init/", {
-      method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
-        source_info: { source: "FILE_UPLOAD", video_size: videoBytes.length, chunk_size: videoBytes.length, total_chunk_count: 1 },
-      }),
-    });
-    const initData = await initRes.json();
-    if (initData.error?.code) throw new Error(initData.error.message);
-    const uploadUrl = initData.data?.upload_url;
-    const publishId = initData.data?.publish_id;
-    await updateTargetStatus(supabase, targetId, "processando");
-
-    const uploadRes = await fetch(uploadUrl, {
-      method: "PUT", headers: { "Content-Type": "video/mp4", "Content-Range": `bytes 0-${videoBytes.length - 1}/${videoBytes.length}` },
-      body: videoBytes,
-    });
-    if (!uploadRes.ok) throw new Error("TikTok upload failed");
-
-    let published = false;
-    for (let i = 0; i < 20 && !published; i++) {
-      await new Promise(r => setTimeout(r, 5000));
-      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ publish_id: publishId }),
-      });
-      const statusData = await statusRes.json();
-      if (statusData.data?.status === "PUBLISH_COMPLETE") {
-        published = true;
-        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
-      } else if (statusData.data?.status === "FAILED") throw new Error(statusData.data?.fail_reason);
-    }
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return jsonResponse({ success: true, message: "OK" });
 
@@ -303,21 +229,39 @@ Deno.serve(async (req) => {
     }
     if (mediaList.length === 0) throw new Error("Sem mídia vinculada");
 
-    // 4. Token & Auto-Refresh
+    // 4. Token & Auto-Refresh (with proper re-fetch after refresh)
     const { data: account } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", target.platform).eq("user_id", pUserId).single();
     if (!account) throw new Error("Conta não conectada");
 
     const now = new Date();
     const expiry = account.expires_at ? new Date(account.expires_at) : null;
-    if (!expiry || expiry.getTime() < now.getTime() + 5 * 60000) {
+    let accessToken: string;
+
+    // Trigger refresh if token expires within 1 hour (instead of just 5 minutes)
+    if (!expiry || expiry.getTime() < now.getTime() + 60 * 60 * 1000) {
+       console.log(`[publish-video] Token for ${target.platform} expiring soon (${account.expires_at || 'unknown'}). Invoking refresh...`);
        await supabaseAdmin.functions.invoke("refresh-token", { 
          body: { platform: target.platform, userId: pUserId },
          headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` }
        });
-       // Re-fetch...
+       
+       // CRITICAL FIX: Re-fetch the updated token from database after refresh
+       console.log(`[publish-video] Re-fetching refreshed token from database...`);
+       const { data: refreshedAccount } = await supabaseAdmin
+         .from("social_tokens")
+         .select("*")
+         .eq("platform", target.platform)
+         .eq("user_id", pUserId)
+         .single();
+       
+       if (!refreshedAccount) {
+         throw new Error(`Token refresh failed: Account not found after refresh for ${target.platform}`);
+       }
+       
+       accessToken = await decryptToken(refreshedAccount.access_token_encrypted!);
+    } else {
+       accessToken = await decryptToken(account.access_token_encrypted!);
     }
-
-    const accessToken = await decryptToken(account.access_token_encrypted!);
     
     // 5. Download Media
     const mediaFilesReady = await Promise.all(mediaList.map(async (upload: any) => {
@@ -331,7 +275,7 @@ Deno.serve(async (req) => {
     const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, ...pub.platform_settings };
     if (target.platform === "youtube") await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
     else if (target.platform === "instagram") await publishToInstagram(supabaseAdmin, accessToken, account.account_id, mediaFilesReady, pMeta, target.id);
-    else if (target.platform === "tiktok") await publishToTikTok(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
+    // TikTok removed
 
     // Success
     if (jobId) await supabaseAdmin.from("publication_jobs").update({ status: "published" }).eq("id", jobId);

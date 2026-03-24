@@ -89,10 +89,6 @@ export async function connectInstagramAccount(): Promise<void> {
   return initiateOAuth("instagram");
 }
 
-export async function connectTikTokAccount(): Promise<void> {
-  return initiateOAuth("tiktok");
-}
-
 // ---------- Token Refresh ----------
 
 export async function refreshPlatformToken(platform: string): Promise<void> {
@@ -111,10 +107,6 @@ export async function publishToYouTube(payload: PublishPayload): Promise<void> {
 }
 
 export async function publishToInstagram(payload: PublishPayload): Promise<void> {
-  return publishToPlatform(payload);
-}
-
-export async function publishToTikTok(payload: PublishPayload): Promise<void> {
   return publishToPlatform(payload);
 }
 

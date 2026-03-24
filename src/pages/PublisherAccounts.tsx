@@ -3,12 +3,11 @@ import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Youtube, Instagram, Play, Link2, Unlink, RefreshCw, Loader2, AlertTriangle, CheckCircle2, XCircle, Settings } from "lucide-react";
+import { Youtube, Instagram, Link2, Unlink, RefreshCw, Loader2, AlertTriangle, CheckCircle2, XCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   connectYouTubeAccount,
   connectInstagramAccount,
-  connectTikTokAccount,
   refreshPlatformToken,
   getAccountStatus,
   getAccountStatusLabel,
@@ -19,7 +18,6 @@ import {
 const PLATFORMS = [
   { id: "youtube", label: "YouTube", icon: Youtube, color: "text-red-500", connectFn: connectYouTubeAccount },
   { id: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500", connectFn: connectInstagramAccount },
-  { id: "tiktok", label: "TikTok", icon: Play, color: "text-cyan-400", connectFn: connectTikTokAccount },
 ];
 
 interface Account {
@@ -264,10 +262,6 @@ export default function PublisherAccounts() {
             <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
               <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">Instagram</span>
               <span className="text-foreground/80 leading-loose">INSTAGRAM_CLIENT_ID<br />INSTAGRAM_CLIENT_SECRET</span>
-            </div>
-            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
-              <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">TikTok</span>
-              <span className="text-foreground/80 leading-loose">TIKTOK_CLIENT_KEY<br />TIKTOK_CLIENT_SECRET</span>
             </div>
             <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
               <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">App General</span>

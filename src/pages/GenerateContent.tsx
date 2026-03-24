@@ -23,7 +23,7 @@ const contentTypes = [
   { id: "viral-score", label: "Score Viral", emoji: "📊" },
 ];
 
-const platforms = ["Instagram Reels", "TikTok", "YouTube Shorts"];
+const platforms = ["Instagram Reels", "YouTube Shorts"];
 
 interface GeneratedContent {
   type: string;

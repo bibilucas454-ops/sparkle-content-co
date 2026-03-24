@@ -38,7 +38,7 @@ export function FeatureBlocks() {
     },
     {
       title: "Tags SEO",
-      description: "SEO agressivo para YouTube Shorts e TikTok otimizar o algoritmo.",
+      description: "SEO agressivo para YouTube Shorts e Instagram para otimizar o algoritmo.",
       icon: <Search className="w-6 h-6 text-orange-500" />,
       link: "/generate?type=tags",
     },

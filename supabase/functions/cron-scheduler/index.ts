@@ -19,8 +19,8 @@ Deno.serve(async (req) => {
     // 0. Token Refresh Maintenance
     console.log("Iniciando manutenção de tokens OAuth...");
     try {
-      // Find tokens that are expired, expiring in the next 24 hours, OR have no expiry date set (null = unknown)
-      const expiryThreshold = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      // Find tokens that are expired, expiring in the next 1 hour, OR have no expiry date set (null = unknown)
+      const expiryThreshold = new Date(Date.now() + 60 * 60 * 1000).toISOString();
       const { data: staleTokens } = await supabaseAdmin
         .from("social_tokens")
         .select("user_id, platform")

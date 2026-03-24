@@ -19,7 +19,7 @@ export default function GrokPrompt() {
       return;
     }
 
-    const prompt = `Crie um roteiro curto e altamente viral para vídeo curto estilo TikTok / Reels / Shorts.
+    const prompt = `Crie um roteiro curto e altamente viral para vídeo curto estilo Reels / YouTube Shorts.
 
 Público Alvo / Nicho do Criador: ${niche}
 Tema: ${tema.trim()}

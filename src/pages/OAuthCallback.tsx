@@ -19,7 +19,6 @@ export default function OAuthCallback() {
       const names: Record<string, string> = {
         youtube: "YouTube",
         instagram: "Instagram",
-        tiktok: "TikTok",
       };
       setMessage(`Conta ${names[platform] || platform} conectada com sucesso!`);
       toast.success(`Conta ${names[platform] || platform} conectada com sucesso!`);
