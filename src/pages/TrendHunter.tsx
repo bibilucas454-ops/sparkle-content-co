@@ -6,7 +6,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, Compass, Hash, Film, Zap, Plus, TrendingUp, Flame, Rocket, Filter } from "lucide-react";
+import { Loader2, Compass, Hash, Film, Zap, Plus, TrendingUp, Flame, Rocket, Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useNiche } from "@/contexts/NicheContext";
 
@@ -50,6 +50,7 @@ export default function TrendHunter() {
   const [analyzing, setAnalyzing] = useState(false);
   const [isAddingNiche, setIsAddingNiche] = useState(false);
   const [newNiche, setNewNiche] = useState("");
+  const [nicheSearch, setNicheSearch] = useState("");
 
   const fetchTrends = async () => {
     const { data } = await supabase
@@ -103,6 +104,10 @@ export default function TrendHunter() {
   };
 
   const allNiches = [...DEFAULT_NICHES, ...customNiches];
+  
+  const filteredNiches = allNiches.filter(n => 
+    n.toLowerCase().includes(nicheSearch.toLowerCase())
+  );
 
   const filtered = trends.filter((t) => {
     if (nicheFilter === "Todos") return true;
@@ -196,21 +201,32 @@ export default function TrendHunter() {
             )}
           </AnimatePresence>
 
+          {/* Niche Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <Input 
+              placeholder="Buscar nicho..." 
+              value={nicheSearch}
+              onChange={(e) => setNicheSearch(e.target.value)}
+              className="pl-10 bg-secondary/40 border-border/40 h-10 text-sm rounded-xl focus-visible:ring-primary/40"
+            />
+          </div>
+
           {/* Niche Scroll Strip */}
-          <div className="flex overflow-x-auto pb-4 pt-1 gap-2.5 hide-scrollbar mask-edges">
-            {allNiches.map((niche) => {
-              const isActive = nicheFilter === niche;
+          <div className="flex overflow-x-auto pb-4 pt-1 gap-2.5 scrollbar-thin mask-edges">
+            {filteredNiches.map((n) => {
+              const isActive = nicheFilter === n;
               return (
                 <button
-                  key={niche}
-                  onClick={() => setNicheFilter(niche)}
+                  key={n}
+                  onClick={() => setNicheFilter(n)}
                   className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm transition-all border font-bold whitespace-nowrap ${
                     isActive
                       ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                       : "bg-secondary/40 border-border text-text-secondary hover:border-border/80 hover:bg-secondary/80 hover:text-text-primary"
                   }`}
                 >
-                  {niche}
+                  {n}
                 </button>
               );
             })}
@@ -328,16 +344,22 @@ export default function TrendHunter() {
       </div>
 
       <style dangerouslySetInnerHTML={{__html:`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
+        .scrollbar-thin::-webkit-scrollbar {
+          height: 6px;
         }
-        .hide-scrollbar {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: hsl(var(--muted) / 0.3);
+          border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--muted) / 0.5);
         }
         .mask-edges {
-          mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 10px), transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 10px), transparent);
+          mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
         }
       `}} />
     </AppLayout>

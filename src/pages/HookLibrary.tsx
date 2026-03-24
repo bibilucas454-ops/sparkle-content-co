@@ -93,7 +93,7 @@ export default function HookLibrary() {
             />
           </div>
           
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-thin">
             <Filter className="w-4 h-4 text-muted-foreground/60 mr-2 flex-shrink-0" />
             {categories.map((c) => (
               <button
@@ -167,6 +167,21 @@ export default function HookLibrary() {
           )}
         </motion.div>
       </div>
+      <style dangerouslySetInnerHTML={{__html:`
+        .scrollbar-thin::-webkit-scrollbar {
+          height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: hsl(var(--muted) / 0.3);
+          border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--muted) / 0.5);
+        }
+      `}} />
     </AppLayout>
   );
 }
