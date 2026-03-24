@@ -532,6 +532,10 @@ export type Database = {
           refresh_token_encrypted: string | null
           updated_at: string
           user_id: string
+          status: string | null
+          last_sync_at: string | null
+          last_error: string | null
+          last_error_code: string | null
         }
         Insert: {
           access_token_encrypted: string
@@ -545,6 +549,10 @@ export type Database = {
           refresh_token_encrypted?: string | null
           updated_at?: string
           user_id: string
+          status?: string | null
+          last_sync_at?: string | null
+          last_error?: string | null
+          last_error_code?: string | null
         }
         Update: {
           access_token_encrypted?: string
@@ -558,6 +566,10 @@ export type Database = {
           refresh_token_encrypted?: string | null
           updated_at?: string
           user_id?: string
+          status?: string | null
+          last_sync_at?: string | null
+          last_error?: string | null
+          last_error_code?: string | null
         }
         Relationships: []
       }

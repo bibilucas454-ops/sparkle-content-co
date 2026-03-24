@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Youtube, Instagram, CheckCircle2, AlertCircle, Loader2,
+  Youtube, Instagram, Play, CheckCircle2, AlertCircle, Loader2,
   Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,6 +66,11 @@ export default function PublisherHistory() {
   }, []);
 
   const fetchHistory = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const { data, error } = await supabase
       .from("publications")
@@ -73,8 +78,16 @@ export default function PublisherHistory() {
         id, title, created_at, overall_status, scheduled_for, thumbnail_path,
         publication_targets (id, platform, status, platform_post_url, error_message, published_at)
       `)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50);
+
+    if (error) {
+      console.error("Erro ao carregar histórico:", error);
+      toast.error("Erro ao carregar histórico.");
+      setLoading(false);
+      return;
+    }
 
     if (data) setItems(data as unknown as PublicationItem[]);
     setLoading(false);

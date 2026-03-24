@@ -106,8 +106,8 @@ export default function TrendHunter() {
 
   const filtered = trends.filter((t) => {
     if (nicheFilter === "Todos") return true;
-    const searchTarget = `${t.category} ${t.topic}`.toLowerCase();
-    return searchTarget.includes(nicheFilter.toLowerCase());
+    return t.category?.toLowerCase().includes(nicheFilter.toLowerCase()) || 
+           t.topic?.toLowerCase().includes(nicheFilter.toLowerCase());
   });
 
   const getRadarBadge = (score: number) => {
@@ -336,8 +336,8 @@ export default function TrendHunter() {
           scrollbar-width: none; /* Firefox */
         }
         .mask-edges {
-          mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 30px), transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black calc(100% - 30px), transparent);
+          mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 10px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 5px, black calc(100% - 10px), transparent);
         }
       `}} />
     </AppLayout>
