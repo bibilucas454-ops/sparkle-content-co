@@ -3,10 +3,11 @@ import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { CopyButton } from "@/components/CopyButton";
 import { ViralScore } from "@/components/ViralScore";
-import { Trash2 } from "lucide-react";
+import { Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ContentItem {
   id: string;
@@ -19,8 +20,11 @@ interface ContentItem {
 }
 
 export default function SavedContent() {
+  const { user } = useAuth();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [filter, setFilter] = useState("Todos");
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const fetchItems = async () => {
     const { data } = await supabase
@@ -38,15 +42,42 @@ export default function SavedContent() {
     toast.success("Conteúdo excluído");
   };
 
+  const handleClearAll = async () => {
+    if (!user) return;
+    setClearing(true);
+    try {
+      await supabase.from("contents").delete().eq("user_id", user.id);
+      setItems([]);
+      setShowClearModal(false);
+      toast.success("Todo conteúdo salvo foi removido");
+    } catch (error) {
+      toast.error("Erro ao limpar conteúdo");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   const types = ["Todos", ...new Set(items.map((i) => i.type))];
   const filtered = filter === "Todos" ? items : items.filter((i) => i.type === filter);
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <header className="pb-8 border-b border-border/40">
-          <h1 className="text-3xl md:text-4xl font-black font-display text-gradient-primary tracking-tighter">Conteúdo Salvo</h1>
-          <p className="text-muted-foreground mt-2 text-base md:text-lg font-medium">{items.length} peças no seu arsenal criativo</p>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-border/40">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-black font-display text-gradient-primary tracking-tighter">Conteúdo Salvo</h1>
+            <p className="text-muted-foreground mt-2 text-base md:text-lg font-medium">{items.length} peças no seu arsenal criativo</p>
+          </div>
+          {items.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setShowClearModal(true)}
+              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Limpar tudo
+            </Button>
+          )}
         </header>
 
         <div className="flex gap-2 flex-wrap">
@@ -104,6 +135,63 @@ export default function SavedContent() {
           <p className="text-center text-muted-foreground py-12">Nenhum conteúdo salvo ainda. Comece a gerar!</p>
         )}
       </div>
+
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            onClick={() => !clearing && setShowClearModal(false)}
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative bg-card border border-border rounded-2xl p-8 max-w-md w-full shadow-2xl"
+          >
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-foreground">Limpar tudo?</h2>
+                <p className="text-sm text-muted-foreground">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+            
+            <p className="text-muted-foreground mb-8">
+              Tem certeza que deseja apagar todo o conteúdo salvo? 
+              Essa ação não pode ser desfeita.
+            </p>
+            
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowClearModal(false)}
+                disabled={clearing}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleClearAll}
+                disabled={clearing}
+                className="flex-1 bg-destructive hover:bg-destructive/90"
+              >
+                {clearing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Limpando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Sim, limpar tudo
+                  </>
+                )}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </AppLayout>
   );
 }
