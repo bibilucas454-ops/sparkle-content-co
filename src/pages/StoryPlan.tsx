@@ -170,10 +170,11 @@ export default function StoryPlan() {
           <div className="lg:col-span-2 space-y-8">
             <div className="premium-card p-8 space-y-6">
               <div>
-                <label className="block text-sm font-bold text-text-primary mb-3">
+                <label htmlFor="topic-input" className="block text-sm font-bold text-text-primary mb-3">
                   Tema ou Objetivo
                 </label>
                 <Input 
+                  id="topic-input"
                   placeholder="Ex: Lançar curso de marketing digital,Promover consultoria,Conteúdo sobre fitness..." 
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
