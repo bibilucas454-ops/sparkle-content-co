@@ -92,25 +92,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    let body;
-    try {
-      body = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Dados inválidos. Tente novamente." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { topic, objective, sequenceLength, selectedTypes } = body;
-
-    if (!topic || !objective || !sequenceLength || !selectedTypes) {
-      return new Response(JSON.stringify({ error: "Parâmetros incompletos. Preencha todos os campos." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Acesso negado. Token ausente ou inválido." }), {
@@ -126,10 +107,26 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
     
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !userData?.user) {
+      console.error("Auth error:", userError);
       return new Response(JSON.stringify({ error: "Sessão expirada. Faça login novamente." }), {
         status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = userData.user.id;
+
+    let topic, objective, sequenceLength, selectedTypes;
+    try {
+      const body = await req.json();
+      topic = body.topic;
+      objective = body.objective;
+      sequenceLength = body.sequenceLength;
+      selectedTypes = body.selectedTypes;
+    } catch {
+      return new Response(JSON.stringify({ error: "Dados inválidos." }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -140,14 +137,7 @@ serve(async (req) => {
 
     const flow = objectiveFlows[objective] || objectiveFlows.engajar;
     const orderedTypes = flow.filter(t => selectedTypes.includes(t));
-    const finalTypes = orderedTypes.length > 0 ? orderedTypes : (selectedTypes.length > 0 ? selectedTypes.slice(0, sequenceLength) : ["conexao", "autoridade", "prova", "bastidor", "cta"]);
-    
-    if (finalTypes.length === 0) {
-      return new Response(JSON.stringify({ error: "Selecione pelo menos um tipo de story." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const finalTypes = orderedTypes.length > 0 ? orderedTypes : selectedTypes.slice(0, sequenceLength);
     
     const stories: Array<{ order: number; type: string; typeLabel: string; content: string; tip?: string }> = [];
     

@@ -94,25 +94,19 @@ export default function StoryPlan() {
       });
 
       if (error) {
-        const errorMsg = error.message || "Erro desconhecido";
-        try {
-          if (error.context && typeof error.context.json === 'function') {
-            const errData = await error.context.json();
-            if (errData && errData.error) {
-              throw new Error(errData.error);
-            }
-          }
-        } catch (e) {
-          console.error("Could not parse error context:", e);
+        let errorMsg = "Erro ao gerar stories";
+        if (typeof error === 'object' && error !== null) {
+          const errObj = error as any;
+          errorMsg = errObj.message || errObj.error || JSON.stringify(error);
         }
         throw new Error(errorMsg);
       }
 
-      if (!data || !data.stories) {
-        throw new Error("Resposta inválida do servidor. Tente novamente.");
+      if (!data?.stories) {
+        throw new Error("Resposta inválida do servidor");
       }
 
-      const generated: GeneratedStory[] = data.stories || [];
+      const generated: GeneratedStory[] = data.stories;
       setResults(generated);
 
       for (const story of generated) {
@@ -129,18 +123,7 @@ export default function StoryPlan() {
       }
     } catch (error) {
       console.error("Error generating story plan:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao gerar plano de stories";
-      
-      const isRetryable = errorMessage.includes("timeout") || 
-                          errorMessage.includes("network") || 
-                          errorMessage.includes("500") ||
-                          errorMessage.includes("429");
-      
-      if (isRetryable) {
-        toast.error(`${errorMessage}. Tente novamente.`);
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(error instanceof Error ? error.message : "Erro ao gerar plano de stories");
     } finally {
       setLoading(false);
     }
