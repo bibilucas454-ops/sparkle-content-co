@@ -92,6 +92,25 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Dados inválidos. Tente novamente." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { topic, objective, sequenceLength, selectedTypes } = body;
+
+    if (!topic || !objective || !sequenceLength || !selectedTypes) {
+      return new Response(JSON.stringify({ error: "Parâmetros incompletos. Preencha todos os campos." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Acesso negado. Token ausente ou inválido." }), {
@@ -114,8 +133,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const { topic, objective, sequenceLength, selectedTypes } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("Erro de infraestrutura: LOVABLE_API_KEY não configurada.");
@@ -123,7 +140,14 @@ serve(async (req) => {
 
     const flow = objectiveFlows[objective] || objectiveFlows.engajar;
     const orderedTypes = flow.filter(t => selectedTypes.includes(t));
-    const finalTypes = orderedTypes.length > 0 ? orderedTypes : selectedTypes.slice(0, sequenceLength);
+    const finalTypes = orderedTypes.length > 0 ? orderedTypes : (selectedTypes.length > 0 ? selectedTypes.slice(0, sequenceLength) : ["conexao", "autoridade", "prova", "bastidor", "cta"]);
+    
+    if (finalTypes.length === 0) {
+      return new Response(JSON.stringify({ error: "Selecione pelo menos um tipo de story." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     
     const stories: Array<{ order: number; type: string; typeLabel: string; content: string; tip?: string }> = [];
     

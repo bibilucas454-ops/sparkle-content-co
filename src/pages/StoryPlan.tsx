@@ -93,9 +93,26 @@ export default function StoryPlan() {
         },
       });
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        const errorMsg = error.message || "Erro desconhecido";
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            const errData = await error.context.json();
+            if (errData && errData.error) {
+              throw new Error(errData.error);
+            }
+          }
+        } catch (e) {
+          console.error("Could not parse error context:", e);
+        }
+        throw new Error(errorMsg);
+      }
 
-      const generated: GeneratedStory[] = data?.stories || [];
+      if (!data || !data.stories) {
+        throw new Error("Resposta inválida do servidor. Tente novamente.");
+      }
+
+      const generated: GeneratedStory[] = data.stories || [];
       setResults(generated);
 
       for (const story of generated) {
