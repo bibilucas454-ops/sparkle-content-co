@@ -358,34 +358,35 @@ export default function PublisherHub() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <header className="pb-8 border-b border-border/60">
-          <h1 className="text-3xl md:text-5xl font-black font-display text-text-primary tracking-tighter">
-            Distribuição em Massa
+      <div className="space-y-6">
+        <header className="pb-6 border-b border-border/60">
+          <h1 className="text-3xl md:text-4xl font-black font-display text-text-primary tracking-tighter">
+            Publicar
           </h1>
-          <p className="text-text-secondary mt-3 text-base md:text-lg font-medium max-w-2xl leading-relaxed">
-            Gere escala em minutos. Deixe o <span className="text-primary font-bold">Motor Assíncrono</span> publicar e crescer suas redes por você.
+          <p className="text-text-secondary mt-2 text-sm md:text-base font-medium">
+            Prepare e distribua seu conteúdo para todas as plataformas.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column: Upload + Preview */}
-          <div className="lg:col-span-1 space-y-4">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          {/* COLUNA ESQUERDA - Conteúdo Principal */}
+          <div className="xl:col-span-3 space-y-4">
+            {/* Upload de Mídia */}
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`premium-card p-12 min-h-[240px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center ${
+              className={`premium-card p-8 min-h-[180px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center ${
                 dragging ? "border-primary bg-primary/10" : "border-border/40 hover:border-primary/50 hover:bg-secondary/20"
               }`}
             >
-              <Upload className="w-10 h-10 text-muted-foreground mb-3" />
+              <Upload className="w-8 h-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground text-center font-medium">
                 Arraste mídias aqui ou clique (Até 10)
               </p>
-              <p className="text-xs text-muted-foreground/60 mt-1 mt-1">
-                Formatos aceitos: MP4, JPEG, PNG
+              <p className="text-xs text-muted-foreground/60 mt-1">
+                MP4, JPEG, PNG
               </p>
               <input
                 ref={fileInputRef}
@@ -401,38 +402,34 @@ export default function PublisherHub() {
               <Progress value={uploadProgress} className="h-1.5" />
             )}
 
-            {/* Media Miniatures (Horizontal / Wrap) */}
+            {/* Miniaturas */}
             {mediaFiles.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-4">
+              <div className="flex flex-wrap gap-2">
                 {mediaFiles.map((media, i) => (
-                  <div key={media.id} className="relative group w-[100px] h-[140px] rounded-lg border border-border overflow-hidden bg-black/50">
+                  <div key={media.id} className="relative group w-[80px] h-[100px] rounded-lg border border-border overflow-hidden bg-black/50">
                     {media.type.startsWith('video') ? (
                       <video src={media.previewUrl} className="w-full h-full object-cover opacity-80" />
                     ) : (
                       <img src={media.previewUrl} className="w-full h-full object-cover" alt="Preview" />
                     )}
-                    <span className="absolute top-1 left-1 bg-black/70 px-1.5 rounded text-[10px] uppercase font-bold text-white/90">
+                    <span className="absolute top-1 left-1 bg-black/70 px-1 rounded text-[9px] uppercase font-bold text-white/90">
                       {i + 1}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); removeMedia(media.id); }}
-                      className="absolute top-1 right-1 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 bg-destructive/90 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-2.5 h-2.5" />
                     </button>
-                    <div className="absolute bottom-1 right-1">
-                      {media.type.startsWith('video') ? <Play className="w-4 h-4 text-white drop-shadow-md" /> : <ImageIcon className="w-3.5 h-3.5 text-white drop-shadow-md" />}
-                    </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
 
-          <div className="lg:col-span-2 space-y-6">
-            <div className="premium-card p-6 md:p-8 space-y-6">
+            {/* Campos de Conteúdo */}
+            <div className="premium-card p-5 space-y-4">
               <div>
-                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Título Interno</label>
+                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Título Interno</label>
                 <Input
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
@@ -442,196 +439,70 @@ export default function PublisherHub() {
               </div>
 
               <div>
-                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Legenda Principal</label>
+                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Legenda Principal</label>
                 <Textarea
-                  placeholder="Escreva a legenda principal do post..."
+                  placeholder="Escreva a legenda principal..."
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="bg-secondary/50 border-border min-h-[100px] rounded-xl text-text-primary font-medium"
+                  className="bg-secondary/50 border-border min-h-[80px] rounded-lg text-text-primary font-medium text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">Hashtags</label>
-                  <Input placeholder="#empreendedorismo #viral" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border" />
+                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Hashtags</label>
+                  <Input placeholder="#hashtags" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border text-sm" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-2.5 block">CTA (opcional)</label>
-                  <Input placeholder="Salve este post para depois" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border" />
+                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">CTA</label>
+                  <Input placeholder="Call to action" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border text-sm" />
                 </div>
               </div>
             </div>
 
-            {/* Content Format Selection */}
-            <div className="premium-card p-6 md:p-8 space-y-6">
-              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
-                <PlayCircle className="w-5 h-5 text-primary" /> Formato do Conteúdo
-              </h3>
-              <div className="flex gap-3 flex-wrap">
-                {CONTENT_FORMATS.map((f) => {
-                  const isSelected = selectedFormat === f.id;
-                  return (
-                    <button
-                      key={f.id}
-                      onClick={() => handleFormatChange(f.id)}
-                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-sm group relative ${isSelected
-                        ? "border-primary bg-primary/5 text-text-primary ring-1 ring-primary/20"
-                        : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80 hover:bg-secondary/50"
-                        }`}
-                    >
-                      <f.icon className={`w-4.5 h-4.5 transition-transform group-hover:scale-110 ${isSelected ? "text-primary" : "text-text-muted"}`} />
-                      <span className="font-bold">{f.label}</span>
-                      {isSelected && (
-                        <div className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
-                          <CheckCircle2 className="w-3 h-3" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Platform Selection */}
-            <div className="premium-card p-6 md:p-8 space-y-6">
-              <h3 className="text-lg font-bold font-display flex items-center gap-2 text-foreground">
-                <ExternalLink className="w-5 h-5 text-primary" /> Distribuição Automática
-              </h3>
-              <div className="flex gap-3 flex-wrap">
-                {PLATFORMS.map((p) => {
-                  const isSelected = selectedPlatforms.includes(p.id);
-                  const isConnected = connectedAccounts.includes(p.id);
-                  const isYoutube = p.id === 'youtube';
-                  
-                  // Hide YouTube for Carrossel and Story formats
-                  if (isYoutube && selectedFormat !== "reels") return null;
-
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => togglePlatform(p.id)}
-                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all text-sm group relative ${isSelected
-                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/20"
-                          : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-secondary/50"
-                        }`}
-                    >
-                      <p.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isSelected ? p.color : "opacity-70"}`} />
-                      <span className="font-semibold">{p.label}</span>
-
-                      {isSelected && (
-                        <div className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5 shadow-sm">
-                          <CheckCircle2 className="w-3 h-3" />
-                        </div>
-                      )}
-
-                      {!isConnected && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-warning/90 text-[8px] text-black px-1 rounded uppercase font-bold tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          Não Conectado
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-[10px] text-muted-foreground/60 italic">
-                {selectedFormat === "reels" 
-                  ? "* Selecione uma ou mais plataformas. Carrosséis não são suportados no YouTube."
-                  : `* Selecione canais de distribuição para seu ${selectedFormat}. YouTube Shorts não suporta este formato.`
-                }
-              </p>
-            </div>
-
-            {/* Recommended Schedules - Métrica de horários ideais */}
-            <div className="premium-card p-6 md:p-6 bg-gradient-to-br from-primary/5 via-primary/5 to-secondary/30 border-primary/20">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold font-display text-foreground">
-                  Horários Recomendados
-                </h3>
-                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                  Métrica
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Baseado no seu desempenho, estas são as janelas com maior engajamento:
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {RECOMMENDED_SCHEDULES.map((slot, i) => (
-                  <div 
-                    key={i} 
-                    className="group relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-3 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
-                    onClick={() => {
-                      const [start] = slot.time.split(' - ');
-                      const now = new Date();
-                      const [hours, minutes] = start.split(':').map(Number);
-                      const scheduleDate = new Date(now);
-                      scheduleDate.setHours(hours, minutes, 0, 0);
-                      if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
-                      setScheduledFor(scheduleDate.toISOString().slice(0, 16));
-                      toast.success(`Agendado para ${slot.time}`);
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{slot.icon}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{slot.label}</span>
-                    </div>
-                    <div className="text-sm font-black text-foreground font-mono">
-                      {slot.time}
-                    </div>
-                    <div className="absolute inset-0 rounded-xl bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-primary">+ Agendar</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground/60 mt-3 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" /> Clique em um horário para aplicar no agendamento
-              </p>
-            </div>
-
+            {/* Configurações Específicas por Plataforma */}
             {selectedPlatforms.length > 0 && (
-              <div className="premium-card p-6 md:p-8 space-y-6">
-                <h3 className="text-lg font-bold font-display flex items-center gap-2">
-                  <Save className="w-5 h-5 text-primary" /> Configurações Específicas
+              <div className="premium-card p-5 space-y-4">
+                <h3 className="text-sm font-bold font-display flex items-center gap-2">
+                  <Save className="w-4 h-4 text-primary" /> Configurações por Plataforma
                 </h3>
                 <Accordion type="single" collapsible className="w-full">
                   {selectedPlatforms.includes("youtube") && (
                     <AccordionItem value="youtube">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
+                      <AccordionTrigger className="text-xs py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Youtube className="w-4 h-4 text-red-500" /> YouTube Shorts
+                          <Youtube className="w-3.5 h-3.5 text-red-500" /> YouTube Shorts
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
+                      <AccordionContent className="pt-2 space-y-2">
                         <Input
-                          placeholder="Título específico para YouTube"
+                          placeholder="Título para YouTube"
                           value={platformSettings.youtube.title}
                           onChange={(e) => setPlatformSettings(prev => ({ ...prev, youtube: { ...prev.youtube, title: e.target.value } }))}
-                          className="bg-secondary"
+                          className="bg-secondary text-sm"
                         />
                         <Textarea
-                          placeholder="Descrição específica para YouTube"
+                          placeholder="Descrição para YouTube"
                           value={platformSettings.youtube.description}
                           onChange={(e) => setPlatformSettings(prev => ({ ...prev, youtube: { ...prev.youtube, description: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
+                          className="bg-secondary text-sm min-h-[50px]"
                         />
                       </AccordionContent>
                     </AccordionItem>
                   )}
                   {selectedPlatforms.includes("instagram") && (
                     <AccordionItem value="instagram">
-                      <AccordionTrigger className="text-sm py-2 hover:no-underline">
+                      <AccordionTrigger className="text-xs py-2 hover:no-underline">
                         <div className="flex items-center gap-2">
-                          <Instagram className="w-4 h-4 text-pink-500" /> Instagram {selectedFormat === "reels" ? "Reels" : selectedFormat === "carousel" ? "Carrossel" : "Story"}
+                          <Instagram className="w-3.5 h-3.5 text-pink-500" /> Instagram
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-2 space-y-3">
+                      <AccordionContent className="pt-2 space-y-2">
                         <Textarea
                           placeholder="Legenda específica para Instagram"
                           value={platformSettings.instagram.caption}
                           onChange={(e) => setPlatformSettings(prev => ({ ...prev, instagram: { ...prev.instagram, caption: e.target.value } }))}
-                          className="bg-secondary min-h-[60px]"
+                          className="bg-secondary text-sm min-h-[50px]"
                         />
                       </AccordionContent>
                     </AccordionItem>
@@ -640,104 +511,187 @@ export default function PublisherHub() {
               </div>
             )}
 
-            {/* Validation checklist */}
-            <div className="rounded-lg border border-border bg-card p-4">
-              <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-muted-foreground" /> Validação do Post
-              </h3>
-              <div className="space-y-1.5">
-                {validationChecks.map((check, i) => (
-                  <div key={i} className={`flex items-center gap-2 text-xs ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
-                    {check.ok ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <AlertCircle className="w-3.5 h-3.5" />}
-                    <span>{check.label}</span>
-                  </div>
-                ))}
+            {/* Histórico - sempre no final da coluna esquerda */}
+            <div className="mt-8">
+              <h2 className="text-xl font-black font-display text-gradient-primary flex items-center gap-2 tracking-tighter mb-4">
+                <Clock className="w-5 h-5" /> Histórico
+              </h2>
+              <div className="premium-card p-6 text-center">
+                <div className="max-w-md mx-auto space-y-2">
+                   <Clock className="w-8 h-8 text-muted-foreground/20 mx-auto" />
+                   <p className="text-muted-foreground text-sm">Publicações recentes aparecerão aqui.</p>
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center justify-between premium-card p-6 bg-primary/5 border-primary/20">
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação de Conteúdo
-                </h4>
-                <p className="text-[10px] text-muted-foreground">Marque como aprovado para autorizar o motor de publicação.</p>
-              </div>
-              <Switch checked={approved} onCheckedChange={setApproved} />
-            </div>
-
-            <div className="rounded-lg border border-border bg-card p-4">
-              <label className="text-sm text-muted-foreground mb-1.5 block">Agendar para (Opcional - Motor Assíncrono)</label>
-              <Input
-                type="datetime-local"
-                value={scheduledFor}
-                onChange={(e) => setScheduledFor(e.target.value)}
-                className="bg-secondary border-border max-w-xs"
-              />
-            </div>
-
-            <div className="flex gap-3 flex-wrap">
-              <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" size="lg" className="flex-1 min-w-[140px]">
-                {publishing ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando Fila...</> : <><Send className="w-4 h-4" /> Enviar Agora</>}
-              </Button>
-              <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" size="lg" className="flex-1 min-w-[140px]">
-                <Clock className="w-4 h-4" /> Agendar
-              </Button>
-              <Button variant="ghost" size="lg" onClick={clearForm}>
-                <Trash2 className="w-4 h-4" /> Limpar
-              </Button>
-            </div>
-
-            <AnimatePresence>
-              {Object.keys(platformStatuses).length > 0 && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="rounded-lg border border-border bg-card p-4 space-y-2 mt-4">
-                  <h3 className="text-sm font-medium">Status da Fila de Processamento</h3>
-                  {Object.entries(platformStatuses).map(([platform, info]) => {
-                    const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.pendente;
-                    const canCancel = info.status === "queued" || info.status === "ready" || info.status === "pendente";
-                    
+          {/* COLUNA DIREITA - Painel de Controle (STICKY) */}
+          <div className="xl:col-span-2">
+            <div className="sticky top-6 space-y-4">
+              {/* Formato do Conteúdo */}
+              <div className="premium-card p-4 space-y-3">
+                <h3 className="text-sm font-bold font-display flex items-center gap-2">
+                  <PlayCircle className="w-4 h-4 text-primary" /> Formato
+                </h3>
+                <div className="flex gap-2 flex-wrap">
+                  {CONTENT_FORMATS.map((f) => {
+                    const isSelected = selectedFormat === f.id;
                     return (
-                      <div key={platform} className="space-y-2">
-                        <div className="flex items-center justify-between rounded-md bg-secondary/50 px-3 py-2.5">
-                          <span className="text-sm capitalize font-bold">{platform}</span>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <cfg.icon className={`w-4 h-4 ${cfg.className}`} />
-                              <span className={`text-xs font-medium ${cfg.className}`}>{cfg.label}</span>
-                            </div>
-                            {canCancel && info.jobId && (
-                               <Button 
-                                 variant="ghost" 
-                                 size="icon" 
-                                 className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                 onClick={() => cancelJob(info.jobId, platform)}
-                               >
-                                 <X className="w-3.5 h-3.5" />
-                               </Button>
-                            )}
-                          </div>
-                        </div>
-                        {info.error && (
-                          <p className="text-[10px] text-destructive px-3 font-medium animate-in fade-in slide-in-from-top-1">
-                            {info.error}
-                          </p>
-                        )}
-                      </div>
+                      <button
+                        key={f.id}
+                        onClick={() => handleFormatChange(f.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs group relative ${isSelected
+                          ? "border-primary bg-primary/10 text-text-primary"
+                          : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80"
+                          }`}
+                      >
+                        <f.icon className={`w-3.5 h-3.5 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                        <span className="font-semibold">{f.label}</span>
+                      </button>
                     );
                   })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+                </div>
+              </div>
 
-        <div className="mt-16 space-y-6">
-          <h2 className="text-2xl font-black font-display text-gradient-primary flex items-center gap-3 tracking-tighter">
-            <Clock className="w-6 h-6" /> Histórico de Publicações
-          </h2>
-          <div className="premium-card p-12 text-center">
-            <div className="max-w-md mx-auto space-y-3">
-               <Clock className="w-10 h-10 text-muted-foreground/20 mx-auto" />
-               <p className="text-muted-foreground font-medium">As publicações recentes aparecerão aqui após o processamento.</p>
+              {/* Distribuição Automática */}
+              <div className="premium-card p-4 space-y-3">
+                <h3 className="text-sm font-bold font-display flex items-center gap-2">
+                  <ExternalLink className="w-4 h-4 text-primary" /> Plataformas
+                </h3>
+                <div className="flex gap-2 flex-wrap">
+                  {PLATFORMS.map((p) => {
+                    const isSelected = selectedPlatforms.includes(p.id);
+                    const isConnected = connectedAccounts.includes(p.id);
+                    const isYoutube = p.id === 'youtube';
+                    
+                    if (isYoutube && selectedFormat !== "reels") return null;
+
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePlatform(p.id)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs ${isSelected
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
+                          }`}
+                      >
+                        <p.icon className={`w-3.5 h-3.5 ${isSelected ? p.color : "opacity-70"}`} />
+                        <span className="font-semibold">{p.label}</span>
+                        {!isConnected && <span className="text-[9px] text-warning">!</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-muted-foreground/60 italic">
+                  * Carrosséis não vão para YouTube
+                </p>
+              </div>
+
+              {/* Horários Recomendados */}
+              <div className="premium-card p-4 bg-gradient-to-br from-primary/5 to-secondary/20 border-primary/20 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Horários Recomendados</h3>
+                  <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">Métrica</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {RECOMMENDED_SCHEDULES.map((slot, i) => (
+                    <div 
+                      key={i} 
+                      className="bg-card/60 border border-border/50 rounded-lg p-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
+                      onClick={() => {
+                        const [start] = slot.time.split(' - ');
+                        const now = new Date();
+                        const [hours, minutes] = start.split(':').map(Number);
+                        const scheduleDate = new Date(now);
+                        scheduleDate.setHours(hours, minutes, 0, 0);
+                        if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
+                        setScheduledFor(scheduleDate.toISOString().slice(0, 16));
+                        toast.success(`${slot.icon} ${slot.time}`);
+                      }}
+                    >
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-sm">{slot.icon}</span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{slot.label}</span>
+                      </div>
+                      <div className="text-xs font-black text-foreground font-mono">{slot.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Validação */}
+              <div className="rounded-lg border border-border bg-card p-3">
+                <h3 className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" /> Validação
+                </h3>
+                <div className="space-y-1">
+                  {validationChecks.map((check, i) => (
+                    <div key={i} className={`flex items-center gap-1.5 text-[10px] ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
+                      {check.ok ? <CheckCircle2 className="w-3 h-3 text-green-500" /> : <AlertCircle className="w-3 h-3" />}
+                      <span>{check.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Aprovação */}
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Aprovação
+                  </h4>
+                  <p className="text-[9px] text-muted-foreground">Autorizar publicação</p>
+                </div>
+                <Switch checked={approved} onCheckedChange={setApproved} />
+              </div>
+
+              {/* Agendamento */}
+              <div className="rounded-lg border border-border bg-card p-3">
+                <label className="text-xs text-muted-foreground mb-1.5 block">Agendar (opcional)</label>
+                <Input
+                  type="datetime-local"
+                  value={scheduledFor}
+                  onChange={(e) => setScheduledFor(e.target.value)}
+                  className="bg-secondary border-border text-xs"
+                />
+              </div>
+
+              {/* Ações */}
+              <div className="flex gap-2">
+                <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" size="sm" className="flex-1">
+                  {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span className="ml-1">Publicar</span>
+                </Button>
+                <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" size="sm" className="flex-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="ml-1">Agendar</span>
+                </Button>
+                <Button variant="ghost" size="sm" onClick={clearForm}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
+              {/* Status */}
+              <AnimatePresence>
+                {Object.keys(platformStatuses).length > 0 && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                    <h3 className="text-xs font-medium">Status</h3>
+                    {Object.entries(platformStatuses).map(([platform, info]) => {
+                      const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.pendente;
+                      return (
+                        <div key={platform} className="flex items-center justify-between bg-secondary/50 rounded px-2 py-1.5">
+                          <span className="text-xs capitalize font-bold">{platform}</span>
+                          <div className="flex items-center gap-1.5">
+                            <cfg.icon className={`w-3 h-3 ${cfg.className}`} />
+                            <span className={`text-[10px] font-medium ${cfg.className}`}>{cfg.label}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
