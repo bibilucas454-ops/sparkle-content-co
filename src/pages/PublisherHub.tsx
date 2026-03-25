@@ -9,9 +9,16 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
-  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, Image as ImageIcon,
-  Search, Flame, PlayCircle, PauseCircle, TrendingUp
+  AlertCircle, Loader2, ExternalLink, Trash2, Save, X, ImageIcon,
+  Search, Flame, PlayCircle, PauseCircle, TrendingUp, Sparkles
 } from "lucide-react";
+
+const RECOMMENDED_SCHEDULES = [
+  { time: "10:00 - 10:30", label: "Manhã", icon: "☀️" },
+  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️" },
+  { time: "18:00 - 22:00", label: "Noite", icon: "🌙" },
+  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌" },
+];
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -532,6 +539,54 @@ export default function PublisherHub() {
                   ? "* Selecione uma ou mais plataformas. Carrosséis não são suportados no YouTube."
                   : `* Selecione canais de distribuição para seu ${selectedFormat}. YouTube Shorts não suporta este formato.`
                 }
+              </p>
+            </div>
+
+            {/* Recommended Schedules - Métrica de horários ideais */}
+            <div className="premium-card p-6 md:p-6 bg-gradient-to-br from-primary/5 via-primary/5 to-secondary/30 border-primary/20">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold font-display text-foreground">
+                  Horários Recomendados
+                </h3>
+                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  Métrica
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Baseado no seu desempenho, estas são as janelas com maior engajamento:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {RECOMMENDED_SCHEDULES.map((slot, i) => (
+                  <div 
+                    key={i} 
+                    className="group relative bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-3 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+                    onClick={() => {
+                      const [start] = slot.time.split(' - ');
+                      const now = new Date();
+                      const [hours, minutes] = start.split(':').map(Number);
+                      const scheduleDate = new Date(now);
+                      scheduleDate.setHours(hours, minutes, 0, 0);
+                      if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
+                      setScheduledFor(scheduleDate.toISOString().slice(0, 16));
+                      toast.success(`Agendado para ${slot.time}`);
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg">{slot.icon}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{slot.label}</span>
+                    </div>
+                    <div className="text-sm font-black text-foreground font-mono">
+                      {slot.time}
+                    </div>
+                    <div className="absolute inset-0 rounded-xl bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-primary">+ Agendar</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground/60 mt-3 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> Clique em um horário para aplicar no agendamento
               </p>
             </div>
 
