@@ -84,6 +84,8 @@ export default function StoryPlan() {
     setResults([]);
 
     try {
+      console.log("Invoking generate-story-plan with:", { topic: topic.trim(), objective, sequenceLength, selectedTypes });
+      
       const { data, error } = await supabase.functions.invoke("generate-story-plan", {
         body: {
           topic: `${topic.trim()} (Nicho: ${niche})`,
@@ -92,6 +94,8 @@ export default function StoryPlan() {
           selectedTypes,
         },
       });
+
+      console.log("Response:", { data, error });
 
       if (error) {
         let errorMsg = "Erro ao gerar stories";
@@ -121,9 +125,19 @@ export default function StoryPlan() {
       if (generated.length > 0) {
         toast.success(`${generated.length} stories gerados com sucesso!`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating story plan:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao gerar plano de stories");
+      let errorMsg = "Erro ao gerar plano de stories";
+      
+      if (error?.message) {
+        errorMsg = error.message;
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      } else if (error?.error?.message) {
+        errorMsg = error.error.message;
+      }
+      
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
