@@ -114,9 +114,14 @@ serve(async (req) => {
       ? `Título do vídeo definido pelo usuário: "${videoTitle}". Use este título como base principal do conteúdo.`
       : `O usuário NÃO definiu um título. Gere um título criativo e viral como parte da resposta.`;
 
+    const isInstagram = platform.toLowerCase().includes("instagram");
+    const formatInstruction = isInstagram 
+      ? "\n\n📏 FORMATO INSTAGRAM:\n- Reels: 1080x1920 (9:16) - vídeo vertical\n- Stories: 1080x1920 (9:16) - formato stories\n- Carrossel: 1080x1080 (1:1) - quadrado"
+      : "\n\n📏 FORMATO YOUTUBE SHORTS: 1080x1920 (9:16) - vídeo vertical";
+
     for (const type of types) {
       const systemPrompt = `Você é um estrategista de conteúdo viral especializado em ${platform}. Você entende algoritmos, tendências e o que faz um conteúdo viralizar. Seja específico, acionável e criativo. Nunca seja genérico. REGRA OBRIGATÓRIA: Todo o conteúdo gerado DEVE ser em Português do Brasil.`;
-      const userPrompt = `${titleInstruction}\n\nTema: "${topic}" para ${platform}.\n\n${typePrompts[type] || "Gere conteúdo criativo para este tema em Português do Brasil."}`;
+      const userPrompt = `${titleInstruction}\n\nTema: "${topic}" para ${platform}.${formatInstruction}\n\n${typePrompts[type] || "Gere conteúdo criativo para este tema em Português do Brasil."}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",

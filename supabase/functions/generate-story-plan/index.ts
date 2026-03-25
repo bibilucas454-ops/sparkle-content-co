@@ -154,6 +154,8 @@ Tema geral: "${topic}"
 Objetivo da sequência: ${objectiveLabel}
 Ordem na sequência: ${i + 1} de ${sequenceLength}
 
+Formato: 1080x1920 (Stories - Proporção 9:16)
+
 Story #${i + 1} - ${typeInfo.label}:
 Gere apenas o conteúdo deste story (1-3 frases curtas, impactantes).`;
 

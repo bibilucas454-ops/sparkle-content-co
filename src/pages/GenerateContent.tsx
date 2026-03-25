@@ -106,7 +106,19 @@ export default function GenerateContent() {
       toast.success("Conteúdo gerado com sucesso!");
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Falha ao gerar conteúdo");
+      const errorMessage = err.message || "Falha ao gerar conteúdo";
+      
+      const isRetryable = errorMessage.includes("timeout") || 
+                          errorMessage.includes("network") || 
+                          errorMessage.includes("500") ||
+                          errorMessage.includes("429") ||
+                          errorMessage.includes("Limite");
+      
+      if (isRetryable) {
+        toast.error(`${errorMessage}. Tente novamente em instantes.`);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

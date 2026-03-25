@@ -112,7 +112,18 @@ export default function StoryPlan() {
       }
     } catch (error) {
       console.error("Error generating story plan:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao gerar plano de stories");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao gerar plano de stories";
+      
+      const isRetryable = errorMessage.includes("timeout") || 
+                          errorMessage.includes("network") || 
+                          errorMessage.includes("500") ||
+                          errorMessage.includes("429");
+      
+      if (isRetryable) {
+        toast.error(`${errorMessage}. Tente novamente.`);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
