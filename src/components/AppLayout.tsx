@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Sparkles, Compass, BookOpen, Save,
-  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3
+  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3, Layers
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ const navGroups: NavGroup[] = [
     label: "CRIAR",
     items: [
       { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
+      { path: "/story-plan", label: "Plano de Stories", icon: Layers },
       { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
       { path: "/prompt-grok", label: "Prompt de Vídeo IA", icon: Bot },
     ]

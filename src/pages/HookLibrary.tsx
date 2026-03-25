@@ -1,8 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { CopyButton } from "@/components/CopyButton";
-import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Search, Filter, Hash, Smartphone, Target } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,18 @@ interface Hook {
   platform: string;
 }
 
+const categoryTranslations: Record<string, string> = {
+  "attention": "Atenção",
+  "curiosity": "Curiosidade",
+  "value": "Valor",
+  "list": "Lista",
+  "pain": "Dor",
+  "suspense": "Suspense",
+  "fomo": "FOMO",
+  "story": "Historia",
+  "stories": "Historia",
+};
+
 const defaultHooks: Hook[] = [
   { id: "dh-1", hook_text: "Pare de rolar o feed. Isso pode mudar tudo.", category: "Atenção", platform: "Instagram Reels" },
   { id: "dh-2", hook_text: "Ninguém está falando disso no Instagram.", category: "Curiosidade", platform: "Instagram Reels" },
@@ -23,8 +34,13 @@ const defaultHooks: Hook[] = [
   { id: "dh-7", hook_text: "Esse detalhe pode estar travando seu crescimento.", category: "Dor", platform: "Instagram Reels" },
   { id: "dh-10", hook_text: "O final desse vídeo vai bugar sua mente.", category: "Suspense", platform: "YouTube Shorts" },
   { id: "dh-11", hook_text: "Aja rápido antes que essa estratégia sature.", category: "FOMO", platform: "Instagram Reels" },
-  { id: "dh-12", hook_text: "De 0 a 10K seguidores: A história real de como eu fiz.", category: "Story", platform: "YouTube Shorts" },
+  { id: "dh-12", hook_text: "De 0 a 10K seguidores: A história real de como eu fiz.", category: "Historia", platform: "YouTube Shorts" },
 ];
+
+const translateCategory = (cat: string): string => {
+  const lower = cat.toLowerCase();
+  return categoryTranslations[lower] || cat;
+};
 
 export default function HookLibrary() {
   const { niche } = useNiche();
@@ -43,19 +59,36 @@ export default function HookLibrary() {
   }, []);
 
   const allHooks = useMemo(() => {
-    // Merge default hooks with DB hooks, preventing exact text duplicates
-    const dbTexts = new Set(dbHooks.map(h => h.hook_text));
+    const translatedDbHooks = dbHooks.map(h => ({
+      ...h,
+      category: translateCategory(h.category)
+    }));
+    const dbTexts = new Set(translatedDbHooks.map(h => h.hook_text));
     const uniqueDefaults = defaultHooks.filter(h => !dbTexts.has(h.hook_text));
-    return [...uniqueDefaults, ...dbHooks];
+    return [...uniqueDefaults, ...translatedDbHooks];
   }, [dbHooks]);
 
-  const categories = ["Todos", ...new Set(allHooks.map((h) => h.category))];
+  const categories = useMemo(() => {
+    const cats = new Set(allHooks.map((h) => translateCategory(h.category)));
+    return ["Todos", ...Array.from(cats).sort()];
+  }, [allHooks]);
 
-  const filtered = allHooks.filter((h) => {
-    const matchesCategory = filter === "Todos" || h.category === filter;
-    const matchesSearch = h.hook_text.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filtered = useMemo(() => {
+    if (filter === "Todos") {
+      return searchTerm 
+        ? allHooks.filter(h => h.hook_text.toLowerCase().includes(searchTerm.toLowerCase()))
+        : allHooks;
+    }
+    return allHooks.filter((h) => {
+      const matchesCategory = h.category === filter;
+      const matchesSearch = !searchTerm || h.hook_text.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [allHooks, filter, searchTerm]);
+
+  const handleFilterChange = useCallback((category: string) => {
+    setFilter(category);
+  }, []);
 
   return (
     <AppLayout>
@@ -93,34 +126,28 @@ export default function HookLibrary() {
             />
           </div>
           
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-thin">
-            <Filter className="w-4 h-4 text-muted-foreground/60 mr-2 flex-shrink-0" />
+          <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-3 md:pb-0 pr-2 mask-fade-x scrollbar-comfortable">
+            <Filter className="w-5 h-5 text-muted-foreground/60 mr-1 flex-shrink-0" />
             {categories.map((c) => (
               <button
                 key={c}
-                onClick={() => setFilter(c)}
-                className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[11px] font-black tracking-[0.15em] transition-all border ${
+                onClick={() => handleFilterChange(c)}
+                className={`flex-shrink-0 px-6 py-3 rounded-xl text-sm font-bold tracking-wide transition-all border min-w-fit ${
                   filter === c 
-                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20" 
-                    : "bg-secondary/40 text-text-secondary border-border hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25" 
+                    : "bg-secondary/50 text-text-secondary border-border/60 hover:border-primary/40 hover:bg-secondary hover:text-text-primary"
                 }`}
               >
-                {c.toUpperCase()}
+                {c === "Todos" ? "TODOS" : c.toUpperCase()}
               </button>
             ))}
           </div>
         </div>
 
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filtered.map((h, i) => (
-              <motion.div
-                layout
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filtered.map((h) => (
+              <div
                 key={h.id}
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                transition={{ duration: 0.3, delay: i * 0.03, ease: [0.16, 1, 0.3, 1] }}
                 className="group premium-card p-8 flex flex-col justify-between gap-6 relative overflow-hidden transition-all duration-300 hover:-translate-y-2"
               >
                 <div className="space-y-6 flex-1">
@@ -128,7 +155,7 @@ export default function HookLibrary() {
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10">
                       <Hash className="w-3.5 h-3.5 text-primary" />
                       <span className="text-[10px] font-black tracking-[0.15em] text-primary uppercase">
-                        {h.category}
+                        {translateCategory(h.category)}
                       </span>
                     </div>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/30 border border-border">
@@ -148,9 +175,8 @@ export default function HookLibrary() {
                     <CopyButton text={h.hook_text} />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
           
           {filtered.length === 0 && (
             <div className="col-span-full py-16 text-center text-muted-foreground">
@@ -165,21 +191,27 @@ export default function HookLibrary() {
               </Button>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
-      <style dangerouslySetInnerHTML={{__html:`
-        .scrollbar-thin::-webkit-scrollbar {
-          height: 6px;
+        <style dangerouslySetInnerHTML={{__html:`
+        .scrollbar-comfortable::-webkit-scrollbar {
+          height: 10px;
         }
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
+        .scrollbar-comfortable::-webkit-scrollbar-track {
+          background: hsl(var(--muted) / 0.15);
+          border-radius: 5px;
         }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: hsl(var(--muted) / 0.3);
-          border-radius: 3px;
+        .scrollbar-comfortable::-webkit-scrollbar-thumb {
+          background: hsl(var(--primary) / 0.4);
+          border-radius: 5px;
+          border: 2px solid hsl(var(--muted) / 0.15);
         }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: hsl(var(--muted) / 0.5);
+        .scrollbar-comfortable::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--primary) / 0.6);
+        }
+        .mask-fade-x {
+          mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
         }
       `}} />
     </AppLayout>
