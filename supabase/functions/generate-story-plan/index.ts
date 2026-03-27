@@ -201,17 +201,28 @@ async function generateStoryContent(
   order: number,
   total: number,
   lovableKey: string | undefined,
-  openaiKey: string | undefined
+  openaiKey: string | undefined,
+  previousContents: string[] = []
 ): Promise<string> {
-  const systemPrompt = `Voce e um especialista em criacao de conteudo para Instagram Stories. Voce entende de funis de conteudo, engajamento e conversao. Crie stories estrategicos e impactantes. TODO conteudo DEVE ser em Portugues do Brasil.`;
+  const isFirst = order === 1;
+  const isLast = order === total;
+  const progressPosition = isFirst ? "ABERTURA" : isLast ? "FECHAMENTO" : "DESENVOLVIMENTO";
+  
+  let diversityInstruction = "";
+  if (previousContents.length > 0) {
+    const prevSample = previousContents.slice(-2).join(" | ");
+    diversityInstruction = `\nIMPORTANTE: Este story DEVE ser DIFERENTE dos anteriores. Evite repetição de palavras, frases ou estrutura. Anterior: "${prevSample}"`;
+  }
+
+  const systemPrompt = `Voce e um especialista em criacao de conteudo para Instagram Stories. Voce entende de funis de conteudo, engajamento e conversao. Crie stories estrategicos e impactantes com DIVERSIDADE e PROGRESSAO. TODO conteudo DEVE ser em Portugues do Brasil. IMPORTANTE: Cada story deve ser UNICO e COMPLEMENTAR ao anterior.`;
 
   const userPrompt = `${typeInfo.prompt}
 
 Tema geral: "${topic}"
 Objetivo da sequencia: ${objectiveLabel}
-Posicao na sequencia: Story ${order} de ${total}
+Posicao na sequencia: Story ${order} de ${total} (${progressPosition})${diversityInstruction}
 
-Gere APENAS o conteudo do story — de 1 a 3 frases curtas, diretas e impactantes. Sem titulos, sem explicacoes extras.`;
+Gera APENAS o conteudo do story — de 1 a 3 frases curtas, diretas e impactantes. Sem titulos, sem explicacoes extras. Cada story deve ser unico e progredir na narrativa.`;
 
   // Attempt 1: Lovable Gateway
   if (lovableKey) {
@@ -366,8 +377,25 @@ serve(async (req) => {
       tip?: string;
     }> = [];
 
+    const previousContents: string[] = [];
+    const usedTypes: string[] = [];
+
     for (let i = 0; i < sequenceLength; i++) {
-      const typeId = finalTypes[i % finalTypes.length];
+      let typeId: string;
+      
+      if (i < finalTypes.length) {
+        typeId = finalTypes[i];
+      } else {
+        const availableTypes = finalTypes.filter(t => !usedTypes.includes(t));
+        if (availableTypes.length > 0) {
+          typeId = availableTypes[i % availableTypes.length];
+        } else {
+          usedTypes.length = 0;
+          typeId = finalTypes[i % finalTypes.length];
+        }
+      }
+      
+      usedTypes.push(typeId);
       const typeInfo = typeDescriptions[typeId];
 
       if (!typeInfo) {
@@ -385,8 +413,11 @@ serve(async (req) => {
         i + 1,
         sequenceLength,
         lovableKey,
-        openaiKey
+        openaiKey,
+        previousContents
       );
+
+      previousContents.push(content);
 
       stories.push({
         order: i + 1,
