@@ -118,11 +118,11 @@ export default function PublisherHub() {
     setLoadingTrending(true);
     try {
       const { data, error } = await supabase
-        .from("trending_sounds")
-        .select("*")
+        .from("music_catalog")
+        .select("id, title, artist, source_platform, trend_score, usage_count, is_trending, category")
         .eq("is_active", true)
-        .order("popularity_score", { ascending: false })
-        .limit(10);
+        .order("trend_score", { ascending: false })
+        .limit(15);
       
       if (!error && data) {
         setTrendingSounds(data);
@@ -142,12 +142,12 @@ export default function PublisherHub() {
     setLoadingTrending(true);
     try {
       const { data, error } = await supabase
-        .from("trending_sounds")
-        .select("*")
+        .from("music_catalog")
+        .select("id, title, artist, source_platform, trend_score, usage_count, is_trending, category")
         .eq("is_active", true)
         .or(`title.ilike.%${query}%,artist.ilike.%${query}%`)
-        .order("popularity_score", { ascending: false })
-        .limit(10);
+        .order("trend_score", { ascending: false })
+        .limit(15);
       
       if (!error && data) {
         setTrendingSounds(data);
@@ -809,43 +809,50 @@ export default function PublisherHub() {
                       />
                     </div>
                     
-                    <div className="max-h-[200px] overflow-y-auto space-y-1">
+                    <div className="max-h-[280px] overflow-y-auto space-y-1">
                       {loadingTrending ? (
-                        <div className="flex items-center justify-center py-4">
-                          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         </div>
                       ) : trendingSounds.length > 0 ? (
-                        trendingSounds.map((sound) => (
-                          <button
-                            key={sound.id}
-                            onClick={() => selectMusic(sound)}
-                            className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
-                          >
-                            <Volume2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-foreground truncate">{sound.title}</p>
-                              <p className="text-[10px] text-muted-foreground truncate">{sound.artist}</p>
+                        <>
+                          {!musicSearch && (
+                            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-md mb-2">
+                              <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
+                              <span className="text-[10px] font-bold text-amber-500 uppercase">Em Alta</span>
                             </div>
-                            {sound.popularity_score > 80 && (
-                              <span className="text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full">🔥</span>
-                            )}
-                          </button>
-                        ))
+                          )}
+                          {trendingSounds.map((sound) => (
+                            <button
+                              key={sound.id}
+                              onClick={() => selectMusic(sound)}
+                              className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-secondary/60 transition-colors text-left border border-transparent hover:border-border/50"
+                            >
+                              <div className="w-9 h-9 rounded-md bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                <Music className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate">{sound.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{sound.artist}</p>
+                              </div>
+                              <div className="flex flex-col items-end gap-0.5">
+                                {sound.trend_score >= 90 && (
+                                  <span className="text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full font-bold">🔥 HOT</span>
+                                )}
+                                <span className="text-[9px] text-muted-foreground/60 uppercase">{sound.source_platform}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </>
                       ) : (
-                        <p className="text-xs text-muted-foreground text-center py-4">
-                          Nenhuma música encontrada
-                        </p>
+                        <div className="text-center py-6">
+                          <Music className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                          <p className="text-xs text-muted-foreground">
+                            {musicSearch ? `Nenhum resultado para "${musicSearch}"` : "Carregando músicas..."}
+                          </p>
+                        </div>
                       )}
                     </div>
-
-                    {!musicSearch && trendingSounds.length === 0 && (
-                      <div className="text-center py-4">
-                        <TrendingUp className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-                        <p className="text-xs text-muted-foreground">
-                          Em breve: músicas em tendência
-                        </p>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <Button 
