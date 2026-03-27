@@ -104,6 +104,7 @@ export default function PublisherHub() {
   const [loadingTrending, setLoadingTrending] = useState(false);
 
   useEffect(() => {
+    clearForm();
     fetchConnectedAccounts();
     fetchTrendingSounds();
   }, []);
@@ -467,6 +468,11 @@ export default function PublisherHub() {
     setSelectedMusic(null);
     setShowMusicPanel(false);
     setMusicSearch("");
+    setApproved(false);
+    setPlatformSettings({
+      youtube: { title: "", description: "", privacy: "public" },
+      instagram: { caption: "", useGlobalHashtags: true },
+    });
   };
 
   return (
