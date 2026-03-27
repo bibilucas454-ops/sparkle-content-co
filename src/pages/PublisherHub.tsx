@@ -14,11 +14,13 @@ import {
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
-  { time: "10:00 - 10:30", label: "Manhã", icon: "☀️" },
-  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️" },
-  { time: "18:00 - 22:00", label: "Noite", icon: "🌙" },
-  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌" },
+  { time: "10:00", label: "Manhã", icon: "☀️", isMorning: true },
+  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️", isMorning: false },
+  { time: "18:00 - 22:00", label: "Noite", icon: "🌙", isMorning: false },
+  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌", isMorning: false },
 ];
+
+let morningScheduleIndex = 0;
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -220,13 +222,22 @@ export default function PublisherHub() {
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      // 2. Create publication
+      // 2. Create publication - preserve local time correctly
+      let scheduledDateTime: string | null = null;
+      if (schedule && scheduledFor) {
+        const [datePart, timePart] = scheduledFor.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hours, minutes] = timePart.split(':').map(Number);
+        const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+        scheduledDateTime = localDate.toISOString();
+      }
+      
       const { data: publication, error: pubError } = await supabase.from("publications").insert({
         user_id: user!.id,
         upload_id: uploadRecords[0].id, // fallback for legacy safety
         title, caption, hashtags, cta,
         content_format: selectedFormat,
-        scheduled_for: schedule ? new Date(scheduledFor).toISOString() : null,
+        scheduled_for: scheduledDateTime,
         overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
         approval_status: approved ? "approved" : "draft",
       }).select().single();
@@ -258,7 +269,15 @@ export default function PublisherHub() {
         if (targetError || !target) throw targetError;
 
         // Define Job for the Background Worker (Only if approved or scheduled)
-        const jobDate = schedule && scheduledFor ? new Date(scheduledFor) : new Date();
+        let jobDate: Date;
+        if (schedule && scheduledFor) {
+          const [datePart, timePart] = scheduledFor.split('T');
+          const [year, month, day] = datePart.split('-').map(Number);
+          const [hours, minutes] = timePart.split(':').map(Number);
+          jobDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+        } else {
+          jobDate = new Date();
+        }
         const initialStatus = schedule ? "scheduled" : (approved ? "ready" : "draft");
         
         const { data: job, error: jobError } = await supabase.from("publication_jobs").insert({
@@ -368,24 +387,24 @@ export default function PublisherHub() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* COLUNA ESQUERDA - Conteúdo Principal */}
-          <div className="xl:col-span-3 space-y-4">
+          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
             {/* Upload de Mídia */}
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`premium-card p-8 min-h-[180px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center ${
+              className={`premium-card p-10 min-h-[220px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center ${
                 dragging ? "border-primary bg-primary/10" : "border-border/40 hover:border-primary/50 hover:bg-secondary/20"
               }`}
             >
-              <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground text-center font-medium">
+              <Upload className="w-10 h-10 text-muted-foreground mb-3" />
+              <p className="text-base text-muted-foreground text-center font-medium">
                 Arraste mídias aqui ou clique (Até 10)
               </p>
-              <p className="text-xs text-muted-foreground/60 mt-1">
+              <p className="text-sm text-muted-foreground/60 mt-2">
                 MP4, JPEG, PNG
               </p>
               <input
@@ -399,25 +418,25 @@ export default function PublisherHub() {
             </div>
 
             {uploadProgress > 0 && uploadProgress < 100 && (
-              <Progress value={uploadProgress} className="h-1.5" />
+              <Progress value={uploadProgress} className="h-2" />
             )}
 
             {/* Miniaturas */}
             {mediaFiles.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {mediaFiles.map((media, i) => (
-                  <div key={media.id} className="relative group w-[80px] h-[100px] rounded-lg border border-border overflow-hidden bg-black/50">
+                  <div key={media.id} className="relative group w-[100px] h-[130px] rounded-lg border border-border overflow-hidden bg-black/50">
                     {media.type.startsWith('video') ? (
                       <video src={media.previewUrl} className="w-full h-full object-cover opacity-80" />
                     ) : (
                       <img src={media.previewUrl} className="w-full h-full object-cover" alt="Preview" />
                     )}
-                    <span className="absolute top-1 left-1 bg-black/70 px-1 rounded text-[9px] uppercase font-bold text-white/90">
+                    <span className="absolute top-1.5 left-1.5 bg-black/70 px-1.5 rounded text-[10px] uppercase font-bold text-white/90">
                       {i + 1}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); removeMedia(media.id); }}
-                      className="absolute top-1 right-1 bg-destructive/90 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1.5 right-1.5 bg-destructive/90 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-2.5 h-2.5" />
                     </button>
@@ -427,42 +446,42 @@ export default function PublisherHub() {
             )}
 
             {/* Campos de Conteúdo */}
-            <div className="premium-card p-5 space-y-4">
+            <div className="premium-card p-6 space-y-5">
               <div>
-                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Título Interno</label>
+                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Título Interno</label>
                 <Input
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="bg-secondary/50 border-border"
+                  className="bg-secondary/50 border-border h-11 text-sm"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Legenda Principal</label>
+                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Legenda Principal</label>
                 <Textarea
                   placeholder="Escreva a legenda principal..."
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="bg-secondary/50 border-border min-h-[80px] rounded-lg text-text-primary font-medium text-sm"
+                  className="bg-secondary/50 border-border min-h-[120px] rounded-lg text-text-primary font-medium text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">Hashtags</label>
-                  <Input placeholder="#hashtags" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border text-sm" />
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Hashtags</label>
+                  <Input placeholder="#hashtags" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border h-10 text-sm" />
                 </div>
                 <div>
-                  <label className="text-[11px] font-black text-text-muted uppercase tracking-[0.15em] mb-2 block">CTA</label>
-                  <Input placeholder="Call to action" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border text-sm" />
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">CTA</label>
+                  <Input placeholder="Call to action" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border h-10 text-sm" />
                 </div>
               </div>
             </div>
 
             {/* Configurações Específicas por Plataforma */}
             {selectedPlatforms.length > 0 && (
-              <div className="premium-card p-5 space-y-4">
+              <div className="premium-card p-6 space-y-4">
                 <h3 className="text-sm font-bold font-display flex items-center gap-2">
                   <Save className="w-4 h-4 text-primary" /> Configurações por Plataforma
                 </h3>
@@ -526,10 +545,10 @@ export default function PublisherHub() {
           </div>
 
           {/* COLUNA DIREITA - Painel de Controle (STICKY) */}
-          <div className="xl:col-span-2">
-            <div className="sticky top-6 space-y-4">
+          <div className="lg:col-span-5 xl:col-span-4">
+            <div className="sticky top-6 space-y-5">
               {/* Formato do Conteúdo */}
-              <div className="premium-card p-4 space-y-3">
+              <div className="premium-card p-5 space-y-3">
                 <h3 className="text-sm font-bold font-display flex items-center gap-2">
                   <PlayCircle className="w-4 h-4 text-primary" /> Formato
                 </h3>
@@ -540,12 +559,12 @@ export default function PublisherHub() {
                       <button
                         key={f.id}
                         onClick={() => handleFormatChange(f.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs group relative ${isSelected
+                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border transition-all text-xs group relative ${isSelected
                           ? "border-primary bg-primary/10 text-text-primary"
                           : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80"
                           }`}
                       >
-                        <f.icon className={`w-3.5 h-3.5 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                        <f.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-text-muted"}`} />
                         <span className="font-semibold">{f.label}</span>
                       </button>
                     );
@@ -554,7 +573,7 @@ export default function PublisherHub() {
               </div>
 
               {/* Distribuição Automática */}
-              <div className="premium-card p-4 space-y-3">
+              <div className="premium-card p-5 space-y-3">
                 <h3 className="text-sm font-bold font-display flex items-center gap-2">
                   <ExternalLink className="w-4 h-4 text-primary" /> Plataformas
                 </h3>
@@ -570,12 +589,12 @@ export default function PublisherHub() {
                       <button
                         key={p.id}
                         onClick={() => togglePlatform(p.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all text-xs ${isSelected
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all text-xs ${isSelected
                             ? "border-primary bg-primary/10 text-foreground"
                             : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
                           }`}
                       >
-                        <p.icon className={`w-3.5 h-3.5 ${isSelected ? p.color : "opacity-70"}`} />
+                        <p.icon className={`w-4 h-4 ${isSelected ? p.color : "opacity-70"}`} />
                         <span className="font-semibold">{p.label}</span>
                         {!isConnected && <span className="text-[9px] text-warning">!</span>}
                       </button>
@@ -600,14 +619,30 @@ export default function PublisherHub() {
                       key={i} 
                       className="bg-card/60 border border-border/50 rounded-lg p-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
                       onClick={() => {
-                        const [start] = slot.time.split(' - ');
                         const now = new Date();
-                        const [hours, minutes] = start.split(':').map(Number);
+                        let hours: number, minutes: number;
+                        
+                        if (slot.isMorning) {
+                          hours = morningScheduleIndex % 2 === 0 ? 10 : 10;
+                          minutes = morningScheduleIndex % 2 === 0 ? 0 : 30;
+                          morningScheduleIndex++;
+                        } else {
+                          const [start] = slot.time.split(' - ');
+                          [hours, minutes] = start.split(':').map(Number);
+                        }
+                        
                         const scheduleDate = new Date(now);
                         scheduleDate.setHours(hours, minutes, 0, 0);
                         if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
-                        setScheduledFor(scheduleDate.toISOString().slice(0, 16));
-                        toast.success(`${slot.icon} ${slot.time}`);
+                        
+                        const year = scheduleDate.getFullYear();
+                        const month = String(scheduleDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(scheduleDate.getDate()).padStart(2, '0');
+                        const hoursStr = String(scheduleDate.getHours()).padStart(2, '0');
+                        const minsStr = String(scheduleDate.getMinutes()).padStart(2, '0');
+                        const localDateTime = `${year}-${month}-${day}T${hoursStr}:${minsStr}`;
+                        setScheduledFor(localDateTime);
+                        toast.success(`${slot.icon} ${slot.isMorning ? `${hours}:${minsStr} - ${hours}:${minutes === 30 ? '30' : '00'}` : slot.time}`);
                       }}
                     >
                       <div className="flex items-center gap-1 mb-0.5">
@@ -621,14 +656,14 @@ export default function PublisherHub() {
               </div>
 
               {/* Validação */}
-              <div className="rounded-lg border border-border bg-card p-3">
-                <h3 className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" /> Validação
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" /> Validação
                 </h3>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {validationChecks.map((check, i) => (
-                    <div key={i} className={`flex items-center gap-1.5 text-[10px] ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
-                      {check.ok ? <CheckCircle2 className="w-3 h-3 text-green-500" /> : <AlertCircle className="w-3 h-3" />}
+                    <div key={i} className={`flex items-center gap-2 text-xs ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
+                      {check.ok ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <AlertCircle className="w-3.5 h-3.5" />}
                       <span>{check.label}</span>
                     </div>
                   ))}
@@ -636,24 +671,24 @@ export default function PublisherHub() {
               </div>
 
               {/* Aprovação */}
-              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-                <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> Aprovação
+              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação
                   </h4>
-                  <p className="text-[9px] text-muted-foreground">Autorizar publicação</p>
+                  <p className="text-xs text-muted-foreground">Autorizar publicação</p>
                 </div>
                 <Switch checked={approved} onCheckedChange={setApproved} />
               </div>
 
               {/* Agendamento */}
-              <div className="rounded-lg border border-border bg-card p-3">
-                <label className="text-xs text-muted-foreground mb-1.5 block">Agendar (opcional)</label>
+              <div className="rounded-lg border border-border bg-card p-4">
+                <label className="text-sm font-bold text-foreground mb-2.5 block">Agendar (opcional)</label>
                 <Input
                   type="datetime-local"
                   value={scheduledFor}
                   onChange={(e) => setScheduledFor(e.target.value)}
-                  className="bg-secondary border-border text-xs"
+                  className="bg-secondary border-border text-sm h-10"
                 />
               </div>
 
