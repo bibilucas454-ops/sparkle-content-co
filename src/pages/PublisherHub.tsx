@@ -10,7 +10,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
   AlertCircle, Loader2, ExternalLink, Trash2, Save, X, ImageIcon,
-  Search, Flame, PlayCircle, PauseCircle, TrendingUp, Sparkles
+  Search, Flame, PlayCircle, PauseCircle, TrendingUp, Sparkles, Music,
+  Volume2, RotateCcw
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
@@ -95,14 +96,82 @@ export default function PublisherHub() {
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
 
+  // Music state
+  const [selectedMusic, setSelectedMusic] = useState<{title: string; artist: string; preview_url?: string; source_platform?: string} | null>(null);
+  const [musicSearch, setMusicSearch] = useState("");
+  const [trendingSounds, setTrendingSounds] = useState<any[]>([]);
+  const [showMusicPanel, setShowMusicPanel] = useState(false);
+  const [loadingTrending, setLoadingTrending] = useState(false);
+
   useEffect(() => {
     fetchConnectedAccounts();
+    fetchTrendingSounds();
   }, []);
 
   const fetchConnectedAccounts = async () => {
     const { data } = await supabase.from("social_tokens").select("platform");
     const active = data?.map((d: any) => d.platform) || [];
     setConnectedAccounts(active);
+  };
+
+  const fetchTrendingSounds = async () => {
+    setLoadingTrending(true);
+    try {
+      const { data, error } = await supabase
+        .from("trending_sounds")
+        .select("*")
+        .eq("is_active", true)
+        .order("popularity_score", { ascending: false })
+        .limit(10);
+      
+      if (!error && data) {
+        setTrendingSounds(data);
+      }
+    } catch (err) {
+      console.error("Error fetching trending sounds:", err);
+    } finally {
+      setLoadingTrending(false);
+    }
+  };
+
+  const searchMusic = async (query: string) => {
+    if (!query.trim()) {
+      fetchTrendingSounds();
+      return;
+    }
+    setLoadingTrending(true);
+    try {
+      const { data, error } = await supabase
+        .from("trending_sounds")
+        .select("*")
+        .eq("is_active", true)
+        .or(`title.ilike.%${query}%,artist.ilike.%${query}%`)
+        .order("popularity_score", { ascending: false })
+        .limit(10);
+      
+      if (!error && data) {
+        setTrendingSounds(data);
+      }
+    } catch (err) {
+      console.error("Error searching music:", err);
+    } finally {
+      setLoadingTrending(false);
+    }
+  };
+
+  const selectMusic = (sound: any) => {
+    setSelectedMusic({
+      title: sound.title,
+      artist: sound.artist,
+      preview_url: sound.preview_url,
+      source_platform: sound.source_platform
+    });
+    setShowMusicPanel(false);
+    toast.success(`🎵 Música selecionada: ${sound.title}`);
+  };
+
+  const removeMusic = () => {
+    setSelectedMusic(null);
   };
 
   const processFiles = (files: FileList | File[]) => {
@@ -234,12 +303,19 @@ export default function PublisherHub() {
       
       const { data: publication, error: pubError } = await supabase.from("publications").insert({
         user_id: user!.id,
-        upload_id: uploadRecords[0].id, // fallback for legacy safety
+        upload_id: uploadRecords[0].id,
         title, caption, hashtags, cta,
         content_format: selectedFormat,
         scheduled_for: scheduledDateTime,
         overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
         approval_status: approved ? "approved" : "draft",
+        music_metadata: selectedMusic ? {
+          title: selectedMusic.title,
+          artist: selectedMusic.artist,
+          preview_url: selectedMusic.preview_url,
+          source_platform: selectedMusic.source_platform,
+          format_compatibility: selectedFormat === "story" ? "full" : "recommendation"
+        } : null,
       }).select().single();
       if (pubError) throw pubError;
 
@@ -252,6 +328,21 @@ export default function PublisherHub() {
       }));
       const { error: pmError } = await supabase.from("post_media").insert(postMediaInserts);
       if (pmError) throw pmError;
+
+      // 3b. Save music selection
+      if (selectedMusic) {
+        const { error: musicError } = await supabase.from("content_music").insert({
+          publication_id: publication.id,
+          user_id: user!.id,
+          title: selectedMusic.title,
+          artist: selectedMusic.artist,
+          source_platform: selectedMusic.source_platform,
+          preview_url: selectedMusic.preview_url,
+        });
+        if (musicError) {
+          console.warn("Music save warning:", musicError);
+        }
+      }
 
       // 4. Create targets and queued jobs
       for (const platform of selectedPlatforms) {
@@ -373,6 +464,9 @@ export default function PublisherHub() {
     setScheduledFor("");
     setPlatformStatuses({});
     setUploadProgress(0);
+    setSelectedMusic(null);
+    setShowMusicPanel(false);
+    setMusicSearch("");
   };
 
   return (
@@ -653,6 +747,117 @@ export default function PublisherHub() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Música */}
+              <div className="premium-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold font-display flex items-center gap-2">
+                    <Music className="w-4 h-4 text-primary" /> Música
+                  </h3>
+                  {!selectedMusic && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowMusicPanel(!showMusicPanel)}
+                      className="text-xs h-7"
+                    >
+                      {showMusicPanel ? "Fechar" : "Selecionar"}
+                    </Button>
+                  )}
+                </div>
+
+                {selectedMusic ? (
+                  <div className="bg-secondary/50 rounded-lg p-3 border border-border/50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Music className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground line-clamp-1">{selectedMusic.title}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{selectedMusic.artist}</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={removeMusic} className="h-7 w-7 p-0">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {selectedFormat === "carousel" && (
+                      <p className="text-[10px] text-amber-500 mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> Carrossel: música será recomendada
+                      </p>
+                    )}
+                    {selectedFormat === "story" && (
+                      <p className="text-[10px] text-green-500 mt-2 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Story: música será aplicada
+                      </p>
+                    )}
+                  </div>
+                ) : showMusicPanel ? (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar música..."
+                        value={musicSearch}
+                        onChange={(e) => {
+                          setMusicSearch(e.target.value);
+                          searchMusic(e.target.value);
+                        }}
+                        className="pl-9 bg-secondary border-border text-sm h-9"
+                      />
+                    </div>
+                    
+                    <div className="max-h-[200px] overflow-y-auto space-y-1">
+                      {loadingTrending ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : trendingSounds.length > 0 ? (
+                        trendingSounds.map((sound) => (
+                          <button
+                            key={sound.id}
+                            onClick={() => selectMusic(sound)}
+                            className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                          >
+                            <Volume2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-foreground truncate">{sound.title}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">{sound.artist}</p>
+                            </div>
+                            {sound.popularity_score > 80 && (
+                              <span className="text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full">🔥</span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground text-center py-4">
+                          Nenhuma música encontrada
+                        </p>
+                      )}
+                    </div>
+
+                    {!musicSearch && trendingSounds.length === 0 && (
+                      <div className="text-center py-4">
+                        <TrendingUp className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Em breve: músicas em tendência
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowMusicPanel(true)}
+                    className="w-full justify-start text-muted-foreground text-xs h-9"
+                  >
+                    <Music className="w-4 h-4 mr-2" />
+                    Selecionar música
+                  </Button>
+                )}
               </div>
 
               {/* Validação */}
