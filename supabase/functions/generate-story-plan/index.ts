@@ -208,43 +208,26 @@ function buildMasterPrompt(
   objectiveLabel: string,
   sequence: Array<{ position: number; typeId: string; role: string; instruction: string; writingStyle: string }>
 ): { system: string; user: string } {
-  const system = `Voce e um estrategista de conteudo especialista em Instagram Stories com profundo conhecimento de funis de engajamento e conversao.
+  const system = `Você é influenciador. Manda story como pra amigo.
 
-REGRAS ABSOLUTAS:
-1. Cada story deve ser COMPLETAMENTE DIFERENTE dos outros — linguagem, estrutura, ritmo e abordagem unicos.
-2. PROIBIDO copiar frases, estruturas ou expressoes entre stories.
-3. PROIBIDO iniciar dois stories com a mesma palavra ou frase.
-4. Cada story deve ter uma VOZ UNICA: ora mais pessoal, ora mais direto, ora mais impactante.
-5. A sequencia deve ter PROGRESSAO LOGICA — cada story constroi sobre o anterior.
-6. Conteudo EXCLUSIVAMENTE em Portugues do Brasil — natural, humano, sem soar robotico.
-7. Sem titulos, sem numeracao, sem explicacoes — apenas o conteudo do story.
-8. Maximo de 3 frases por story (exceto CTA e Hook: maximo 2 frases).`;
+Regras:
+- Linguagem natural, dia a dia
+- 1-2 frases por story
+- Cada um diferente do outro
+- Sem técnica, sem formalidade
+- Parece que gravou agora`;
 
-  const sequenceDetails = sequence
-    .map(
-      (s) =>
-        `## STORY ${s.position} — ${s.role}
-Tipo: ${s.typeId.toUpperCase()}
-Estilo de escrita: ${s.writingStyle}
-Instrucao especifica: ${s.instruction}`
-    )
-    .join("\n\n");
+  const user = `Tema: "${topic}"
 
-  const user = `Crie uma sequencia de ${sequence.length} stories para Instagram com a seguinte estrutura de funil.
+Story 1: pergunta forte que para scroll
+Story 2: identificação com problema
+Story 3: história pessoal sua
+Story 4: quebra objeção
+Story 5: pede ação direto
 
-TEMA: "${topic}"
-OBJETIVO: ${objectiveLabel}
+Exemplo estilo: {"stories": [{"position":1,"content":"E se a resposta estivesse na pergunta errada?"},{"position":2,"content":"Você não está preso por não saber. Está preso porque aceitou isso como normal."},{"position":3,"content":"Eu pasei 10 anos achando que era assim mesmo."},{"position":4,"content":"Antes que você diga que é tarde: pare com isso."},{"position":5,"content":"Quer mesmo continuar assim? Me conta aqui."}]}
 
-${sequenceDetails}
-
-FORMATO DE RESPOSTA OBRIGATORIO — retorne EXATAMENTE este JSON (sem markdown, sem codigo, apenas o JSON puro):
-{
-  "stories": [
-    ${sequence.map((s) => `{"position": ${s.position}, "type": "${s.typeId}", "content": "..."}`).join(",\n    ")}
-  ]
-}
-
-ATENCAO: Cada "content" deve ser unico, impactante e coerente com a posicao no funil. PROIBIDO repetir frases ou estrutura entre os stories.`;
+Retorna JSON puro. Cada story único.`;
 
   return { system, user };
 }
@@ -265,15 +248,15 @@ async function callLovableAI(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
+      model: "openai/gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 1200,
-      temperature: 0.92,
-      frequency_penalty: 0.7,
-      presence_penalty: 0.5,
+      max_tokens: 1500,
+      temperature: 1.1,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.2,
     }),
   });
 
@@ -306,15 +289,15 @@ async function callOpenAI(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 1200,
-      temperature: 0.92,
-      frequency_penalty: 0.7,
-      presence_penalty: 0.5,
+      max_tokens: 1500,
+      temperature: 1.1,
+      frequency_penalty: 0.3,
+      presence_penalty: 0.2,
     }),
   });
 
@@ -338,37 +321,44 @@ function parseAIResponse(
   raw: string,
   sequence: Array<{ position: number; typeId: string }>
 ): Array<{ position: number; type: string; content: string }> {
-  // Strip markdown code fences if present
   const cleaned = raw
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/gi, "")
     .trim();
 
-  let parsed: { stories?: Array<{ position: number; type: string; content: string }> };
+  let parsed: { stories?: Array<{ position?: number; type?: string; content?: string }> };
 
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    // Try to extract JSON object from raw text
     const match = cleaned.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("AI response is not valid JSON");
     parsed = JSON.parse(match[0]);
   }
 
-  if (!Array.isArray(parsed?.stories) || parsed.stories.length === 0) {
-    throw new Error("AI response missing 'stories' array");
+  if (!parsed?.stories || parsed.stories.length === 0) {
+    if (cleaned.includes("{")) {
+      const arrMatch = cleaned.match(/"stories"\s*:\s*\[([\s\S]*)\]/);
+      if (arrMatch) {
+        const storiesStr = `[${arrMatch[1]}]`;
+        parsed = { stories: JSON.parse(storiesStr) };
+      }
+    }
+    if (!parsed?.stories?.length) {
+      throw new Error("AI response missing 'stories' array");
+    }
   }
 
-  // Validate all positions are present
-  const result = sequence.map((s) => {
-    const found = parsed.stories!.find((r) => r.position === s.position || r.type === s.typeId);
-    if (!found || !found.content?.trim()) {
-      throw new Error(`Missing content for position ${s.position}`);
-    }
-    return { position: s.position, type: s.typeId, content: found.content.trim() };
-  });
+  const stories = parsed.stories!.filter(s => s.content?.trim());
+  if (stories.length === 0) throw new Error("No valid stories found");
 
-  return result;
+  const result = stories.map((s, i) => ({
+    position: s.position ?? (i + 1),
+    type: s.type ?? sequence[i]?.typeId ?? "conexao",
+    content: s.content!.trim()
+  }));
+
+  return result.slice(0, sequence.length);
 }
 
 // ---------------------------------------------------------------------------
