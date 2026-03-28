@@ -193,7 +193,7 @@ function generateTemplateFallbacks(topic: string, total: number): Array<{
       order: i + 1,
       type: typeId,
       typeLabel: typeInfo.label,
-      content,
+      content: cleanNicheReferences(content),
       tip: `${funnelMap[i + 1]?.role ?? ""} — ${typeInfo.tip}`,
     });
   }
@@ -215,7 +215,9 @@ Regras:
 - 1-2 frases por story
 - Cada um diferente do outro
 - Sem técnica, sem formalidade
-- Parece que gravou agora`;
+- Parece que gravou agora
+- PROIBIDO mencionar "nicho", "(Nicho: ...)", "no nicho de", "para o nicho de"
+- O nicho é contexto invisível - não exiba`;
 
   const user = `Tema: "${topic}"
 
@@ -312,6 +314,21 @@ async function callOpenAI(
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("OpenAI: resposta vazia");
   return content.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Clean niche references from content
+// ---------------------------------------------------------------------------
+function cleanNicheReferences(content: string): string {
+  return content
+    .replace(/\(Nicho:[^)]+\)/gi, "")
+    .replace(/\(nichos?:[^)]+\)/gi, "")
+    .replace(/no nicho de/gi, "")
+    .replace(/para o nicho de/gi, "")
+    .replace(/no mercado de/gi, "")
+    .replace(/para o mercado de/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -424,6 +441,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    topic = cleanNicheReferences(topic.trim());
+
     if (!objective || typeof objective !== "string") {
       return new Response(
         JSON.stringify({ error: "Campo obrigatorio ausente: objective" }),
@@ -559,7 +579,7 @@ serve(async (req) => {
         order: p.position,
         type: p.type,
         typeLabel: typeInfo.label,
-        content: p.content,
+        content: cleanNicheReferences(p.content),
         tip: `${funnelRole} — ${typeInfo.tip}`,
       };
     });
