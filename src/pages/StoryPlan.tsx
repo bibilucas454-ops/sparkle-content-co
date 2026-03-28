@@ -88,7 +88,7 @@ export default function StoryPlan() {
       
       const { data, error } = await supabase.functions.invoke("generate-story-plan", {
         body: {
-          topic: `${topic.trim()} (Nicho: ${niche})`,
+          topic: topic.trim(),
           objective,
           sequenceLength: parseInt(sequenceLength),
           selectedTypes,

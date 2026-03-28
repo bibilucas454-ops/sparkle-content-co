@@ -68,7 +68,7 @@ export default function GenerateContent() {
       const { data, error } = await supabase.functions.invoke("generate-content", {
         body: {
           videoTitle: videoTitle.trim() || undefined,
-          topic: `${topic.trim()} (Focado no nicho: ${niche})`,
+          topic: topic.trim(),
           platform,
           types: selectedTypes,
         },
