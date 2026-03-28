@@ -8,109 +8,246 @@ const corsHeaders = {
 };
 
 // ---------------------------------------------------------------------------
-// Type descriptions — no non-Portuguese/non-ASCII characters
+// Type info — labels and descriptions for each story type
 // ---------------------------------------------------------------------------
-const typeDescriptions: Record<string, { label: string; prompt: string; tip: string }> = {
-  conexao: {
-    label: "Conexao",
-    prompt: `Crie um Story de CONEXAO e HUMANIZACAO. O objetivo e criar proximidade com a audiencia.
-Estrutura:
-- Apresente-se de forma pessoal
-- Compartilhe uma vulnerabilidade ou experiencia real
-- Faca conexao emocional com quem le
-Tom: pessoal, autentico, acolhedor. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Humanize e crie identificacao",
-  },
-  autoridade: {
-    label: "Autoridade",
-    prompt: `Crie um Story de AUTORIDADE e EXPERTISE. O objetivo e demonstrar conhecimento e credibilidade.
-Estrutura:
-- Compartilhe uma dica ou insight profissional
-- Mostre conhecimento profundo sobre o tema
-- Estabeleca autoridade no nicho
-Tom: confiante, educativo, profissional. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Demonstre conhecimento e credibilidade",
-  },
-  prova: {
-    label: "Prova Social",
-    prompt: `Crie um Story de PROVA SOCIAL. O objetivo e mostrar resultados e validacao.
-Estrutura:
-- Compartilhe um resultado ou transformacao real
-- Mostre um depoimento ou feedback de cliente
-- Evidencie prova concreta
-Tom: impactante, comprovado, persuasivo. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Mostre resultados e validacao",
-  },
-  bastidor: {
-    label: "Bastidor",
-    prompt: `Crie um Story de BASTIDOR e PROCESSO. O objetivo e humanizar e mostrar o lado behind-the-scenes.
-Estrutura:
-- Mostre como voce faz algo no dia a dia
-- Revele o processo real, sem filtros
-- Humanize sua rotina ou trabalho
-Tom: autentico, curioso, revelador. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Mostre os bastidores",
-  },
-  enquete: {
-    label: "Enquete",
-    prompt: `Crie um Story de ENQUETE e INTERACAO. O objetivo e engajar e criar participacao.
-Estrutura:
-- Faca uma pergunta direta e envolvente
-- Ofereça opcoes claras de resposta
-- Crie curiosidade sobre o resultado
-Tom: interativo, curioso, divertido. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Interaja com sua audiencia",
-  },
-  objecao: {
-    label: "Objecao",
-    prompt: `Crie um Story de OBJECAO e RESPOSTA. O objetivo e responder duvidas e objecoes comuns.
-Estrutura:
-- Identifique uma objecao frequente do seu publico
-- Responda de forma clara e direta
-- Desarme a resistencia com argumento solido
-Tom: prestativo, persuasivo, solucionador. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Responda duvidas e objecoes",
-  },
-  cta: {
-    label: "CTA",
-    prompt: `Crie um Story de CALL TO ACTION (CHAMADA PARA ACAO). O objetivo e levar a audiencia ao proximo passo.
-Estrutura:
-- Crie urgencia ou desejo genuino
-- Diga exatamente o que a pessoa deve fazer agora
-- Facilite a acao (link, direct, swipe up, etc)
-Tom: direto, urgente, orientado a acao. ESCREVA APENAS EM PORTUGUES DO BRASIL.`,
-    tip: "Chame para acao",
-  },
+const typeDescriptions: Record<string, { label: string; tip: string }> = {
+  conexao:   { label: "Conexao",     tip: "Humanize e crie identificacao" },
+  autoridade:{ label: "Autoridade",  tip: "Demonstre conhecimento e credibilidade" },
+  prova:     { label: "Prova Social",tip: "Mostre resultados e validacao" },
+  bastidor:  { label: "Bastidor",    tip: "Mostre os bastidores" },
+  enquete:   { label: "Enquete",     tip: "Interaja com sua audiencia" },
+  objecao:   { label: "Objecao",     tip: "Responda duvidas e objecoes" },
+  cta:       { label: "CTA",         tip: "Chame para acao" },
 };
 
+// ---------------------------------------------------------------------------
+// Objective flows — ordered type sequences per objective
+// ---------------------------------------------------------------------------
 const objectiveFlows: Record<string, string[]> = {
-  engajar: ["conexao", "enquete", "bastidor", "prova", "autoridade"],
-  aquecer: ["conexao", "autoridade", "bastidor", "prova", "objecao"],
-  vender: ["conexao", "prova", "autoridade", "objecao", "cta"],
-  caixinha: ["conexao", "enquete", "bastidor", "objecao", "cta"],
-  direct: ["conexao", "prova", "cta", "bastidor", "cta"],
-  nutrir: ["conexao", "autoridade", "bastidor", "prova", "enquete"],
+  engajar:   ["conexao", "enquete", "bastidor", "prova", "autoridade"],
+  aquecer:   ["conexao", "autoridade", "bastidor", "prova", "objecao"],
+  vender:    ["conexao", "prova", "autoridade", "objecao", "cta"],
+  caixinha:  ["conexao", "enquete", "bastidor", "objecao", "cta"],
+  direct:    ["conexao", "prova", "autoridade", "objecao", "cta"],
+  nutrir:    ["conexao", "autoridade", "bastidor", "prova", "enquete"],
 };
 
 // ---------------------------------------------------------------------------
-// Unique template fallbacks — used when no API key is available or AI fails
+// Funnel positions — specific role of each position regardless of type
 // ---------------------------------------------------------------------------
-const templateFallbacks: Record<string, (topic: string) => string> = {
-  conexao: (t) =>
-    `Posso te contar uma coisa? ${t} e algo que tambem me desafiou muito. Mas aprendi que a chave e [insight]. Voce ja passou por isso? Me conta nos comentarios!`,
-  autoridade: (t) =>
-    `Uma coisa que me levou anos para aprender sobre ${t}: [dica profissional]. E isso muda tudo. Salva esse story!`,
-  prova: (t) =>
-    `Resultado real de um cliente sobre ${t}: antes era [problema]. Depois: [resultado]. Isso e possivel para voce tambem.`,
-  bastidor: (t) =>
-    `Por tras das cameras: como eu realmente trabalho com ${t} no dia a dia. Sem filtros, sem perfeccao — so processo real.`,
-  enquete: (t) =>
-    `Pergunta rapida sobre ${t}: voce prefere [opcao A] ou [opcao B]? Responde ali em cima. Vou revelar o resultado amanha!`,
-  objecao: (t) =>
-    `"Mas e se nao funcionar para mim?" — A duvida mais comum sobre ${t}. A resposta honesta: [resposta direta]. Simples assim.`,
-  cta: (t) =>
-    `Pronto para transformar sua relacao com ${t}? Manda um direct agora com a palavra QUERO e eu te envio os proximos passos. Soa bem?`,
+const funnelPositions: Record<number, { role: string; instruction: string }> = {
+  1: {
+    role: "HOOK / CONEXAO",
+    instruction:
+      "Este e o Story de abertura. Deve PARAR o scroll. Comece com uma afirmacao chocante, pergunta provocadora ou revelacao pessoal. NÃO explique nada ainda — apenas crie curiosidade ou identificacao imediata. Maximo 2 frases.",
+  },
+  2: {
+    role: "IDENTIFICACAO / PROBLEMA",
+    instruction:
+      "Aprofunde a dor ou o desejo despertado no story anterior. Faça a pessoa se ver na situacao. Use linguagem empatica. Mostre que voce entende o problema dela por dentro. Maximo 3 frases.",
+  },
+  3: {
+    role: "QUEBRA / INSIGHT",
+    instruction:
+      "Apresente um insight, reviravolta ou ensinamento que muda a perspectiva. Este story deve surpreender — dizer algo que a pessoa nao esperava ouvir. Tom: revelador, confiante, educativo. Maximo 3 frases.",
+  },
+  4: {
+    role: "CONSTRUCAO / VALOR",
+    instruction:
+      "Construa sobre o insight anterior. Mostre o caminho, a prova, o bastidor ou a transformacao possivel. Concreto, especifico, com detalhe real. Deve gerar desejo de continuar. Maximo 3 frases.",
+  },
+  5: {
+    role: "CTA / INTERACAO",
+    instruction:
+      "Este e o fechamento. Converta a atencao em acao. Seja direto e especifico: diga EXATAMENTE o que a pessoa deve fazer agora. Crie urgencia genuina. Maximo 2 frases.",
+  },
 };
+
+// Extended positions for 7-story sequences
+const funnelPositions7: Record<number, { role: string; instruction: string }> = {
+  1: funnelPositions[1],
+  2: funnelPositions[2],
+  3: funnelPositions[3],
+  4: {
+    role: "PROVA / EVIDENCIA",
+    instruction:
+      "Mostre uma prova concreta: resultado real, depoimento, numero, antes/depois. Este story valida o que foi dito antes. Tom: impactante, comprovado. Maximo 3 frases.",
+  },
+  5: funnelPositions[4],
+  6: {
+    role: "OBJECAO / ANTECIPACAO",
+    instruction:
+      "Responda a principal duvida ou objecao que a pessoa poderia ter agora. Seja honesto e direto. Desarme a resistencia com um argumento solido e simpatico. Maximo 3 frases.",
+  },
+  7: funnelPositions[5],
+};
+
+// Minimal 3-story funnel
+const funnelPositions3: Record<number, { role: string; instruction: string }> = {
+  1: funnelPositions[1],
+  2: funnelPositions[3],
+  3: funnelPositions[5],
+};
+
+function getFunnelMap(total: number): Record<number, { role: string; instruction: string }> {
+  if (total === 3) return funnelPositions3;
+  if (total === 7) return funnelPositions7;
+  return funnelPositions; // default: 5
+}
+
+// ---------------------------------------------------------------------------
+// Type-specific writing instructions
+// ---------------------------------------------------------------------------
+const typeWritingInstructions: Record<string, string> = {
+  conexao:
+    "Estilo: pessoal, vulneravel, acolhedor. Use 'eu' e 'voce'. Compartilhe algo real sobre si.",
+  autoridade:
+    "Estilo: confiante, educativo, especialista. Demonstre dominio sem arrogancia. Dados ou insights.",
+  prova:
+    "Estilo: concreto, impactante, persuasivo. Use resultados reais, numeros ou depoimentos.",
+  bastidor:
+    "Estilo: autentico, revelador, sem filtros. Mostre o processo real, os erros, a rotina.",
+  enquete:
+    "Estilo: interativo, curioso, divertido. Termine com uma pergunta direta ou opcoes de resposta.",
+  objecao:
+    "Estilo: empático, prestativo, direto. Cite a objecao textualmente e responda com clareza.",
+  cta:
+    "Estilo: urgente, especifico, orientado a acao. Diga o passo exato: 'manda direct', 'clica no link', 'responde aqui'.",
+};
+
+// ---------------------------------------------------------------------------
+// Template fallbacks — guaranteed unique per type and position
+// ---------------------------------------------------------------------------
+function generateTemplateFallbacks(topic: string, total: number): Array<{
+  order: number; type: string; typeLabel: string; content: string; tip: string;
+}> {
+  const templates = [
+    {
+      type: "conexao",
+      templates: [
+        `Posso ser honesto com voce? ${topic} foi a coisa que mais me desafiou — e que mais me transformou. Ja sentiu isso?`,
+        `Sabe aquele momento em que voce percebe que algo precisa mudar? Foi exatamente assim que comecei com ${topic}.`,
+        `Eu nao comecei achando que sabia tudo sobre ${topic}. Comecei com duvidas, erros e muito aprendizado. E voce?`,
+      ],
+    },
+    {
+      type: "objecao",
+      templates: [
+        `"Mas isso e para mim?" — A pergunta que mais ouco sobre ${topic}. Resposta honesta: se voce esta aqui, ja e um sinal.`,
+        `O maior mito sobre ${topic}: que e complicado demais. A verdade e que o maior obstaculo e o primeiro passo.`,
+        `"Nao tenho tempo para isso." Entendo. Mas quanto tempo voce ja gastou sem resolver ${topic}?`,
+      ],
+    },
+    {
+      type: "autoridade",
+      templates: [
+        `Depois de anos trabalhando com ${topic}, aprendi: a maioria das pessoas pula a etapa mais importante.`,
+        `Uma coisa que mudou completamente minha relacao com ${topic}: parar de buscar perfeicao e comecar pela consistencia.`,
+        `${topic} nao e sobre fazer mais. E sobre fazer o que importa, da forma certa, no momento certo.`,
+      ],
+    },
+    {
+      type: "prova",
+      templates: [
+        `Um cliente chegou para mim desesperado com ${topic}. Em 30 dias, o resultado foi completamente diferente do que esperava — para melhor.`,
+        `Antes: travado, sem resultado, sem direcao. Depois de aplicar o metodo em ${topic}: clareza, progresso e resultado real.`,
+        `Nao e teoria. E o que aconteceu de verdade quando alguem aplicou isso em ${topic}.`,
+      ],
+    },
+    {
+      type: "bastidor",
+      templates: [
+        `Por tras das cameras: como e meu processo real com ${topic} no dia a dia. Sem filtro, sem edicao — so a verdade.`,
+        `Hoje vou te mostrar o que ninguem mostra sobre ${topic}. O caos, o processo, os erros incluidos.`,
+        `Bastidor real: como fica minha rotina quando estou trabalhando em ${topic}. Nao e glamour — e processo.`,
+      ],
+    },
+    {
+      type: "enquete",
+      templates: [
+        `Pergunta rapida: qual e o seu maior desafio com ${topic} agora? A ou B? Responde ali em cima — vou comentar cada resposta.`,
+        `Teste rapido sobre ${topic}: voce ja tentou isso antes? Responde com o emoji certo. Vou revelar o resultado amanha.`,
+        `Qual dessas frases te representa mais quando o assunto e ${topic}? Vota ai — voce vai se surpreender com o resultado.`,
+      ],
+    },
+    {
+      type: "cta",
+      templates: [
+        `Pronto para dar o proximo passo com ${topic}? Manda um direct agora com a palavra QUERO. Respondo pessoalmente.`,
+        `Se esse conteudo fez sentido para voce — salva, compartilha e me manda uma mensagem. Quero saber sua historia com ${topic}.`,
+        `Nao deixa para amanha. Clica no link da bio agora e descobre como posso te ajudar com ${topic} de forma real.`,
+      ],
+    },
+  ];
+
+  const flow = objectiveFlows.vender;
+  const stories = [];
+  const funnelMap = getFunnelMap(total);
+
+  for (let i = 0; i < total; i++) {
+    const typeId = flow[i % flow.length];
+    const typeTemplates = templates.find((t) => t.type === typeId) ?? templates[0];
+    const content = typeTemplates.templates[i % typeTemplates.templates.length];
+    const typeInfo = typeDescriptions[typeId];
+    stories.push({
+      order: i + 1,
+      type: typeId,
+      typeLabel: typeInfo.label,
+      content,
+      tip: `${funnelMap[i + 1]?.role ?? ""} — ${typeInfo.tip}`,
+    });
+  }
+  return stories;
+}
+
+// ---------------------------------------------------------------------------
+// Build the master prompt — generates ALL stories in one call
+// ---------------------------------------------------------------------------
+function buildMasterPrompt(
+  topic: string,
+  objectiveLabel: string,
+  sequence: Array<{ position: number; typeId: string; role: string; instruction: string; writingStyle: string }>
+): { system: string; user: string } {
+  const system = `Voce e um estrategista de conteudo especialista em Instagram Stories com profundo conhecimento de funis de engajamento e conversao.
+
+REGRAS ABSOLUTAS:
+1. Cada story deve ser COMPLETAMENTE DIFERENTE dos outros — linguagem, estrutura, ritmo e abordagem unicos.
+2. PROIBIDO copiar frases, estruturas ou expressoes entre stories.
+3. PROIBIDO iniciar dois stories com a mesma palavra ou frase.
+4. Cada story deve ter uma VOZ UNICA: ora mais pessoal, ora mais direto, ora mais impactante.
+5. A sequencia deve ter PROGRESSAO LOGICA — cada story constroi sobre o anterior.
+6. Conteudo EXCLUSIVAMENTE em Portugues do Brasil — natural, humano, sem soar robotico.
+7. Sem titulos, sem numeracao, sem explicacoes — apenas o conteudo do story.
+8. Maximo de 3 frases por story (exceto CTA e Hook: maximo 2 frases).`;
+
+  const sequenceDetails = sequence
+    .map(
+      (s) =>
+        `## STORY ${s.position} — ${s.role}
+Tipo: ${s.typeId.toUpperCase()}
+Estilo de escrita: ${s.writingStyle}
+Instrucao especifica: ${s.instruction}`
+    )
+    .join("\n\n");
+
+  const user = `Crie uma sequencia de ${sequence.length} stories para Instagram com a seguinte estrutura de funil.
+
+TEMA: "${topic}"
+OBJETIVO: ${objectiveLabel}
+
+${sequenceDetails}
+
+FORMATO DE RESPOSTA OBRIGATORIO — retorne EXATAMENTE este JSON (sem markdown, sem codigo, apenas o JSON puro):
+{
+  "stories": [
+    ${sequence.map((s) => `{"position": ${s.position}, "type": "${s.typeId}", "content": "..."}`).join(",\n    ")}
+  ]
+}
+
+ATENCAO: Cada "content" deve ser unico, impactante e coerente com a posicao no funil. PROIBIDO repetir frases ou estrutura entre os stories.`;
+
+  return { system, user };
+}
 
 // ---------------------------------------------------------------------------
 // Call Lovable AI Gateway
@@ -133,8 +270,10 @@ async function callLovableAI(
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 300,
-      temperature: 0.8,
+      max_tokens: 1200,
+      temperature: 0.92,
+      frequency_penalty: 0.7,
+      presence_penalty: 0.5,
     }),
   });
 
@@ -172,8 +311,10 @@ async function callOpenAI(
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 300,
-      temperature: 0.8,
+      max_tokens: 1200,
+      temperature: 0.92,
+      frequency_penalty: 0.7,
+      presence_penalty: 0.5,
     }),
   });
 
@@ -191,68 +332,49 @@ async function callOpenAI(
 }
 
 // ---------------------------------------------------------------------------
-// Generate one story: try Lovable → try OpenAI → fallback template
+// Parse AI JSON response — extract stories array
 // ---------------------------------------------------------------------------
-async function generateStoryContent(
-  topic: string,
-  typeId: string,
-  typeInfo: { label: string; prompt: string; tip: string },
-  objectiveLabel: string,
-  order: number,
-  total: number,
-  lovableKey: string | undefined,
-  openaiKey: string | undefined,
-  previousContents: string[] = []
-): Promise<string> {
-  const isFirst = order === 1;
-  const isLast = order === total;
-  const progressPosition = isFirst ? "ABERTURA" : isLast ? "FECHAMENTO" : "DESENVOLVIMENTO";
-  
-  let diversityInstruction = "";
-  if (previousContents.length > 0) {
-    const prevSample = previousContents.slice(-2).join(" | ");
-    diversityInstruction = `\nIMPORTANTE: Este story DEVE ser DIFERENTE dos anteriores. Evite repetição de palavras, frases ou estrutura. Anterior: "${prevSample}"`;
+function parseAIResponse(
+  raw: string,
+  sequence: Array<{ position: number; typeId: string }>
+): Array<{ position: number; type: string; content: string }> {
+  // Strip markdown code fences if present
+  const cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/gi, "")
+    .trim();
+
+  let parsed: { stories?: Array<{ position: number; type: string; content: string }> };
+
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    // Try to extract JSON object from raw text
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("AI response is not valid JSON");
+    parsed = JSON.parse(match[0]);
   }
 
-  const systemPrompt = `Voce e um especialista em criacao de conteudo para Instagram Stories. Voce entende de funis de conteudo, engajamento e conversao. Crie stories estrategicos e impactantes com DIVERSIDADE e PROGRESSAO. TODO conteudo DEVE ser em Portugues do Brasil. IMPORTANTE: Cada story deve ser UNICO e COMPLEMENTAR ao anterior.`;
+  if (!Array.isArray(parsed?.stories) || parsed.stories.length === 0) {
+    throw new Error("AI response missing 'stories' array");
+  }
 
-  const userPrompt = `${typeInfo.prompt}
-
-Tema geral: "${topic}"
-Objetivo da sequencia: ${objectiveLabel}
-Posicao na sequencia: Story ${order} de ${total} (${progressPosition})${diversityInstruction}
-
-Gera APENAS o conteudo do story — de 1 a 3 frases curtas, diretas e impactantes. Sem titulos, sem explicacoes extras. Cada story deve ser unico e progredir na narrativa.`;
-
-  // Attempt 1: Lovable Gateway
-  if (lovableKey) {
-    try {
-      return await callLovableAI(lovableKey, systemPrompt, userPrompt);
-    } catch (e) {
-      console.warn("[AI] Lovable failed, trying OpenAI:", e instanceof Error ? e.message : e);
+  // Validate all positions are present
+  const result = sequence.map((s) => {
+    const found = parsed.stories!.find((r) => r.position === s.position || r.type === s.typeId);
+    if (!found || !found.content?.trim()) {
+      throw new Error(`Missing content for position ${s.position}`);
     }
-  }
+    return { position: s.position, type: s.typeId, content: found.content.trim() };
+  });
 
-  // Attempt 2: OpenAI direct
-  if (openaiKey) {
-    try {
-      return await callOpenAI(openaiKey, systemPrompt, userPrompt);
-    } catch (e) {
-      console.warn("[AI] OpenAI failed, using template:", e instanceof Error ? e.message : e);
-    }
-  }
-
-  // Attempt 3: Template fallback (always succeeds)
-  console.log(`[AI] Using template fallback for type: ${typeId}`);
-  const fallbackFn = templateFallbacks[typeId] ?? templateFallbacks.conexao;
-  return fallbackFn(topic);
+  return result;
 }
 
 // ---------------------------------------------------------------------------
 // Main handler
 // ---------------------------------------------------------------------------
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -263,7 +385,6 @@ serve(async (req) => {
     // --- Auth ---
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      console.error("[Auth] Token ausente ou invalido");
       return new Response(
         JSON.stringify({ error: "Acesso negado. Token ausente ou invalido." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -278,7 +399,6 @@ serve(async (req) => {
 
     const { data: userData, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !userData?.user) {
-      console.error("[Auth] Sessao invalida:", userError?.message);
       return new Response(
         JSON.stringify({ error: "Sessao expirada. Faca login novamente." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -307,7 +427,7 @@ serve(async (req) => {
       );
     }
 
-    // --- Validate required fields ---
+    // --- Validate ---
     if (!topic || typeof topic !== "string" || topic.trim().length === 0) {
       return new Response(
         JSON.stringify({ error: "Campo obrigatorio ausente: topic" }),
@@ -322,113 +442,139 @@ serve(async (req) => {
     }
     if (!sequenceLength || typeof sequenceLength !== "number" || sequenceLength < 1 || sequenceLength > 10) {
       return new Response(
-        JSON.stringify({ error: "Campo obrigatorio invalido: sequenceLength (deve ser numero entre 1 e 10)" }),
+        JSON.stringify({ error: "Campo invalido: sequenceLength deve ser numero entre 1 e 10" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     if (!selectedTypes || !Array.isArray(selectedTypes) || selectedTypes.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Campo obrigatorio invalido: selectedTypes (deve ser array nao-vazio)" }),
+        JSON.stringify({ error: "Campo invalido: selectedTypes deve ser array nao-vazio" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("[Input] Validated:", { topic: topic.substring(0, 50), objective, sequenceLength, selectedTypes });
+    console.log("[Input] Validated:", { topic: topic.substring(0, 60), objective, sequenceLength, selectedTypes });
 
-    // --- API keys (optional — falls back to templates if absent) ---
+    // --- API keys ---
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
 
-    if (!lovableKey && !openaiKey) {
-      console.warn("[Config] No AI API key found. Will use template fallbacks for all stories.");
-    } else {
-      console.log("[Config] API keys:", { lovable: !!lovableKey, openai: !!openaiKey });
-    }
+    // --- Build sequence plan ---
+    const baseFlow = objectiveFlows[objective] ?? objectiveFlows.engajar;
+    const validTypes = selectedTypes.filter((t) => typeDescriptions[t]);
+    
+    // Intersect flow with selected types. If intersection is empty, use selected types in order.
+    const intersected = baseFlow.filter((t) => validTypes.includes(t));
+    const baseSequence = intersected.length >= 3 ? intersected : validTypes;
 
-    // --- Build sequence ---
-    const flow = objectiveFlows[objective] ?? objectiveFlows.engajar;
-    const validSelectedTypes = selectedTypes.filter((t) => typeDescriptions[t]);
-    const orderedTypes = flow.filter((t) => validSelectedTypes.includes(t));
-    const finalTypes = orderedTypes.length > 0 ? orderedTypes : validSelectedTypes;
-
-    if (finalTypes.length === 0) {
+    if (baseSequence.length === 0) {
       return new Response(
         JSON.stringify({ error: "Nenhum tipo de story valido selecionado." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Fill to sequenceLength, cycling through base sequence without consecutive repeats
+    const typePlan: string[] = [];
+    let lastUsed = "";
+    for (let i = 0; i < sequenceLength; i++) {
+      const available = baseSequence.filter((t) => t !== lastUsed || baseSequence.length === 1);
+      const typeId = available[i % available.length];
+      typePlan.push(typeId);
+      lastUsed = typeId;
+    }
+
+    const funnelMap = getFunnelMap(sequenceLength);
+
+    const sequence = typePlan.map((typeId, i) => ({
+      position: i + 1,
+      typeId,
+      role: funnelMap[i + 1]?.role ?? `STORY ${i + 1}`,
+      instruction: funnelMap[i + 1]?.instruction ?? "Crie conteudo relevante e impactante.",
+      writingStyle: typeWritingInstructions[typeId] ?? "",
+    }));
+
     const objectiveLabel =
       {
-        engajar: "ENGAJAR e criar conexao",
+        engajar: "ENGAJAR e criar conexao com a audiencia",
         aquecer: "AQUECER a audiencia para uma oferta",
-        vender: "VENDER ou converter",
+        vender: "VENDER ou converter em cliente",
         caixinha: "RECEBER perguntas no direct",
         direct: "LEVAR para conversacao privada",
         nutrir: "NUTRIR e educar a audiencia",
       }[objective] ?? "engajar";
 
-    // --- Generate stories ---
-    const stories: Array<{
-      order: number;
-      type: string;
-      typeLabel: string;
-      content: string;
-      tip?: string;
-    }> = [];
-
-    const previousContents: string[] = [];
-    const usedTypes: string[] = [];
-
-    for (let i = 0; i < sequenceLength; i++) {
-      let typeId: string;
-      
-      if (i < finalTypes.length) {
-        typeId = finalTypes[i];
-      } else {
-        const availableTypes = finalTypes.filter(t => !usedTypes.includes(t));
-        if (availableTypes.length > 0) {
-          typeId = availableTypes[i % availableTypes.length];
-        } else {
-          usedTypes.length = 0;
-          typeId = finalTypes[i % finalTypes.length];
-        }
-      }
-      
-      usedTypes.push(typeId);
-      const typeInfo = typeDescriptions[typeId];
-
-      if (!typeInfo) {
-        console.warn(`[Gen] Unknown typeId: ${typeId}, skipping`);
-        continue;
-      }
-
-      console.log(`[Gen] Generating story ${i + 1}/${sequenceLength} — type: ${typeId}`);
-
-      const content = await generateStoryContent(
-        topic.trim(),
-        typeId,
-        typeInfo,
-        objectiveLabel,
-        i + 1,
-        sequenceLength,
-        lovableKey,
-        openaiKey,
-        previousContents
-      );
-
-      previousContents.push(content);
-
-      stories.push({
-        order: i + 1,
-        type: typeId,
-        typeLabel: typeInfo.label,
-        content,
-        tip: typeInfo.tip,
+    // --- No API keys — use templates ---
+    if (!lovableKey && !openaiKey) {
+      console.warn("[Config] No AI API key. Using template fallbacks.");
+      const templateStories = generateTemplateFallbacks(topic.trim(), sequenceLength);
+      return new Response(JSON.stringify({ success: true, stories: templateStories }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`[generate-story-plan] Done. Generated ${stories.length} stories.`);
+    // --- Generate ALL stories in a single AI call ---
+    const { system, user } = buildMasterPrompt(topic.trim(), objectiveLabel, sequence);
+
+    let rawResponse: string | null = null;
+
+    // Attempt 1: Lovable Gateway
+    if (lovableKey) {
+      try {
+        rawResponse = await callLovableAI(lovableKey, system, user);
+      } catch (e) {
+        console.warn("[AI] Lovable failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
+    // Attempt 2: OpenAI
+    if (!rawResponse && openaiKey) {
+      try {
+        rawResponse = await callOpenAI(openaiKey, system, user);
+      } catch (e) {
+        console.warn("[AI] OpenAI failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
+    // Attempt 3: Template fallbacks
+    if (!rawResponse) {
+      console.warn("[AI] All AI attempts failed. Using template fallbacks.");
+      const templateStories = generateTemplateFallbacks(topic.trim(), sequenceLength);
+      return new Response(JSON.stringify({ success: true, stories: templateStories }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Parse response ---
+    let parsed: Array<{ position: number; type: string; content: string }>;
+    try {
+      parsed = parseAIResponse(rawResponse, sequence);
+    } catch (parseErr) {
+      console.error("[Parse] Failed to parse AI response:", parseErr, "Raw:", rawResponse.substring(0, 500));
+      // Graceful degradation: use templates
+      const templateStories = generateTemplateFallbacks(topic.trim(), sequenceLength);
+      return new Response(JSON.stringify({ success: true, stories: templateStories }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Build final story objects ---
+    const stories = parsed.map((p) => {
+      const typeInfo = typeDescriptions[p.type] ?? typeDescriptions.conexao;
+      const funnelRole = funnelMap[p.position]?.role ?? "";
+      return {
+        order: p.position,
+        type: p.type,
+        typeLabel: typeInfo.label,
+        content: p.content,
+        tip: `${funnelRole} — ${typeInfo.tip}`,
+      };
+    });
+
+    console.log(`[generate-story-plan] Done. Generated ${stories.length} stories in a single AI call.`);
 
     return new Response(JSON.stringify({ success: true, stories }), {
       status: 200,
@@ -437,10 +583,7 @@ serve(async (req) => {
   } catch (e) {
     console.error("[generate-story-plan] Unexpected error:", e instanceof Error ? e.message : e);
     return new Response(
-      JSON.stringify({
-        error: e instanceof Error ? e.message : "Erro interno inesperado",
-        success: false,
-      }),
+      JSON.stringify({ error: e instanceof Error ? e.message : "Erro interno inesperado", success: false }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
