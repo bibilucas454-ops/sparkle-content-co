@@ -5,240 +5,160 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // Sequence type configurations
-const sequenceConfigs = {
-  engajamento: {
-    desc: "Conectar e identificar dor",
-    types: ["gatilho", "contexto", "valor", "conexao", "cta"],
-    storyCount: 5,
-  },
-  aquecimento: {
-    desc: "Criar desejo e preparar",
-    types: ["corte", "valor", "bastidor", "prova", "cta"],
-    storyCount: 5,
-  },
-  venda: {
-    desc: "Converter e fechar",
-    types: ["gatilho", "corte", "valor", "prova", "valor", "cta", "cta"],
-    storyCount: 7,
-  },
+const sequenceConfigs: Record<string, { types: string[]; storyCount: number }> = {
+  engajamento: { types: ["gatilho", "contexto", "valor", "conexao", "cta"], storyCount: 5 },
+  aquecimento: { types: ["corte", "valor", "bastidor", "prova", "cta"], storyCount: 5 },
+  venda:       { types: ["gatilho", "corte", "valor", "prova", "valor", "cta", "cta"], storyCount: 7 },
 };
-
-// ---------------------------------------------------------------------------
-// Build the master prompt for story generation
-// ---------------------------------------------------------------------------
-function buildStoriesPrompt(input: {
-  nicho: string;
-  produto: string;
-  promessa: string;
-  dorPrincipal: string;
-  objetivo: string;
-  tomVoz: string;
-}, sequenceType: string, config: { types: string[]; storyCount: number }): { system: string; user: string } {
-  const system = `Você é especialista em marketing de conteúdo para Instagram Stories.
-Gere stories em português brasileiro conversacional, prontos para copiar e postar.
-PROIBIDO: linguagem robótica, formalidade excessiva, repetição de estruturas.
-Retorne APENAS JSON puro, sem markdown, sem código.`;
-
-  const storyInstructions = config.types.slice(0, config.storyCount).map((tipo, i) => (
-    `Story ${i + 1} (${tipo.toUpperCase()}): ${getTypeInstruction(tipo)}`
-  )).join("\n");
-
-  const user = `Gere uma sequência de ${config.storyCount} stories para Instagram.
-
-CONTEXTO:
-- Nicho: ${input.nicho}
-- Produto: ${input.produto || "não especificado"}
-- Promessa: ${input.promessa}
-- Dor principal: ${input.dorPrincipal}
-- Objetivo do público: ${input.objetivo || "transformar resultados"}
-- Tom de voz: ${getTomVozDesc(input.tomVoz)}
-
-REGRAS OBRIGATÓRIAS:
-1. Cada story deve ter abertura COMPLETAMENTE diferente dos outros
-2. NUNCA repita as 3 primeiras palavras entre stories
-3. Máximo 150 caracteres por copy
-4. Tom conversacional, como se estiver falando com um amigo
-5. Inclua elemento interativo quando relevante (pergunta, enquete)
-
-SEQUÊNCIA (${sequenceType}):
-${storyInstructions}
-
-Retorne JSON puro neste formato exato:
-{"stories":[{"ordem":1,"tipo":"gatilho","copy":"texto aqui","elementos":["pergunta"],"cta":"ação aqui"},...]}`
-;
-
-  return { system, user };
-}
 
 function getTypeInstruction(tipo: string): string {
   const map: Record<string, string> = {
-    gatilho:  "Comece com pergunta ou afirmação que para o scroll imediatamente",
-    contexto: "Crie identificação mostrando situação real do público",
-    valor:    "Entregue insight prático e acionável",
-    conexao:  "Crie vínculo emocional com história pessoal",
-    bastidor: "Mostre processo real, bastidores autênticos",
-    prova:    "Apresente resultado concreto de cliente ou seu",
-    corte:    "Quebre uma crença limitante que impede o público",
-    cta:      "Direcione para ação específica (DM, link, responder)",
+    gatilho:  "Pergunta ou afirmação chocante que para o scroll",
+    contexto: "Identificação com situação real do público",
+    valor:    "Insight prático e direto ao ponto",
+    conexao:  "Vínculo emocional com história pessoal breve",
+    bastidor: "Processo real, bastidores autênticos",
+    prova:    "Resultado concreto com número ou nome",
+    corte:    "Quebra de crença limitante do público",
+    cta:      "Ação específica: DM, link, responder",
   };
-  return map[tipo] ?? "Crie conteúdo relevante e impactante";
+  return map[tipo] ?? "Conteúdo impactante e relevante";
 }
 
 function getTomVozDesc(tom: string): string {
   const map: Record<string, string> = {
-    direto:     "Direto, sem enrolação, autoridade silenciosa",
-    emocional:  "Emocional, empático, conexão profunda",
-    pragmatico: "Prático, objetivo, focado em resultados",
-    protector:  "Protetor, acolhedor, mentor que guia",
+    direto:     "direto e sem enrolação",
+    emocional:  "emocional e empático",
+    pragmatico: "prático e focado em resultados",
+    protector:  "protetor e acolhedor como mentor",
   };
-  return map[tom] ?? map.direto;
+  return map[tom] ?? "direto e sem enrolação";
 }
 
-// ---------------------------------------------------------------------------
-// Call Lovable AI Gateway (primary)
-// ---------------------------------------------------------------------------
+function buildPrompt(
+  input: Record<string, string>,
+  sequenceType: string,
+  config: { types: string[]; storyCount: number }
+): { system: string; user: string } {
+  const system = `Você cria stories de Instagram em português brasileiro conversacional.
+Tom: ${getTomVozDesc(input.tomVoz || "direto")}.
+Retorne APENAS JSON. Sem texto extra. Sem markdown.`;
+
+  const storyLines = config.types
+    .slice(0, config.storyCount)
+    .map((t, i) => `Story ${i + 1} [${t}]: ${getTypeInstruction(t)}`)
+    .join("\n");
+
+  const user = `Crie ${config.storyCount} stories para Instagram sobre:
+- Promessa: ${input.promessa}
+- Dor: ${input.dorPrincipal}
+- Produto: ${input.produto || "não especificado"}
+- Objetivo público: ${input.objetivo || "transformar resultados"}
+
+Sequência (${sequenceType}):
+${storyLines}
+
+Regras: abertura diferente em cada story, máximo 150 chars por copy, tom conversacional.
+
+Formato JSON obrigatório:
+{"stories":[{"ordem":1,"tipo":"gatilho","copy":"texto","elementos":[],"cta":""},{"ordem":2,"tipo":"contexto","copy":"texto","elementos":[],"cta":""}]}`;
+
+  return { system, user };
+}
+
 async function callLovableAI(apiKey: string, system: string, user: string): Promise<string> {
-  console.log("[AI] Trying Lovable Gateway...");
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "openai/gpt-4o",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
       max_tokens: 2000,
       temperature: 0.9,
     }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[AI] Lovable Gateway error:", res.status, err);
-    throw new Error(`Lovable Gateway ${res.status}: ${err}`);
-  }
-
+  if (!res.ok) throw new Error(`Lovable Gateway ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Lovable Gateway: resposta vazia");
-  console.log("[AI] Lovable Gateway OK");
+  if (!content) throw new Error("Resposta vazia do AI");
   return content.trim();
 }
 
-// ---------------------------------------------------------------------------
-// Call OpenAI directly (fallback)
-// ---------------------------------------------------------------------------
 async function callOpenAI(apiKey: string, system: string, user: string): Promise<string> {
-  console.log("[AI] Trying OpenAI...");
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
       max_tokens: 2000,
       temperature: 0.9,
     }),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[AI] OpenAI error:", res.status, err);
-    throw new Error(`OpenAI ${res.status}: ${err}`);
-  }
-
+  if (!res.ok) throw new Error(`OpenAI ${res.status}: ${await res.text()}`);
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("OpenAI: resposta vazia");
-  console.log("[AI] OpenAI OK");
+  if (!content) throw new Error("Resposta vazia do OpenAI");
   return content.trim();
 }
 
-// ---------------------------------------------------------------------------
-// Parse AI JSON response
-// ---------------------------------------------------------------------------
-function parseStoriesResponse(raw: string, config: { types: string[]; storyCount: number }): any[] {
-  const cleaned = raw
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
-
+function parseAIStories(raw: string): any[] {
+  const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
   let parsed: any;
   try {
     parsed = JSON.parse(cleaned);
   } catch {
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("AI response is not valid JSON");
+    if (!match) throw new Error("JSON inválido na resposta do AI");
     parsed = JSON.parse(match[0]);
   }
-
-  // Accept both {"stories":[...]} and direct array [...]
-  let stories = Array.isArray(parsed) ? parsed : parsed?.stories;
-  if (!stories || stories.length === 0) throw new Error("No stories found in response");
+  const stories = Array.isArray(parsed) ? parsed : parsed?.stories;
+  if (!stories?.length) throw new Error("Nenhum story encontrado na resposta");
   return stories;
 }
 
-// ---------------------------------------------------------------------------
-// Template fallback — guaranteed to always work
-// ---------------------------------------------------------------------------
-function generateTemplateFallback(
-  input: { promessa: string; dorPrincipal: string },
+function templateFallback(
+  input: Record<string, string>,
   config: { types: string[]; storyCount: number }
 ): any[] {
-  const templates = {
-    gatilho:  (p: string) => `Você ainda está travado em ${p}? Tem algo que ninguém te contou.`,
-    contexto: (p: string) => `${p} parece impossível até você descobrir o que realmente está te impedindo.`,
-    valor:    (p: string) => `O segredo de quem consegue ${p}: foco no próximo passo, não no caminho inteiro.`,
-    conexao:  (_: string, d: string) => `Me identifico demais com quem sofre com ${d}. Por isso comecei tudo isso.`,
-    bastidor: (p: string) => `Por trás dos bastidores de como chegamos a ${p}: sem filtro, sem glamour.`,
-    prova:    (p: string) => `Alguém aplicou isso semana passada e já viu diferença em ${p}. Resultado real.`,
-    corte:    (_: string, d: string) => `Para de acreditar que ${d} é culpa sua. Isso é um sistema quebrado, não você.`,
-    cta:      (_: string, __: string) => `Quer saber como? Me manda um direct agora com a palavra QUERO.`,
+  const copies: Record<string, (p: string, d: string) => string> = {
+    gatilho:  (p) => `Você ainda está travado em ${p}? Isso muda agora.`,
+    contexto: (_, d) => `Todo mundo que passa por ${d} sente que está sozinho. Não está.`,
+    valor:    (p) => `O segredo de quem consegue ${p}: consistência antes de estratégia.`,
+    conexao:  (_, d) => `Conheço a sensação de ${d}. Foi meu ponto de virada mais importante.`,
+    bastidor: (p) => `Bastidor real de como chegamos a ${p}: sem filtro, com trabalho.`,
+    prova:    (p) => `Alguém aplicou isso há 30 dias. Hoje vive ${p}. Resultado real.`,
+    corte:    (_, d) => `Isso que te acontece com ${d}? Não é falta de esforço. É sistema errado.`,
+    cta:      () => `Quer saber como aplicar isso? Me manda um direct com QUERO.`,
   };
 
-  return config.types.slice(0, config.storyCount).map((tipo, i) => {
-    const fn = templates[tipo as keyof typeof templates] ?? templates.gatilho;
-    return {
-      ordem: i + 1,
-      tipo,
-      copy: fn(input.promessa, input.dorPrincipal),
-      elementos: i === config.storyCount - 1 ? ["cta"] : [],
-      cta: i === config.storyCount - 1 ? "Manda um direct com QUERO" : "",
-    };
-  });
+  return config.types.slice(0, config.storyCount).map((tipo, i) => ({
+    ordem: i + 1,
+    tipo,
+    copy: (copies[tipo] ?? copies.gatilho)(input.promessa || "sua meta", input.dorPrincipal || "seu desafio"),
+    elementos: [],
+    cta: tipo === "cta" ? "Me manda QUERO no direct" : "",
+  }));
 }
 
-// ---------------------------------------------------------------------------
-// Enrich stories with metadata
-// ---------------------------------------------------------------------------
 function enrichStories(stories: any[], config: { types: string[] }): any[] {
-  return stories.map((story: any, idx: number) => {
-    const copy: string = story.copy || story.content || "";
-    const words = copy.split(" ");
+  return stories.map((s: any, idx: number) => {
+    const copy: string = String(s.copy || s.content || "");
     return {
       id: `story_${Date.now()}_${idx}`,
-      ordem: story.ordem || story.order || idx + 1,
-      tipo: story.tipo || story.type || config.types[idx % config.types.length],
+      ordem: s.ordem || s.order || idx + 1,
+      tipo: s.tipo || s.type || config.types[idx % config.types.length],
       copy,
-      elementos: story.elementos || story.elements || [],
-      cta: story.cta || "",
+      elementos: Array.isArray(s.elementos) ? s.elementos : [],
+      cta: s.cta || "",
       scoreDiversidade: 0,
       hashConteudo: "",
-      primeirasTresPalavras: words.slice(0, 3).join(" "),
-      estruturaSintatica: copy.endsWith("?") ? "pergunta" : copy.startsWith("Eu ") || copy.startsWith("Me ") ? "narrativa" : "afirmacao",
+      primeirasTresPalavras: copy.split(" ").slice(0, 3).join(" "),
+      estruturaSintatica: copy.endsWith("?") ? "pergunta" : copy.startsWith("Eu ") ? "narrativa" : "afirmacao",
     };
   });
 }
@@ -247,135 +167,125 @@ function enrichStories(stories: any[], config: { types: string[] }): any[] {
 // Main handler
 // ---------------------------------------------------------------------------
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("[generate-stories] Request received:", req.method, new Date().toISOString());
+  console.log("[generate-stories] v3 - Request:", req.method, new Date().toISOString());
+
+  // Only allow POST
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   try {
-    // Auth
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Acesso negado. Token ausente ou inválido." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !userData?.user) {
-      return new Response(
-        JSON.stringify({ error: "Sessão expirada. Faça login novamente." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    console.log("[Auth] User authenticated:", userData.user.id);
-
-    // Parse body
-    let input: any;
-    let sequenceType: string;
+    // --- Parse body ---
+    let body: any;
     try {
-      const body = await req.json();
-      input = body.input;
-      sequenceType = body.sequenceType;
+      body = await req.json();
+      console.log("[generate-stories] Body keys:", Object.keys(body || {}));
     } catch {
+      return new Response(JSON.stringify({ error: "Corpo da requisição inválido" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { input, sequenceType } = body || {};
+
+    // --- Validate input ---
+    if (!input || !sequenceType) {
+      return new Response(JSON.stringify({ error: "Campos obrigatórios: input, sequenceType" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!sequenceConfigs[sequenceType]) {
       return new Response(
-        JSON.stringify({ error: "Corpo da requisição inválido." }),
+        JSON.stringify({ error: `sequenceType inválido: "${sequenceType}". Use: engajamento, aquecimento, venda` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Validate
-    if (!input) {
-      return new Response(
-        JSON.stringify({ error: "Campo obrigatório ausente: input" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!sequenceType || !sequenceConfigs[sequenceType as keyof typeof sequenceConfigs]) {
-      return new Response(
-        JSON.stringify({ error: "sequenceType inválido. Use: engajamento, aquecimento ou venda." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (!input.nicho || !input.promessa || !input.dorPrincipal) {
-      return new Response(
-        JSON.stringify({ error: "Preencha: nicho, promessa e dorPrincipal" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!input.promessa || !input.dorPrincipal) {
+      return new Response(JSON.stringify({ error: "Preencha: promessa e dorPrincipal" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const config = sequenceConfigs[sequenceType as keyof typeof sequenceConfigs];
+    const config = sequenceConfigs[sequenceType];
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    const openaiKey = Deno.env.get("OPENAI_API_KEY");
+    const openaiKey  = Deno.env.get("OPENAI_API_KEY");
+
+    console.log("[generate-stories] Keys available - Lovable:", !!lovableKey, "OpenAI:", !!openaiKey);
 
     let rawStories: any[] | null = null;
 
     // Attempt 1: Lovable Gateway
     if (lovableKey) {
       try {
-        const { system, user } = buildStoriesPrompt(input, sequenceType, config);
+        const { system, user } = buildPrompt(input, sequenceType, config);
         const raw = await callLovableAI(lovableKey, system, user);
-        rawStories = parseStoriesResponse(raw, config);
+        rawStories = parseAIStories(raw);
+        console.log("[generate-stories] Lovable OK, stories:", rawStories.length);
       } catch (e) {
-        console.warn("[AI] Lovable failed:", e instanceof Error ? e.message : e);
+        console.warn("[generate-stories] Lovable failed:", e instanceof Error ? e.message : String(e));
       }
     }
 
     // Attempt 2: OpenAI
     if (!rawStories && openaiKey) {
       try {
-        const { system, user } = buildStoriesPrompt(input, sequenceType, config);
+        const { system, user } = buildPrompt(input, sequenceType, config);
         const raw = await callOpenAI(openaiKey, system, user);
-        rawStories = parseStoriesResponse(raw, config);
+        rawStories = parseAIStories(raw);
+        console.log("[generate-stories] OpenAI OK, stories:", rawStories.length);
       } catch (e) {
-        console.warn("[AI] OpenAI failed:", e instanceof Error ? e.message : e);
+        console.warn("[generate-stories] OpenAI failed:", e instanceof Error ? e.message : String(e));
       }
     }
 
-    // Attempt 3: Template fallback
-    if (!rawStories) {
-      console.warn("[AI] All AI attempts failed. Using template fallbacks.");
-      rawStories = generateTemplateFallback(input, config);
+    // Attempt 3: Template fallback (always works)
+    if (!rawStories || rawStories.length === 0) {
+      console.warn("[generate-stories] Using template fallback");
+      rawStories = templateFallback(input, config);
     }
 
     const enrichedStories = enrichStories(rawStories, config);
 
-    // Calculate diversity score
     const uniqueOpenings = new Set(enrichedStories.map((s) => s.primeirasTresPalavras.toLowerCase())).size;
-    const uniqueTypes = new Set(enrichedStories.map((s) => s.tipo)).size;
+    const uniqueTypes    = new Set(enrichedStories.map((s) => s.tipo)).size;
     const score = (uniqueOpenings / enrichedStories.length) * 0.4 + (uniqueTypes / 5) * 0.6;
 
     const sequence = {
-      id: `seq_${Date.now()}`,
-      tipo: sequenceType,
-      stories: enrichedStories,
+      id:              `seq_${Date.now()}`,
+      tipo:            sequenceType,
+      stories:         enrichedStories,
       input,
       scoreDiversidade: Math.round(score * 100) / 100,
-      status: "pronto",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      status:          "pronto",
+      createdAt:       new Date().toISOString(),
+      updatedAt:       new Date().toISOString(),
     };
 
-    console.log(`[generate-stories] Done. Generated ${enrichedStories.length} stories.`);
+    console.log(`[generate-stories] Done — ${enrichedStories.length} stories`);
 
-    return new Response(
-      JSON.stringify({ sequence }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ sequence }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
-  } catch (error) {
-    console.error("[generate-stories] Unexpected error:", error instanceof Error ? error.message : error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Erro interno inesperado" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erro interno inesperado";
+    console.error("[generate-stories] Unexpected error:", msg, err);
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

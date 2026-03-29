@@ -105,17 +105,30 @@ export default function StoryEnginePage() {
 
       if (error) {
         console.error('❌ Erro da Edge Function:', error);
+        console.error('❌ Error context raw:', JSON.stringify(error));
         
-        // Tratamento de erro específico
-        let errorMessage = 'Erro ao gerar stories';
+        // Extract real error message from Supabase SDK error wrapper
+        // Note: error.context may be a Response or plain object
+        let errorMessage = error.message || 'Erro ao gerar stories';
         
-        if (error.message?.includes('function not found')) {
-          errorMessage = 'Edge Function não encontrada. Faça o deploy.';
-        } else if (error.message?.includes('AUTH')) {
-          errorMessage = 'Erro de autenticação. Faça login novamente.';
-        } else if (error.message) {
-          errorMessage = error.message;
+        // Try to parse inner error from context
+        const ctx = (error as any).context;
+        if (ctx) {
+          try {
+            // ctx might be a Response object
+            if (typeof ctx.json === 'function') {
+              const body = await ctx.clone().json();
+              if (body?.error) errorMessage = body.error;
+            } else if (ctx?.error) {
+              errorMessage = ctx.error;
+            }
+          } catch {
+            // ignore parse errors
+          }
         }
+        
+        // Also check if data has error (some SDK versions route errors there)
+        if (data?.error) errorMessage = data.error;
         
         throw new Error(errorMessage);
       }
