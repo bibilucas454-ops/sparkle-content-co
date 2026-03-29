@@ -89,30 +89,62 @@ export default function StoryEnginePage() {
     setSequence(null);
 
     try {
-      // Chamar a função do Supabase
+      console.log('🔄 Chamando Edge Function generate-stories...');
+      
       const { data, error } = await supabase.functions.invoke('generate-stories', {
         body: {
-          input: formData,
+          input: {
+            ...formData,
+            userId: user?.id || 'anonymous'
+          },
           sequenceType
         }
       });
 
-      if (error) throw error;
+      console.log('📥 Resposta:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro da Edge Function:', error);
+        
+        // Tratamento de erro específico
+        let errorMessage = 'Erro ao gerar stories';
+        
+        if (error.message?.includes('function not found')) {
+          errorMessage = 'Edge Function não encontrada. Faça o deploy.';
+        } else if (error.message?.includes('AUTH')) {
+          errorMessage = 'Erro de autenticação. Faça login novamente.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        throw new Error(errorMessage);
+      }
       
       if (data?.sequence) {
         setSequence(data.sequence);
         setActiveTab('stories');
         toast.success('Stories gerados com sucesso!');
+      } else if (data?.error) {
+        throw new Error(data.error);
       } else {
-        throw new Error('Resposta inválida');
+        throw new Error('Resposta inválida da Edge Function');
       }
     } catch (err: any) {
-      console.error('Erro:', err);
-      toast.error(err.message || 'Erro ao gerar stories');
+      console.error('❌ Erro completo:', err);
+      
+      let errorMessage = 'Erro ao gerar stories';
+      
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [formData, sequenceType]);
+  }, [formData, sequenceType, user]);
 
   const handleCopy = useCallback((story: GeneratedStory) => {
     navigator.clipboard.writeText(story.copy);

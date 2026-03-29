@@ -121,9 +121,10 @@ serve(async (req) => {
   }
 
   try {
+    // Validate authorization
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Missing authorization header");
+      throw new Error("Missing authorization header. Faça login novamente.");
     }
 
     const supabaseClient = createClient(
@@ -137,20 +138,35 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !user) {
-      throw new Error("Invalid user");
+      throw new Error("Invalid user. Faça login novamente.");
     }
 
-    // Get request body
-    const { input, sequenceType } = await req.json();
+    // Get and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      throw new Error("Invalid request body. Tente novamente.");
+    }
 
-    if (!input || !sequenceType) {
-      throw new Error("Missing input or sequenceType");
+    const { input, sequenceType } = body;
+
+    if (!input) {
+      throw new Error("Missing input data");
+    }
+    
+    if (!sequenceType) {
+      throw new Error("Missing sequenceType. Selecione o tipo de sequência.");
+    }
+
+    if (!input.nicho || !input.promessa || !input.dorPrincipal) {
+      throw new Error("Preencha: nicho, promessa e dorPrincipal");
     }
 
     // Get OpenAI key
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiKey) {
-      throw new Error("OPENAI_API_KEY not configured");
+      throw new Error("OPENAI_API_KEY not configured. Configure a chave da OpenAI no painel do Supabase.");
     }
 
     const config = sequencePrompts[sequenceType as keyof typeof sequencePrompts];
@@ -167,23 +183,35 @@ serve(async (req) => {
       .replace(/{dorPrincipal}/g, input.dorPrincipal || 'não conseguir vender');
 
     // Call OpenAI
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.8,
-        max_tokens: 2000
-      })
-    });
+    let openaiResponse;
+    try {
+      openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.8,
+          max_tokens: 2000
+        })
+      });
+    } catch (networkError) {
+      console.error("Network error calling OpenAI:", networkError);
+      throw new Error("Erro de conexão com a OpenAI. Tente novamente.");
+    }
 
     if (!openaiResponse.ok) {
       const err = await openaiResponse.text();
-      throw new Error(`OpenAI error: ${err}`);
+      console.error("OpenAI API error:", err);
+      if (err.includes('api key')) {
+        throw new Error("API Key da OpenAI inválida ou expirada");
+      } else if (err.includes('rate limit')) {
+        throw new Error("Limite de requisições excedido. Tente novamente em alguns minutos.");
+      }
+      throw new Error(`Erro da OpenAI: ${err.substring(0, 100)}`);
     }
 
     const openaiData = await openaiResponse.json();
@@ -264,10 +292,29 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Edge Function Error:", error);
+    
+    let errorMessage = 'Erro interno';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('OPENAI_API_KEY') || error.message.includes('API key')) {
+        errorMessage = 'API Key da OpenAI não configurada no servidor';
+        statusCode = 503;
+      } else if (error.message.includes('Invalid user') || error.message.includes('auth')) {
+        errorMessage = 'Erro de autenticação';
+        statusCode = 401;
+      } else if (error.message.includes('Missing')) {
+        errorMessage = error.message;
+        statusCode = 400;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: errorMessage }),
+      { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
