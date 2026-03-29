@@ -3,128 +3,264 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tipos de sequência
-const sequencePrompts = {
+// Sequence type configurations
+const sequenceConfigs = {
   engajamento: {
-    desc: 'Conectar e identificar dor',
-    types: ['gatilho', 'contexto', 'valor', 'conexao', 'cta'],
-    prompt: `Gere uma sequência de 5 STORIES para Instagram com as seguintes características:
-
-CADA STORY DEVE TER:
-- Tipo específico (gatilho, contexto, valor, conexão, CTA)
-- Copy pronto para copiar e postar
-- Tom: {tomVoz}
-- Nicho: {nicho}
-- Produto: {produto}
-- Promessa: {promessa}
-- Dor: {dorPrincipal}
-
-REGRAS OBRIGATÓRIAS:
-1. NUNCA repita frases ou estruturas
-2. Cada story deve ter abertura DIFERENTE
-3. NUNCA repita o tipo de pergunta ou CTA
-4. Use linguagem conversacional brasileira
-5. Máximo 150 caracteres por story
-6. Inclua elemento interativo (enquete, pergunta, sticker) quando apropriado
-
-Sequência:
-STORY 1 (GATILHO): Comece com pergunta provocativa sobre a dor
-STORY 2 (CONTEXTO): Mostre experiência pessoal
-STORY 3 (VALOR): Ensine algo prático
-STORY 4 (CONEXÃO): Crie identificação emocional
-STORY 5 (CTA): Peça ação (responder, DM, comentar)
-
-Responda em formato JSON:
-[
-  {"ordem": 1, "tipo": "gatilho", "copy": "...", "elementos": ["pergunta"], "cta": "..."},
-  {"ordem": 2, "tipo": "contexto", "copy": "...", "elementos": [], "cta": "..."},
-  ...
-]`
+    desc: "Conectar e identificar dor",
+    types: ["gatilho", "contexto", "valor", "conexao", "cta"],
+    storyCount: 5,
   },
   aquecimento: {
-    desc: 'Criar desejo e preparar',
-    types: ['corte', 'valor', 'bastidor', 'prova', 'cta'],
-    prompt: `Gere uma sequência de 5 STORIES para Instagram (FASE AQUECIMENTO):
-
-CADA STORY DEVE TER:
-- Tipo específico (corte, valor, bastidor, prova, CTA)
-- Copy pronto para copiar e postar
-- Tom: {tomVoz}
-- Nicho: {nicho}
-- Promessa: {promessa}
-
-REGRAS OBRIGATÓRIAS:
-1. Corte crenças limitantes do público
-2. Mostre método/solução
-3. Use bastidores reais
-4. Apresente provas sociais
-5. NUNCA repita estruturas ou aberturas
-6. Use linguagem conversacional brasileira
-7. Máximo 150 caracteres
-
-Sequência:
-STORY 1 (CORTE): Desconstrua uma crença limitante
-STORY 2 (VALOR): Apresente o método
-STORY 3 (BASTIDOR): Mostre processo real
-STORY 4 (PROVA): Mostre resultado de cliente
-STORY 5 (CTA): Prepare para oferta
-
-Responda em JSON:
-[
-  {"ordem": 1, "tipo": "corte", "copy": "...", "elementos": [], "cta": "..."},
-  ...
-]`
+    desc: "Criar desejo e preparar",
+    types: ["corte", "valor", "bastidor", "prova", "cta"],
+    storyCount: 5,
   },
   venda: {
-    desc: 'Converter e fechar',
-    types: ['gatilho', 'corte', 'valor', 'prova', 'valor', 'cta', 'cta'],
-    prompt: `Gere uma sequência de 7 STORIES para Instagram (FASE VENDA):
-
-CADA STORY DEVE TER:
-- Copy pronto para copiar e postar
-- Tom direto e persuasivo
-- Promessa: {promessa}
-- Produto: {produto}
-
-REGRAS OBRIGATÓRIAS:
-1. Crie urgência REAL (não forçada)
-2. Mostre diferenciação
-3. Use prova social poderosa
-4. Detalhe a oferta claramente
-5. NUNCA repita CTA
-6. Máximo 150 caracteres
-7. Variedade de estruturas
-
-Sequência:
-STORY 1 (GATILHO): Problema + emoção
-STORY 2 (CORTE): Crença que impede compra
-STORY 3 (VALOR): Apresentar solução/oferta
-STORY 4 (PROVA): Resultado de cliente
-STORY 5 (DETALHES): O que está incluído
-STORY 6 (URGÊNCIA): Escassez real
-STORY 7 (FECHAMENTO): CTA final
-
-Responda em JSON:
-[
-  {"ordem": 1, "tipo": "gatilho", "copy": "...", "elementos": ["sticker"], "cta": "..."},
-  ...
-]`
-  }
+    desc: "Converter e fechar",
+    types: ["gatilho", "corte", "valor", "prova", "valor", "cta", "cta"],
+    storyCount: 7,
+  },
 };
 
+// ---------------------------------------------------------------------------
+// Build the master prompt for story generation
+// ---------------------------------------------------------------------------
+function buildStoriesPrompt(input: {
+  nicho: string;
+  produto: string;
+  promessa: string;
+  dorPrincipal: string;
+  objetivo: string;
+  tomVoz: string;
+}, sequenceType: string, config: { types: string[]; storyCount: number }): { system: string; user: string } {
+  const system = `Você é especialista em marketing de conteúdo para Instagram Stories.
+Gere stories em português brasileiro conversacional, prontos para copiar e postar.
+PROIBIDO: linguagem robótica, formalidade excessiva, repetição de estruturas.
+Retorne APENAS JSON puro, sem markdown, sem código.`;
+
+  const storyInstructions = config.types.slice(0, config.storyCount).map((tipo, i) => (
+    `Story ${i + 1} (${tipo.toUpperCase()}): ${getTypeInstruction(tipo)}`
+  )).join("\n");
+
+  const user = `Gere uma sequência de ${config.storyCount} stories para Instagram.
+
+CONTEXTO:
+- Nicho: ${input.nicho}
+- Produto: ${input.produto || "não especificado"}
+- Promessa: ${input.promessa}
+- Dor principal: ${input.dorPrincipal}
+- Objetivo do público: ${input.objetivo || "transformar resultados"}
+- Tom de voz: ${getTomVozDesc(input.tomVoz)}
+
+REGRAS OBRIGATÓRIAS:
+1. Cada story deve ter abertura COMPLETAMENTE diferente dos outros
+2. NUNCA repita as 3 primeiras palavras entre stories
+3. Máximo 150 caracteres por copy
+4. Tom conversacional, como se estiver falando com um amigo
+5. Inclua elemento interativo quando relevante (pergunta, enquete)
+
+SEQUÊNCIA (${sequenceType}):
+${storyInstructions}
+
+Retorne JSON puro neste formato exato:
+{"stories":[{"ordem":1,"tipo":"gatilho","copy":"texto aqui","elementos":["pergunta"],"cta":"ação aqui"},...]}`
+;
+
+  return { system, user };
+}
+
+function getTypeInstruction(tipo: string): string {
+  const map: Record<string, string> = {
+    gatilho:  "Comece com pergunta ou afirmação que para o scroll imediatamente",
+    contexto: "Crie identificação mostrando situação real do público",
+    valor:    "Entregue insight prático e acionável",
+    conexao:  "Crie vínculo emocional com história pessoal",
+    bastidor: "Mostre processo real, bastidores autênticos",
+    prova:    "Apresente resultado concreto de cliente ou seu",
+    corte:    "Quebre uma crença limitante que impede o público",
+    cta:      "Direcione para ação específica (DM, link, responder)",
+  };
+  return map[tipo] ?? "Crie conteúdo relevante e impactante";
+}
+
+function getTomVozDesc(tom: string): string {
+  const map: Record<string, string> = {
+    direto:     "Direto, sem enrolação, autoridade silenciosa",
+    emocional:  "Emocional, empático, conexão profunda",
+    pragmatico: "Prático, objetivo, focado em resultados",
+    protector:  "Protetor, acolhedor, mentor que guia",
+  };
+  return map[tom] ?? map.direto;
+}
+
+// ---------------------------------------------------------------------------
+// Call Lovable AI Gateway (primary)
+// ---------------------------------------------------------------------------
+async function callLovableAI(apiKey: string, system: string, user: string): Promise<string> {
+  console.log("[AI] Trying Lovable Gateway...");
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4o",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      max_tokens: 2000,
+      temperature: 0.9,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[AI] Lovable Gateway error:", res.status, err);
+    throw new Error(`Lovable Gateway ${res.status}: ${err}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Lovable Gateway: resposta vazia");
+  console.log("[AI] Lovable Gateway OK");
+  return content.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Call OpenAI directly (fallback)
+// ---------------------------------------------------------------------------
+async function callOpenAI(apiKey: string, system: string, user: string): Promise<string> {
+  console.log("[AI] Trying OpenAI...");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      max_tokens: 2000,
+      temperature: 0.9,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[AI] OpenAI error:", res.status, err);
+    throw new Error(`OpenAI ${res.status}: ${err}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("OpenAI: resposta vazia");
+  console.log("[AI] OpenAI OK");
+  return content.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Parse AI JSON response
+// ---------------------------------------------------------------------------
+function parseStoriesResponse(raw: string, config: { types: string[]; storyCount: number }): any[] {
+  const cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/gi, "")
+    .trim();
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("AI response is not valid JSON");
+    parsed = JSON.parse(match[0]);
+  }
+
+  // Accept both {"stories":[...]} and direct array [...]
+  let stories = Array.isArray(parsed) ? parsed : parsed?.stories;
+  if (!stories || stories.length === 0) throw new Error("No stories found in response");
+  return stories;
+}
+
+// ---------------------------------------------------------------------------
+// Template fallback — guaranteed to always work
+// ---------------------------------------------------------------------------
+function generateTemplateFallback(
+  input: { promessa: string; dorPrincipal: string },
+  config: { types: string[]; storyCount: number }
+): any[] {
+  const templates = {
+    gatilho:  (p: string) => `Você ainda está travado em ${p}? Tem algo que ninguém te contou.`,
+    contexto: (p: string) => `${p} parece impossível até você descobrir o que realmente está te impedindo.`,
+    valor:    (p: string) => `O segredo de quem consegue ${p}: foco no próximo passo, não no caminho inteiro.`,
+    conexao:  (_: string, d: string) => `Me identifico demais com quem sofre com ${d}. Por isso comecei tudo isso.`,
+    bastidor: (p: string) => `Por trás dos bastidores de como chegamos a ${p}: sem filtro, sem glamour.`,
+    prova:    (p: string) => `Alguém aplicou isso semana passada e já viu diferença em ${p}. Resultado real.`,
+    corte:    (_: string, d: string) => `Para de acreditar que ${d} é culpa sua. Isso é um sistema quebrado, não você.`,
+    cta:      (_: string, __: string) => `Quer saber como? Me manda um direct agora com a palavra QUERO.`,
+  };
+
+  return config.types.slice(0, config.storyCount).map((tipo, i) => {
+    const fn = templates[tipo as keyof typeof templates] ?? templates.gatilho;
+    return {
+      ordem: i + 1,
+      tipo,
+      copy: fn(input.promessa, input.dorPrincipal),
+      elementos: i === config.storyCount - 1 ? ["cta"] : [],
+      cta: i === config.storyCount - 1 ? "Manda um direct com QUERO" : "",
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Enrich stories with metadata
+// ---------------------------------------------------------------------------
+function enrichStories(stories: any[], config: { types: string[] }): any[] {
+  return stories.map((story: any, idx: number) => {
+    const copy: string = story.copy || story.content || "";
+    const words = copy.split(" ");
+    return {
+      id: `story_${Date.now()}_${idx}`,
+      ordem: story.ordem || story.order || idx + 1,
+      tipo: story.tipo || story.type || config.types[idx % config.types.length],
+      copy,
+      elementos: story.elementos || story.elements || [],
+      cta: story.cta || "",
+      scoreDiversidade: 0,
+      hashConteudo: "",
+      primeirasTresPalavras: words.slice(0, 3).join(" "),
+      estruturaSintatica: copy.endsWith("?") ? "pergunta" : copy.startsWith("Eu ") || copy.startsWith("Me ") ? "narrativa" : "afirmacao",
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log("[generate-stories] Request received:", req.method, new Date().toISOString());
+
   try {
-    // Validate authorization
+    // Auth
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("Missing authorization header. Faça login novamente.");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Acesso negado. Token ausente ou inválido." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const supabaseClient = createClient(
@@ -133,147 +269,89 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get user from token
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !user) {
-      throw new Error("Invalid user. Faça login novamente.");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Sessão expirada. Faça login novamente." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+    console.log("[Auth] User authenticated:", userData.user.id);
 
-    // Get and validate request body
-    let body;
+    // Parse body
+    let input: any;
+    let sequenceType: string;
     try {
-      body = await req.json();
+      const body = await req.json();
+      input = body.input;
+      sequenceType = body.sequenceType;
     } catch {
-      throw new Error("Invalid request body. Tente novamente.");
+      return new Response(
+        JSON.stringify({ error: "Corpo da requisição inválido." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const { input, sequenceType } = body;
-
+    // Validate
     if (!input) {
-      throw new Error("Missing input data");
+      return new Response(
+        JSON.stringify({ error: "Campo obrigatório ausente: input" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-    
-    if (!sequenceType) {
-      throw new Error("Missing sequenceType. Selecione o tipo de sequência.");
+    if (!sequenceType || !sequenceConfigs[sequenceType as keyof typeof sequenceConfigs]) {
+      return new Response(
+        JSON.stringify({ error: "sequenceType inválido. Use: engajamento, aquecimento ou venda." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
     if (!input.nicho || !input.promessa || !input.dorPrincipal) {
-      throw new Error("Preencha: nicho, promessa e dorPrincipal");
+      return new Response(
+        JSON.stringify({ error: "Preencha: nicho, promessa e dorPrincipal" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Get OpenAI key
+    const config = sequenceConfigs[sequenceType as keyof typeof sequenceConfigs];
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiKey) {
-      throw new Error("OPENAI_API_KEY not configured. Configure a chave da OpenAI no painel do Supabase.");
-    }
 
-    const config = sequencePrompts[sequenceType as keyof typeof sequencePrompts];
-    if (!config) {
-      throw new Error("Invalid sequence type");
-    }
+    let rawStories: any[] | null = null;
 
-    // Build prompt
-    let prompt = config.prompt
-      .replace(/{tomVoz}/g, input.tomVoz || 'direto')
-      .replace(/{nicho}/g, input.nicho || 'marketing digital')
-      .replace(/{produto}/g, input.produto || 'curso')
-      .replace(/{promessa}/g, input.promessa || 'ganhar dinheiro')
-      .replace(/{dorPrincipal}/g, input.dorPrincipal || 'não conseguir vender');
-
-    // Call OpenAI
-    let openaiResponse;
-    try {
-      openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${openaiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.8,
-          max_tokens: 2000
-        })
-      });
-    } catch (networkError) {
-      console.error("Network error calling OpenAI:", networkError);
-      throw new Error("Erro de conexão com a OpenAI. Tente novamente.");
-    }
-
-    if (!openaiResponse.ok) {
-      const err = await openaiResponse.text();
-      console.error("OpenAI API error:", err);
-      if (err.includes('api key')) {
-        throw new Error("API Key da OpenAI inválida ou expirada");
-      } else if (err.includes('rate limit')) {
-        throw new Error("Limite de requisições excedido. Tente novamente em alguns minutos.");
-      }
-      throw new Error(`Erro da OpenAI: ${err.substring(0, 100)}`);
-    }
-
-    const openaiData = await openaiResponse.json();
-    const content = openaiData.choices[0]?.message?.content || "";
-
-    // Parse JSON response
-    let stories = [];
-    try {
-      // Extract JSON from response
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        stories = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found");
-      }
-    } catch (parseError) {
-      console.error("Parse error:", parseError);
-      // Try to fix common issues
-      const fixedContent = content
-        .replace(/'/g, '"')
-        .replace(/,\s*}/g, '}')
-        .replace(/,\s*]/g, ']');
-      
+    // Attempt 1: Lovable Gateway
+    if (lovableKey) {
       try {
-        stories = JSON.parse(fixedContent);
-      } catch {
-        // If still fails, create basic stories
-        stories = content.split('\n').filter((l: string) => l.trim().length > 10).slice(0, 5).map((line: string, idx: number) => ({
-          ordem: idx + 1,
-          tipo: config.types[idx % config.types.length],
-          copy: line.replace(/^\d+[\.\)]\s*/, '').substring(0, 150),
-          elementos: [],
-          cta: ''
-        }));
+        const { system, user } = buildStoriesPrompt(input, sequenceType, config);
+        const raw = await callLovableAI(lovableKey, system, user);
+        rawStories = parseStoriesResponse(raw, config);
+      } catch (e) {
+        console.warn("[AI] Lovable failed:", e instanceof Error ? e.message : e);
       }
     }
 
-    // Ensure we have stories
-    if (!stories || stories.length === 0) {
-      throw new Error("No stories generated");
+    // Attempt 2: OpenAI
+    if (!rawStories && openaiKey) {
+      try {
+        const { system, user } = buildStoriesPrompt(input, sequenceType, config);
+        const raw = await callOpenAI(openaiKey, system, user);
+        rawStories = parseStoriesResponse(raw, config);
+      } catch (e) {
+        console.warn("[AI] OpenAI failed:", e instanceof Error ? e.message : e);
+      }
     }
 
-    // Add metadata to stories
-    const enrichedStories = stories.map((story: any, idx: number) => ({
-      id: `story_${Date.now()}_${idx}`,
-      ordem: story.ordem || idx + 1,
-      tipo: story.tipo || config.types[idx % config.types.length],
-      copy: story.copy || '',
-      elementos: story.elementos || [],
-      cta: story.cta || '',
-      scoreDiversidade: 0,
-      hashConteudo: '',
-      primeirasTresPalavras: (story.copy || '').split(' ').slice(0, 3).join(' '),
-      estruturaSintatica: story.copy?.startsWith('Você') ? 'pergunta' : 
-                         story.copy?.startsWith('A maior') ? 'afirmacao' : 
-                         story.copy?.startsWith('Eu') ? 'narrativa' : 'outro'
-    }));
+    // Attempt 3: Template fallback
+    if (!rawStories) {
+      console.warn("[AI] All AI attempts failed. Using template fallbacks.");
+      rawStories = generateTemplateFallback(input, config);
+    }
+
+    const enrichedStories = enrichStories(rawStories, config);
 
     // Calculate diversity score
-    const uniqueOpenings = new Set(enrichedStories.map((s: any) => s.primeirasTresPalavras.toLowerCase())).size;
-    const uniqueTypes = new Set(enrichedStories.map((s: any) => s.tipo)).size;
-    const score = (uniqueOpenings / enrichedStories.length * 0.4) + (uniqueTypes / 5 * 0.6);
+    const uniqueOpenings = new Set(enrichedStories.map((s) => s.primeirasTresPalavras.toLowerCase())).size;
+    const uniqueTypes = new Set(enrichedStories.map((s) => s.tipo)).size;
+    const score = (uniqueOpenings / enrichedStories.length) * 0.4 + (uniqueTypes / 5) * 0.6;
 
     const sequence = {
       id: `seq_${Date.now()}`,
@@ -281,10 +359,12 @@ serve(async (req) => {
       stories: enrichedStories,
       input,
       scoreDiversidade: Math.round(score * 100) / 100,
-      status: 'pronto',
+      status: "pronto",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
+
+    console.log(`[generate-stories] Done. Generated ${enrichedStories.length} stories.`);
 
     return new Response(
       JSON.stringify({ sequence }),
@@ -292,29 +372,10 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Edge Function Error:", error);
-    
-    let errorMessage = 'Erro interno';
-    let statusCode = 500;
-    
-    if (error instanceof Error) {
-      if (error.message.includes('OPENAI_API_KEY') || error.message.includes('API key')) {
-        errorMessage = 'API Key da OpenAI não configurada no servidor';
-        statusCode = 503;
-      } else if (error.message.includes('Invalid user') || error.message.includes('auth')) {
-        errorMessage = 'Erro de autenticação';
-        statusCode = 401;
-      } else if (error.message.includes('Missing')) {
-        errorMessage = error.message;
-        statusCode = 400;
-      } else {
-        errorMessage = error.message;
-      }
-    }
-    
+    console.error("[generate-stories] Unexpected error:", error instanceof Error ? error.message : error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: error instanceof Error ? error.message : "Erro interno inesperado" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
