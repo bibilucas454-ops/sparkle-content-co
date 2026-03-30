@@ -36,6 +36,19 @@ const FILTERS = [
   { id: "rascunho", label: "Rascunhos" },
 ];
 
+const FORMAT_FILTERS = [
+  { id: "all", label: "TODOS" },
+  { id: "reels", label: "REELS" },
+  { id: "carousel", label: "CARROSSEL" },
+  { id: "story", label: "STORY" },
+];
+
+const FORMAT_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  reels: { label: "Reels", color: "text-purple-500", bg: "bg-purple-500/10 border-purple-500/20" },
+  carousel: { label: "Carrossel", color: "text-pink-500", bg: "bg-pink-500/10 border-pink-500/20" },
+  story: { label: "Story", color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/20" },
+};
+
 interface PublicationItem {
   id: string;
   title: string;
@@ -43,6 +56,7 @@ interface PublicationItem {
   overall_status: string | null;
   scheduled_for: string | null;
   thumbnail_path: string | null;
+  content_format: string | null;
   publication_targets: {
     id: string;
     platform: string;
@@ -59,6 +73,7 @@ export default function PublisherHistory() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [formatFilter, setFormatFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,7 +90,7 @@ export default function PublisherHistory() {
     const { data, error } = await supabase
       .from("publications")
       .select(`
-        id, title, created_at, overall_status, scheduled_for, thumbnail_path,
+        id, title, created_at, overall_status, scheduled_for, thumbnail_path, content_format,
         publication_targets (id, platform, status, platform_post_url, error_message, published_at)
       `)
       .eq("user_id", user.id)
@@ -105,6 +120,7 @@ export default function PublisherHistory() {
 
   const filtered = items.filter((item) => {
     if (search && !item.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (formatFilter !== "all" && item.content_format !== formatFilter) return false;
     if (filter === "all") return true;
     if (filter === "rascunho") return item.overall_status === "rascunho";
     return item.publication_targets?.some((t) => t.status === filter);
@@ -134,30 +150,53 @@ export default function PublisherHistory() {
         </header>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card/40 p-5 rounded-2xl border border-border/40 backdrop-blur-xl shadow-sm">
-          <div className="relative flex-1 max-w-md w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-            <Input
-              placeholder="Buscar por título..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-11 bg-secondary/40 border-border/40 h-12 rounded-xl focus-visible:ring-primary/40 font-medium"
-            />
+        <div className="flex flex-col gap-4">
+          {/* Row 1: Status filters + Search */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card/40 p-5 rounded-2xl border border-border/40 backdrop-blur-xl shadow-sm">
+            <div className="relative flex-1 max-w-md w-full">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+              <Input
+                placeholder="Buscar por título..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-11 bg-secondary/40 border-border/40 h-12 rounded-xl focus-visible:ring-primary/40 font-medium"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
+              {FILTERS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilter(f.id)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all border ${
+                    filter === f.id
+                      ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
+                      : "bg-secondary text-text-secondary border-border hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2 flex-wrap overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFilter(f.id)}
-                className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all border ${
-                  filter === f.id
-                    ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                    : "bg-secondary text-text-secondary border-border hover:border-border/80 hover:bg-secondary/60 hover:text-text-primary"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+          
+          {/* Row 2: Format filters */}
+          <div className="flex items-center gap-3 bg-card/30 p-4 rounded-xl border border-border/30">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Tipo:</span>
+            <div className="flex gap-2">
+              {FORMAT_FILTERS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFormatFilter(f.id)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all ${
+                    formatFilter === f.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-text-secondary hover:bg-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -197,9 +236,16 @@ export default function PublisherHistory() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg md:text-xl text-text-primary font-display tracking-tight group-hover:text-primary transition-colors truncate">
-                        {item.title}
-                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-lg md:text-xl text-text-primary font-display tracking-tight group-hover:text-primary transition-colors truncate">
+                          {item.title}
+                        </h3>
+                        {item.content_format && FORMAT_CONFIG[item.content_format] && (
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-[0.1em] border ${FORMAT_CONFIG[item.content_format].bg} ${FORMAT_CONFIG[item.content_format].color}`}>
+                            {FORMAT_CONFIG[item.content_format].label}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col gap-1 mt-1">
                         <p className="text-[10px] uppercase font-bold tracking-[0.15em] text-text-muted">
                           {new Date(item.created_at).toLocaleDateString("pt-BR", {
