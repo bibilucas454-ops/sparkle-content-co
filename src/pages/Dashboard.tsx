@@ -3,7 +3,7 @@ import AppLayout from "@/components/AppLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Link } from "react-router-dom";
 
-import { Zap, BookOpen, ArrowRight } from "lucide-react";
+import { Zap, BookOpen, ArrowRight, Sparkles, Megaphone } from "lucide-react";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { PerformanceByTime } from "@/components/dashboard/PerformanceByTime";
 import { TrendsList } from "@/components/dashboard/TrendsList";
