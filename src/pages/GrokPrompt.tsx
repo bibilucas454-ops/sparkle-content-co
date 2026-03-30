@@ -88,7 +88,7 @@ Formato:
               placeholder="Ex: Como a inteligência artificial está mudando o mercado criativo em 2026..."
               value={tema}
               onChange={(e) => setTema(e.target.value)}
-              className="bg-secondary/40 border-border/60 text-lg py-7 shadow-inner focus-visible:ring-primary/40 focus-visible:border-primary/40 font-medium placeholder:text-muted-foreground/40 rounded-xl"
+              className="bg-secondary/40 border-border/60 text-lg py-7 shadow-inner focus-visible:ring-primary/40 focus-visible:border-primary/40 font-medium placeholder:text-text-muted rounded-xl"
             />
           </div>
 

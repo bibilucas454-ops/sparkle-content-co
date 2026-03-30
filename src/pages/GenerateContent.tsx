@@ -267,7 +267,7 @@ export default function GenerateContent() {
                     placeholder="Ex: Como viralizar no Instagram com 3 ferramentas gratuitas..."
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    className="bg-secondary/40 border-border/60 text-lg py-7 shadow-inner focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all font-medium placeholder:text-muted-foreground/40 rounded-xl"
+                    className="bg-secondary/40 border-border/60 text-lg py-7 shadow-inner focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all font-medium placeholder:text-text-muted rounded-xl"
                   />
                 </div>
 

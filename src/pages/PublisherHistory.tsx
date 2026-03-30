@@ -14,13 +14,13 @@ import { motion, AnimatePresence } from "framer-motion";
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
 
 const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  pendente: { label: "Agendado", icon: Clock, className: "text-muted-foreground" },
-  queued: { label: "Na Fila", icon: Clock, className: "text-blue-500" },
-  enviando: { label: "Enviando", icon: Loader2, className: "text-warning animate-spin" },
-  processando: { label: "Processando", icon: Loader2, className: "text-accent animate-spin" },
-  publicado: { label: "Publicado", icon: CheckCircle2, className: "text-green-500" },
-  erro: { label: "Erro", icon: AlertCircle, className: "text-destructive" },
-  rascunho: { label: "Rascunho", icon: Clock, className: "text-muted-foreground" },
+  pendente: { label: "Agendado", icon: Clock, className: "text-text-secondary" },
+  queued: { label: "Na Fila", icon: Clock, className: "text-blue-400" },
+  enviando: { label: "Enviando", icon: Loader2, className: "text-amber-400 animate-spin" },
+  processando: { label: "Processando", icon: Loader2, className: "text-primary animate-spin" },
+  publicado: { label: "Publicado", icon: CheckCircle2, className: "text-green-400" },
+  erro: { label: "Erro", icon: AlertCircle, className: "text-red-400" },
+  rascunho: { label: "Rascunho", icon: Clock, className: "text-text-secondary" },
 };
 
 const PLATFORM_ICONS: Record<string, { icon: typeof Youtube; color: string; label: string }> = {
@@ -208,7 +208,7 @@ export default function PublisherHistory() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
+          <div className="text-center py-16 text-text-secondary">
             <p>Nenhuma publicação encontrada.</p>
           </div>
         ) : (
@@ -231,7 +231,7 @@ export default function PublisherHistory() {
                       {item.thumbnail_path ? (
                         <img src={item.thumbnail_path} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
                       ) : (
-                        <Play className="w-6 h-6 text-muted-foreground/40" />
+                        <Play className="w-6 h-6 text-text-secondary" />
                       )}
                     </div>
 
@@ -258,13 +258,13 @@ export default function PublisherHistory() {
                         </p>
                         
                         {item.scheduled_for && (item.overall_status === "pendente" || item.overall_status === "queued") && (
-                          <div className="inline-flex items-center gap-2 mt-0.5 px-2 py-1 rounded-md bg-accent/10 border border-accent/20 w-fit">
-                            <Clock className="w-3 h-3 text-accent" />
-                            <div className="flex items-center gap-1.5 text-xs font-semibold text-accent">
+                          <div className="inline-flex items-center gap-2 mt-0.5 px-2 py-1 rounded-md bg-primary/10 border border-primary/20 w-fit">
+                            <Clock className="w-3 h-3 text-primary" />
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                               <span className="capitalize">
                                 {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'long' })}
                               </span>
-                              <span className="opacity-40">•</span>
+                              <span className="opacity-60">•</span>
                               <span>
                                 {new Date(item.scheduled_for).toLocaleDateString("pt-BR", {
                                   day: "2-digit",
@@ -272,7 +272,7 @@ export default function PublisherHistory() {
                                   year: "numeric",
                                 })}
                               </span>
-                              <span className="opacity-40">•</span>
+                              <span className="opacity-60">•</span>
                               <span>
                                 {new Date(item.scheduled_for).toLocaleTimeString("pt-BR", {
                                   hour: "2-digit",
@@ -294,7 +294,7 @@ export default function PublisherHistory() {
                         return (
                           <div
                             key={t.id}
-                            className="flex items-center gap-1 px-2 py-1 rounded bg-secondary text-xs"
+                            className="flex items-center gap-1 px-2 py-1 rounded bg-secondary text-xs text-text-primary"
                             title={`${platInfo?.label}: ${statusCfg.label}`}
                           >
                             <Icon className={`w-3 h-3 ${platInfo?.color}`} />
@@ -340,7 +340,7 @@ export default function PublisherHistory() {
                             </div>
                             <div className="flex items-center gap-2">
                               {t.error_message && (
-                                <span className="text-xs text-destructive max-w-[200px] truncate">
+                                <span className="text-xs text-red-400 max-w-[200px] truncate">
                                   {t.error_message}
                                 </span>
                               )}
@@ -349,7 +349,7 @@ export default function PublisherHistory() {
                                   href={t.platform_post_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-accent text-xs flex items-center gap-1 hover:underline"
+                                  className="text-primary text-xs flex items-center gap-1 hover:underline"
                                 >
                                   <ExternalLink className="w-3 h-3" />
                                   Ver post

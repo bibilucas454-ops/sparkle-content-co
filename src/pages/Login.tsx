@@ -109,7 +109,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="pl-12 h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl transition-all font-medium"
+                    className="pl-12 h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl transition-all font-medium"
                   />
                 </div>
                 <div className="relative">
@@ -120,7 +120,7 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl px-6 transition-all font-medium"
+                    className="h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl px-6 transition-all font-medium"
                   />
                 </div>
               </div>

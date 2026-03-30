@@ -45,17 +45,17 @@ type PubStatus = "pendente" | "draft" | "ready" | "scheduled" | "queued" | "proc
 
 const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle2; className: string }> = {
   pendente: { label: "Agendado", icon: Clock, className: "text-text-secondary" },
-  draft: { label: "Rascunho", icon: Save, className: "text-text-muted" },
+  draft: { label: "Rascunho", icon: Save, className: "text-text-secondary" },
   ready: { label: "Pronto", icon: CheckCircle2, className: "text-primary" },
-  scheduled: { label: "Cronometrado", icon: Clock, className: "text-amber-500" },
+  scheduled: { label: "Cronometrado", icon: Clock, className: "text-amber-400" },
   queued: { label: "Na Fila", icon: Clock, className: "text-primary" },
   processing: { label: "Processando", icon: Loader2, className: "text-primary animate-spin" },
-  published: { label: "Publicado", icon: CheckCircle2, className: "text-emerald-500" },
-  failed: { label: "Falha", icon: AlertCircle, className: "text-destructive" },
-  retrying: { label: "Tentando Novamente", icon: Loader2, className: "text-amber-500 animate-spin" },
-  cancelled: { label: "Cancelado", icon: X, className: "text-muted-foreground" },
-  enviando: { label: "Enviando", icon: Loader2, className: "text-amber-500 animate-spin" },
-  erro: { label: "Erro Crítico", icon: AlertCircle, className: "text-destructive" },
+  published: { label: "Publicado", icon: CheckCircle2, className: "text-green-400" },
+  failed: { label: "Falha", icon: AlertCircle, className: "text-red-400" },
+  retrying: { label: "Tentando Novamente", icon: Loader2, className: "text-amber-400 animate-spin" },
+  cancelled: { label: "Cancelado", icon: X, className: "text-text-secondary" },
+  enviando: { label: "Enviando", icon: Loader2, className: "text-amber-400 animate-spin" },
+  erro: { label: "Erro Crítico", icon: AlertCircle, className: "text-red-400" },
 };
 
 interface PlatformSettings {
@@ -647,10 +647,10 @@ export default function PublisherHub() {
               <h2 className="text-xl font-black font-display text-gradient-primary flex items-center gap-2 tracking-tighter mb-4">
                 <Clock className="w-5 h-5" /> Histórico
               </h2>
-              <div className="premium-card p-6 text-center">
+               <div className="premium-card p-6 text-center">
                 <div className="max-w-md mx-auto space-y-2">
-                   <Clock className="w-8 h-8 text-muted-foreground/20 mx-auto" />
-                   <p className="text-muted-foreground text-sm">Publicações recentes aparecerão aqui.</p>
+                   <Clock className="w-8 h-8 text-text-secondary mx-auto" />
+                   <p className="text-text-secondary text-sm">Publicações recentes aparecerão aqui.</p>
                 </div>
               </div>
             </div>
