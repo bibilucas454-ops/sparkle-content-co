@@ -489,9 +489,9 @@ export default function PublisherHub() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8">
           {/* COLUNA ESQUERDA - Conteúdo Principal */}
-          <div className="space-y-6">
+          <div className="space-y-6 max-w-3xl">
             {/* Upload de Mídia */}
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -657,79 +657,83 @@ export default function PublisherHub() {
           </div>
 
           {/* COLUNA DIREITA - Painel de Controle (STICKY) */}
-          <div>
-            <div className="sticky top-6 space-y-5">
-              {/* Formato do Conteúdo */}
-              <div className="premium-card p-6 space-y-4">
-                <h3 className="text-sm font-bold font-display flex items-center gap-2">
-                  <PlayCircle className="w-4 h-4 text-primary" /> Formato
-                </h3>
-                <div className="flex gap-2 flex-wrap">
-                  {CONTENT_FORMATS.map((f) => {
-                    const isSelected = selectedFormat === f.id;
-                    return (
-                      <button
-                        key={f.id}
-                        onClick={() => handleFormatChange(f.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border transition-all text-xs group relative ${isSelected
-                          ? "border-primary bg-primary/10 text-text-primary"
-                          : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80"
+          <div className="lg:min-w-[420px]">
+            <div className="sticky top-6 space-y-6">
+              {/* BLOCO 1: CONFIGURAÇÃO - Formato + Plataformas juntos */}
+              <div className="premium-card p-6 space-y-5">
+                <div className="flex items-center gap-2 pb-3 border-b border-border/40">
+                  <PlayCircle className="w-5 h-5 text-primary" />
+                  <h3 className="text-base font-bold text-foreground">Configuração</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Formato</label>
+                  <div className="flex gap-2">
+                    {CONTENT_FORMATS.map((f) => {
+                      const isSelected = selectedFormat === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => handleFormatChange(f.id)}
+                          className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all text-sm flex-1 justify-center ${isSelected
+                            ? "border-primary bg-primary/10 text-text-primary font-semibold"
+                            : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80 font-medium"
                           }`}
-                      >
-                        <f.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-text-muted"}`} />
-                        <span className="font-semibold">{f.label}</span>
-                      </button>
-                    );
-                  })}
+                        >
+                          <f.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                          <span>{f.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Plataformas</label>
+                  <div className="flex gap-2">
+                    {PLATFORMS.map((p) => {
+                      const isSelected = selectedPlatforms.includes(p.id);
+                      const isConnected = connectedAccounts.includes(p.id);
+                      const isYoutube = p.id === 'youtube';
+                      
+                      if (isYoutube && selectedFormat !== "reels") return null;
+
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => togglePlatform(p.id)}
+                          className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all text-sm flex-1 justify-center ${isSelected
+                              ? "border-primary bg-primary/10 text-foreground font-semibold"
+                              : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground font-medium"
+                            }`}
+                        >
+                          <p.icon className={`w-4 h-4 ${isSelected ? p.color : "opacity-70"}`} />
+                          <span>{p.label}</span>
+                          {!isConnected && <span className="text-[10px] text-warning">!</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/60 italic">
+                    * Carrosséis não vão para YouTube
+                  </p>
                 </div>
               </div>
 
-              {/* Distribuição Automática */}
-              <div className="premium-card p-6 space-y-4">
-                <h3 className="text-sm font-bold font-display flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-primary" /> Plataformas
-                </h3>
-                <div className="flex gap-2 flex-wrap">
-                  {PLATFORMS.map((p) => {
-                    const isSelected = selectedPlatforms.includes(p.id);
-                    const isConnected = connectedAccounts.includes(p.id);
-                    const isYoutube = p.id === 'youtube';
-                    
-                    if (isYoutube && selectedFormat !== "reels") return null;
-
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => togglePlatform(p.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-all text-xs ${isSelected
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground"
-                          }`}
-                      >
-                        <p.icon className={`w-4 h-4 ${isSelected ? p.color : "opacity-70"}`} />
-                        <span className="font-semibold">{p.label}</span>
-                        {!isConnected && <span className="text-[9px] text-warning">!</span>}
-                      </button>
-                    );
-                  })}
+              {/* BLOCO 2: HORÁRIOS */}
+              <div className="premium-card p-6 bg-gradient-to-br from-primary/5 to-secondary/20 border-primary/20 space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <h3 className="text-base font-bold text-foreground">Horários Recomendados</h3>
+                  </div>
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-full font-bold uppercase">Métrica</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground/60 italic">
-                  * Carrosséis não vão para YouTube
-                </p>
-              </div>
-
-              {/* Horários Recomendados */}
-              <div className="premium-card p-6 bg-gradient-to-br from-primary/5 to-secondary/20 border-primary/20 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-bold text-foreground">Horários Recomendados</h3>
-                  <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold uppercase">Métrica</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {RECOMMENDED_SCHEDULES.map((slot, i) => (
                     <div 
                       key={i} 
-                      className="bg-card/60 border border-border/50 rounded-lg p-2 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
+                      className="bg-card/60 border border-border/50 rounded-lg p-3 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
                       onClick={() => {
                         const now = new Date();
                         let hours: number, minutes: number;
@@ -757,65 +761,69 @@ export default function PublisherHub() {
                         toast.success(`${slot.icon} ${slot.isMorning ? `${hours}:${minsStr} - ${hours}:${minutes === 30 ? '30' : '00'}` : slot.time}`);
                       }}
                     >
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-sm">{slot.icon}</span>
-                        <span className="text-[9px] font-bold text-muted-foreground uppercase">{slot.label}</span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-base">{slot.icon}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{slot.label}</span>
                       </div>
-                      <div className="text-xs font-black text-foreground font-mono">{slot.time}</div>
+                      <div className="text-sm font-black text-foreground font-mono">{slot.time}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Validação */}
+              {/* BLOCO 3: VALIDAÇÃO */}
               <div className="premium-card p-6 space-y-4">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-muted-foreground" /> Validação
-                </h3>
-                <div className="space-y-2">
+                <div className="flex items-center gap-2 pb-3 border-b border-border/40">
+                  <AlertCircle className="w-5 h-5 text-muted-foreground" />
+                  <h3 className="text-base font-bold text-foreground">Validação</h3>
+                </div>
+                <div className="space-y-3">
                   {validationChecks.map((check, i) => (
-                    <div key={i} className={`flex items-center gap-2 text-xs ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
-                      {check.ok ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                    <div key={i} className={`flex items-center gap-3 text-sm ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
+                      {check.ok ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4" />}
                       <span>{check.label}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Aprovação */}
-              <div className="premium-card p-6 flex items-center justify-between">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação
-                  </h4>
-                  <p className="text-xs text-muted-foreground">Autorizar publicação</p>
+              {/* BLOCO 4: AÇÃO - O mais importante visualmente */}
+              <div className="premium-card p-6 space-y-5 border-2 border-primary/30 bg-gradient-to-b from-primary/5 to-card">
+                <div className="flex items-center gap-2 pb-3 border-b border-border/40">
+                  <Send className="w-5 h-5 text-primary" />
+                  <h3 className="text-base font-bold text-foreground">Publicar Conteúdo</h3>
                 </div>
-                <Switch checked={approved} onCheckedChange={setApproved} />
-              </div>
 
-              {/* Agendamento */}
-              <div className="premium-card p-6 space-y-3">
-                <label className="text-sm font-bold text-foreground block">Agendar (opcional)</label>
-                <Input
-                  type="datetime-local"
-                  value={scheduledFor}
-                  onChange={(e) => setScheduledFor(e.target.value)}
-                  className="bg-secondary border-border text-sm h-11"
-                />
-              </div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação
+                    </h4>
+                    <p className="text-xs text-muted-foreground">Autorizar publicação</p>
+                  </div>
+                  <Switch checked={approved} onCheckedChange={setApproved} />
+                </div>
 
-              {/* Ações */}
-              <div className="premium-card p-6">
-                <div className="flex gap-3">
-                  <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" className="flex-1 h-12 text-base font-bold">
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Agendar (opcional)</label>
+                  <Input
+                    type="datetime-local"
+                    value={scheduledFor}
+                    onChange={(e) => setScheduledFor(e.target.value)}
+                    className="bg-secondary border-border text-sm h-11"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" className="flex-1 h-14 text-lg font-bold shadow-lg shadow-primary/25">
                     {publishing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    <span className="ml-2">Publicar</span>
+                    <span className="ml-2">Publicar Agora</span>
                   </Button>
-                  <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" className="flex-1 h-12 text-base font-bold">
+                  <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" className="flex-1 h-14 text-lg font-bold">
                     <Clock className="w-5 h-5" />
                     <span className="ml-2">Agendar</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={clearForm} className="h-12 w-12">
+                  <Button variant="ghost" size="icon" onClick={clearForm} className="h-14 w-14">
                     <Trash2 className="w-5 h-5" />
                   </Button>
                 </div>
