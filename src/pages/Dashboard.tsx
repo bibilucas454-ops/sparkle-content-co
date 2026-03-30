@@ -167,7 +167,7 @@ export default function Dashboard() {
                 <h3 className="font-bold text-text-primary mb-1 group-hover:text-primary transition-colors">
                   {action.title}
                 </h3>
-                <p className="text-sm text-text-muted font-medium">
+                <p className="text-sm text-text-secondary font-medium">
                   {action.description}
                 </p>
               </Link>

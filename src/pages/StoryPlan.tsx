@@ -202,7 +202,7 @@ export default function StoryPlan() {
                       }`}>
                         {obj.label}
                       </span>
-                      <p className="text-xs text-text-muted mt-1">{obj.description}</p>
+                      <p className="text-xs text-text-secondary mt-1">{obj.description}</p>
                     </button>
                   ))}
                 </div>
@@ -228,7 +228,7 @@ export default function StoryPlan() {
                       }`}>
                         {len.label}
                       </span>
-                      <span className="text-xs text-text-muted">{len.description}</span>
+                      <span className="text-xs text-text-secondary">{len.description}</span>
                     </button>
                   ))}
                 </div>
@@ -252,7 +252,7 @@ export default function StoryPlan() {
                       <div className={`mx-auto w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
                         selectedTypes.includes(type.id) 
                           ? "bg-pink-500 text-white" 
-                          : "bg-secondary text-text-muted"
+                          : "bg-secondary text-text-secondary"
                       }`}>
                         {type.icon}
                       </div>
@@ -325,7 +325,7 @@ export default function StoryPlan() {
                               {story.typeLabel}
                             </span>
                             {story.tip && (
-                              <span className="text-xs text-text-muted flex items-center gap-1">
+                              <span className="text-xs text-text-secondary flex items-center gap-1">
                                 <Sparkles className="w-3 h-3" />
                                 {story.tip}
                               </span>
@@ -361,28 +361,28 @@ export default function StoryPlan() {
                   <span className="w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
                   <div>
                     <span className="font-bold text-text-primary text-sm">Defina o tema</span>
-                    <p className="text-xs text-text-muted">Escolha sobre o que quer falar nos stories</p>
+                    <p className="text-xs text-text-secondary">Escolha sobre o que quer falar nos stories</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
                   <span className="w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
                   <div>
                     <span className="font-bold text-text-primary text-sm">Escolha o objetivo</span>
-                    <p className="text-xs text-text-muted">Engajar, aquecer, vender ou nutrir</p>
+                    <p className="text-xs text-text-secondary">Engajar, aquecer, vender ou nutrir</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
                   <span className="w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
                   <div>
                     <span className="font-bold text-text-primary text-sm">Selecione tipos</span>
-                    <p className="text-xs text-text-muted">Escolha os tipos de story que deseja incluir</p>
+                    <p className="text-xs text-text-secondary">Escolha os tipos de story que deseja incluir</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
                   <span className="w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
                   <div>
                     <span className="font-bold text-text-primary text-sm">Receba a sequência</span>
-                    <p className="text-xs text-text-muted">Obtenha um funil pronto para publicar</p>
+                    <p className="text-xs text-text-secondary">Obtenha um funil pronto para publicar</p>
                   </div>
                 </li>
               </ol>
@@ -390,7 +390,7 @@ export default function StoryPlan() {
 
             <div className="premium-card p-6 bg-gradient-to-br from-pink-500/5 to-transparent">
               <h3 className="font-black text-text-primary mb-3">Dica</h3>
-              <p className="text-sm text-text-muted leading-relaxed">
+              <p className="text-sm text-text-secondary leading-relaxed">
                 Para melhores resultados, use sequências de 5-7 stories com mix de tipos diferentes. 
                 Comece com conexão,Build autoridade,Prove valor,Termine com CTA forte.
               </p>

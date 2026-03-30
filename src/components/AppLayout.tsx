@@ -70,7 +70,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <div className="space-y-8">
       {navGroups.map((group) => (
         <div key={group.label} className="space-y-2">
-          <h4 className="px-4 text-[11px] font-black text-text-muted uppercase tracking-[0.2em] mb-3">
+          <h4 className="px-4 text-[11px] font-black text-text-secondary uppercase tracking-[0.2em] mb-3">
             {group.label}
           </h4>
           <div className="space-y-1.5">
@@ -90,7 +90,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                   {active && (
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
                   )}
-                  <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${active ? "text-white scale-110" : "text-text-muted group-hover:text-text-primary group-hover:scale-110"}`} strokeWidth={active ? 2.5 : 2} />
+                  <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${active ? "text-white scale-110" : "text-text-secondary group-hover:text-text-primary group-hover:scale-110"}`} strokeWidth={active ? 2.5 : 2} />
                   <span className="relative z-10">{item.label}</span>
                 </Link>
               );

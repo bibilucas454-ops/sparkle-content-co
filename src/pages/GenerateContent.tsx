@@ -255,12 +255,12 @@ export default function GenerateContent() {
             {/* Context Card */}
             <div className="premium-card p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <AlignLeft className="w-5 h-5 text-muted-foreground" />
+                <AlignLeft className="w-5 h-5 text-text-secondary" />
                 <h3 className="text-lg font-semibold text-foreground font-display tracking-tight">Contexto do Conteúdo</h3>
               </div>
               <div className="space-y-6">
                 <div>
-                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                  <label className="text-[11px] font-bold text-text-secondary uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                     Tema Principal <span className="text-destructive font-black">*</span>
                   </label>
                   <Input
@@ -272,7 +272,7 @@ export default function GenerateContent() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                  <label className="text-[11px] font-bold text-text-secondary uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
                     Título Específico <span className="font-normal opacity-70 lowercase text-[10px]">(opcional)</span>
                   </label>
                   <Input
@@ -289,7 +289,7 @@ export default function GenerateContent() {
               {/* Platform Card */}
               <div className="premium-card p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <Target className="w-5 h-5 text-muted-foreground" />
+                  <Target className="w-5 h-5 text-text-secondary" />
                   <h3 className="text-lg font-semibold text-foreground font-display tracking-tight">Plataforma Alvo</h3>
                 </div>
                 <div className="flex flex-col gap-3">
@@ -314,7 +314,7 @@ export default function GenerateContent() {
               <div className="premium-card p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <Fingerprint className="w-5 h-5 text-muted-foreground" />
+                    <Fingerprint className="w-5 h-5 text-text-secondary" />
                     <h3 className="text-lg font-semibold text-foreground font-display tracking-tight">O Que Gerar?</h3>
                   </div>
                   <button
@@ -358,9 +358,9 @@ export default function GenerateContent() {
                 className="w-full h-16 text-lg font-bold transition-all rounded-2xl border-border/80 hover:bg-secondary/80"
               >
                 {loading ? (
-                  <Loader2 className="w-6 h-6 mr-3 animate-spin text-muted-foreground" />
+                  <Loader2 className="w-6 h-6 mr-3 animate-spin text-text-secondary" />
                 ) : (
-                  <Zap className="w-6 h-6 mr-3 text-muted-foreground" />
+                  <Zap className="w-6 h-6 mr-3 text-text-secondary" />
                 )}
                 GERAR PEÇAS SELECIONADAS
               </Button>

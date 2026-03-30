@@ -247,7 +247,7 @@ export default function PublisherHistory() {
                         )}
                       </div>
                       <div className="flex flex-col gap-1 mt-1">
-                        <p className="text-[10px] uppercase font-bold tracking-[0.15em] text-text-muted">
+                        <p className="text-[10px] uppercase font-bold tracking-[0.15em] text-text-secondary">
                           {new Date(item.created_at).toLocaleDateString("pt-BR", {
                             day: "2-digit",
                             month: "short",
@@ -304,7 +304,7 @@ export default function PublisherHistory() {
                       })}
                     </div>
 
-                    <Eye className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <Eye className="w-4 h-4 text-text-secondary flex-shrink-0" />
                   </div>
 
                   {/* Expanded details */}
@@ -325,14 +325,14 @@ export default function PublisherHistory() {
                           >
                             <div className="flex items-center gap-2">
                               <Icon className={`w-4 h-4 ${platInfo?.color}`} />
-                              <span className="text-sm">{platInfo?.label}</span>
+                              <span className="text-sm text-text-primary">{platInfo?.label}</span>
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1">
                                   <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
                                   <span className={`text-xs font-medium ${statusCfg.className}`}>{statusCfg.label}</span>
                                 </div>
                                 {t.status === "pendente" && item.scheduled_for && (
-                                  <span className="text-[10px] text-muted-foreground mt-0.5 ml-4">
+                                  <span className="text-[10px] text-text-secondary mt-0.5 ml-4">
                                     {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'short' })}, {new Date(item.scheduled_for).toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                   </span>
                                 )}

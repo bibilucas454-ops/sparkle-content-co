@@ -502,11 +502,11 @@ export default function PublisherHub() {
                 dragging ? "border-primary bg-primary/10" : "border-border/40 hover:border-primary/50 hover:bg-secondary/20"
               }`}
             >
-              <Upload className="w-10 h-10 text-muted-foreground mb-3" />
-              <p className="text-base text-muted-foreground text-center font-medium">
+              <Upload className="w-10 h-10 text-text-secondary mb-3" />
+              <p className="text-base text-text-secondary text-center font-medium">
                 Arraste mídias aqui ou clique (Até 10)
               </p>
-              <p className="text-sm text-muted-foreground/60 mt-2">
+              <p className="text-sm text-text-muted mt-2">
                 MP4, JPEG, PNG
               </p>
               <input
@@ -550,7 +550,7 @@ export default function PublisherHub() {
             {/* Campos de Conteúdo */}
             <div className="premium-card p-6 space-y-5">
               <div>
-                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Título Interno</label>
+                <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">Título Interno</label>
                 <Input
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
@@ -560,7 +560,7 @@ export default function PublisherHub() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Título para Instagram</label>
+                <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">Título para Instagram</label>
                 <Input
                   placeholder="Título que aparecerá no Instagram"
                   value={instagramTitle}
@@ -570,7 +570,7 @@ export default function PublisherHub() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Legenda Principal</label>
+                <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">Legenda Principal</label>
                 <Textarea
                   placeholder="Escreva a legenda principal..."
                   value={caption}
@@ -581,11 +581,11 @@ export default function PublisherHub() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Hashtags</label>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">Hashtags</label>
                   <Input placeholder="#hashtags" value={hashtags} onChange={(e) => setHashtags(e.target.value)} className="bg-secondary/50 border-border h-10 text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">CTA</label>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">CTA</label>
                   <Input placeholder="Call to action" value={cta} onChange={(e) => setCta(e.target.value)} className="bg-secondary/50 border-border h-10 text-sm" />
                 </div>
               </div>
@@ -667,7 +667,7 @@ export default function PublisherHub() {
                 </div>
                 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Formato</label>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em]">Formato</label>
                   <div className="flex gap-2">
                     {CONTENT_FORMATS.map((f) => {
                       const isSelected = selectedFormat === f.id;
@@ -680,7 +680,7 @@ export default function PublisherHub() {
                             : "border-border bg-secondary/30 text-text-secondary hover:text-text-primary hover:border-border/80 font-medium"
                           }`}
                         >
-                          <f.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-text-muted"}`} />
+                          <f.icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-text-secondary"}`} />
                           <span>{f.label}</span>
                         </button>
                       );
@@ -689,7 +689,7 @@ export default function PublisherHub() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Plataformas</label>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em]">Plataformas</label>
                   <div className="flex gap-2">
                     {PLATFORMS.map((p) => {
                       const isSelected = selectedPlatforms.includes(p.id);
@@ -704,7 +704,7 @@ export default function PublisherHub() {
                           onClick={() => togglePlatform(p.id)}
                           className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all text-sm flex-1 justify-center ${isSelected
                               ? "border-primary bg-primary/10 text-foreground font-semibold"
-                              : "border-border bg-secondary/30 text-muted-foreground hover:text-foreground font-medium"
+                              : "border-border bg-secondary/30 text-text-secondary hover:text-foreground font-medium"
                             }`}
                         >
                           <p.icon className={`w-4 h-4 ${isSelected ? p.color : "opacity-70"}`} />
@@ -714,7 +714,7 @@ export default function PublisherHub() {
                       );
                     })}
                   </div>
-                  <p className="text-[11px] text-muted-foreground/60 italic">
+                  <p className="text-[11px] text-text-muted italic">
                     * Carrosséis não vão para YouTube
                   </p>
                 </div>
@@ -763,7 +763,7 @@ export default function PublisherHub() {
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-base">{slot.icon}</span>
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{slot.label}</span>
+                        <span className="text-[10px] font-bold text-text-secondary uppercase">{slot.label}</span>
                       </div>
                       <div className="text-sm font-black text-foreground font-mono">{slot.time}</div>
                     </div>
@@ -774,12 +774,12 @@ export default function PublisherHub() {
               {/* BLOCO 3: VALIDAÇÃO */}
               <div className="premium-card p-6 space-y-4">
                 <div className="flex items-center gap-2 pb-3 border-b border-border/40">
-                  <AlertCircle className="w-5 h-5 text-muted-foreground" />
+                  <AlertCircle className="w-5 h-5 text-text-secondary" />
                   <h3 className="text-base font-bold text-foreground">Validação</h3>
                 </div>
                 <div className="space-y-3">
                   {validationChecks.map((check, i) => (
-                    <div key={i} className={`flex items-center gap-3 text-sm ${check.ok ? 'text-muted-foreground' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
+                    <div key={i} className={`flex items-center gap-3 text-sm ${check.ok ? 'text-text-secondary' : (check as any).warning ? 'text-warning' : 'text-destructive'}`}>
                       {check.ok ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4" />}
                       <span>{check.label}</span>
                     </div>
@@ -799,13 +799,13 @@ export default function PublisherHub() {
                     <h4 className="text-sm font-bold flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação
                     </h4>
-                    <p className="text-xs text-muted-foreground">Autorizar publicação</p>
+                    <p className="text-xs text-text-secondary">Autorizar publicação</p>
                   </div>
                   <Switch checked={approved} onCheckedChange={setApproved} />
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em]">Agendar (opcional)</label>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em]">Agendar (opcional)</label>
                   <Input
                     type="datetime-local"
                     value={scheduledFor}

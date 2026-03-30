@@ -85,7 +85,7 @@
     --secondary-foreground: 210 20% 98%;
 
     --muted: 222 47% 10%;
-    --muted-foreground: 217 19% 70%;
+    --muted-foreground: 215 14% 65%;
 
     --accent: 243 75% 12%;
     --accent-foreground: 243 75% 75%;
@@ -106,11 +106,11 @@
     --sidebar-border: 222 47% 15%;
     --sidebar-ring: 243 75% 66%;
 
-    /* Text Contrast Tokens - Dark Mode (Better Legibility) */
+    /* Text Contrast Tokens - Dark Mode (High Contrast for Accessibility) */
     --text-primary: 210 20% 98%;
-    --text-secondary: 215 20% 88%;
-    --text-muted: 215 15% 72%; /* Increased contrast */
-    --text-disabled: 215 10% 50%;
+    --text-secondary: 215 14% 75%;
+    --text-muted: 215 12% 60%;
+    --text-disabled: 215 8% 45%;
 
     --gradient-silver: linear-gradient(135deg, hsl(243 75% 66%), hsl(263 75% 82%));
     --gradient-accent: linear-gradient(135deg, hsl(243 75% 62%), hsl(283 75% 78%));
