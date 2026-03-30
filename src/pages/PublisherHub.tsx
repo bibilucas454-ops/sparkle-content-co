@@ -78,6 +78,7 @@ export default function PublisherHub() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const [title, setTitle] = useState("");
+  const [instagramTitle, setInstagramTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [hashtags, setHashtags] = useState("");
   const [cta, setCta] = useState("");
@@ -457,6 +458,7 @@ export default function PublisherHub() {
   const clearForm = () => {
     setMediaFiles([]);
     setTitle("");
+    setInstagramTitle("");
     setCaption("");
     setHashtags("");
     setCta("");
@@ -487,9 +489,9 @@ export default function PublisherHub() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-8">
           {/* COLUNA ESQUERDA - Conteúdo Principal */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+          <div className="space-y-6">
             {/* Upload de Mídia */}
             <div
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -553,6 +555,16 @@ export default function PublisherHub() {
                   placeholder="Ex: Carrossel sobre Hábitos"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className="bg-secondary/50 border-border h-11 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-text-muted uppercase tracking-[0.15em] mb-2.5 block">Título para Instagram</label>
+                <Input
+                  placeholder="Título que aparecerá no Instagram"
+                  value={instagramTitle}
+                  onChange={(e) => setInstagramTitle(e.target.value)}
                   className="bg-secondary/50 border-border h-11 text-sm"
                 />
               </div>
@@ -645,10 +657,10 @@ export default function PublisherHub() {
           </div>
 
           {/* COLUNA DIREITA - Painel de Controle (STICKY) */}
-          <div className="lg:col-span-5 xl:col-span-4">
+          <div>
             <div className="sticky top-6 space-y-5">
               {/* Formato do Conteúdo */}
-              <div className="premium-card p-5 space-y-3">
+              <div className="premium-card p-6 space-y-4">
                 <h3 className="text-sm font-bold font-display flex items-center gap-2">
                   <PlayCircle className="w-4 h-4 text-primary" /> Formato
                 </h3>
@@ -673,7 +685,7 @@ export default function PublisherHub() {
               </div>
 
               {/* Distribuição Automática */}
-              <div className="premium-card p-5 space-y-3">
+              <div className="premium-card p-6 space-y-4">
                 <h3 className="text-sm font-bold font-display flex items-center gap-2">
                   <ExternalLink className="w-4 h-4 text-primary" /> Plataformas
                 </h3>
@@ -707,7 +719,7 @@ export default function PublisherHub() {
               </div>
 
               {/* Horários Recomendados */}
-              <div className="premium-card p-4 bg-gradient-to-br from-primary/5 to-secondary/20 border-primary/20 space-y-3">
+              <div className="premium-card p-6 bg-gradient-to-br from-primary/5 to-secondary/20 border-primary/20 space-y-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-bold text-foreground">Horários Recomendados</h3>
@@ -756,8 +768,8 @@ export default function PublisherHub() {
               </div>
 
               {/* Validação */}
-              <div className="rounded-lg border border-border bg-card p-4">
-                <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+              <div className="premium-card p-6 space-y-4">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-muted-foreground" /> Validação
                 </h3>
                 <div className="space-y-2">
@@ -771,7 +783,7 @@ export default function PublisherHub() {
               </div>
 
               {/* Aprovação */}
-              <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+              <div className="premium-card p-6 flex items-center justify-between">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary" /> Aprovação
@@ -782,44 +794,46 @@ export default function PublisherHub() {
               </div>
 
               {/* Agendamento */}
-              <div className="rounded-lg border border-border bg-card p-4">
-                <label className="text-sm font-bold text-foreground mb-2.5 block">Agendar (opcional)</label>
+              <div className="premium-card p-6 space-y-3">
+                <label className="text-sm font-bold text-foreground block">Agendar (opcional)</label>
                 <Input
                   type="datetime-local"
                   value={scheduledFor}
                   onChange={(e) => setScheduledFor(e.target.value)}
-                  className="bg-secondary border-border text-sm h-10"
+                  className="bg-secondary border-border text-sm h-11"
                 />
               </div>
 
               {/* Ações */}
-              <div className="flex gap-2">
-                <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" size="sm" className="flex-1">
-                  {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                  <span className="ml-1">Publicar</span>
-                </Button>
-                <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" size="sm" className="flex-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="ml-1">Agendar</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={clearForm}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+              <div className="premium-card p-6">
+                <div className="flex gap-3">
+                  <Button onClick={() => handlePublish(false)} disabled={publishing || hasErrors} variant="glow" className="flex-1 h-12 text-base font-bold">
+                    {publishing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                    <span className="ml-2">Publicar</span>
+                  </Button>
+                  <Button onClick={() => handlePublish(true)} disabled={publishing || hasErrors} variant="outline" className="flex-1 h-12 text-base font-bold">
+                    <Clock className="w-5 h-5" />
+                    <span className="ml-2">Agendar</span>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={clearForm} className="h-12 w-12">
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
 
               {/* Status */}
               <AnimatePresence>
                 {Object.keys(platformStatuses).length > 0 && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="rounded-lg border border-border bg-card p-3 space-y-2">
-                    <h3 className="text-xs font-medium">Status</h3>
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="premium-card p-5 space-y-3">
+                    <h3 className="text-sm font-bold">Status</h3>
                     {Object.entries(platformStatuses).map(([platform, info]) => {
                       const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.pendente;
                       return (
-                        <div key={platform} className="flex items-center justify-between bg-secondary/50 rounded px-2 py-1.5">
+                        <div key={platform} className="flex items-center justify-between bg-secondary/50 rounded-lg px-3 py-2.5">
                           <span className="text-xs capitalize font-bold">{platform}</span>
-                          <div className="flex items-center gap-1.5">
-                            <cfg.icon className={`w-3 h-3 ${cfg.className}`} />
-                            <span className={`text-[10px] font-medium ${cfg.className}`}>{cfg.label}</span>
+                          <div className="flex items-center gap-2">
+                            <cfg.icon className={`w-3.5 h-3.5 ${cfg.className}`} />
+                            <span className={`text-xs font-medium ${cfg.className}`}>{cfg.label}</span>
                           </div>
                         </div>
                       );
