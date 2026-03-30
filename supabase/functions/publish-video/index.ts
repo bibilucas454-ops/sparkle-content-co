@@ -272,7 +272,7 @@ Deno.serve(async (req) => {
     }));
 
     // 6. Route to Platform
-    const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, ...pub.platform_settings };
+    const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, contentFormat: pub.content_format, ...pub.platform_settings };
     if (target.platform === "youtube") await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
     else if (target.platform === "instagram") await publishToInstagram(supabaseAdmin, accessToken, account.account_id, mediaFilesReady, pMeta, target.id);
     // TikTok removed
