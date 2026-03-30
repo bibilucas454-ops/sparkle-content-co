@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Sparkles, Compass, BookOpen, Save,
-  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3, Layers, Instagram
+  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3, Instagram
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ const navGroups: NavGroup[] = [
     items: [
       { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
       { path: "/story-engine", label: "MINDMAX Stories", icon: Instagram },
-      { path: "/story-plan", label: "Plano de Stories", icon: Layers },
       { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
       { path: "/prompt-grok", label: "Prompt de Vídeo IA", icon: Bot },
     ]
