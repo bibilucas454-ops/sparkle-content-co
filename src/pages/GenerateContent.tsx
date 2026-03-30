@@ -20,11 +20,6 @@ const contentTypes = [
   { id: "hashtags", label: "Hashtags", emoji: "#️⃣" },
   { id: "tags", label: "Tags SEO", emoji: "🏷️" },
   { id: "video-prompt", label: "Prompt de Vídeo IA", emoji: "🎬" },
-  { id: "viral-score", label: "Score Viral", emoji: "📊" },
-  { id: "stories-sequence", label: "Stories (Sequência)", emoji: "📱" },
-  { id: "stories-engajamento", label: "Stories Engajamento", emoji: "🔥" },
-  { id: "stories-aquecimento", label: "Stories Aquecimento", emoji: "🌡️" },
-  { id: "stories-venda", label: "Stories Venda", emoji: "💰" },
 ];
 
 const platforms = ["Instagram Reels", "YouTube Shorts"];
