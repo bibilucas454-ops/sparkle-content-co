@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSmartSchedule } from "@/hooks/useSmartSchedule";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -103,6 +104,9 @@ export default function PublisherHub() {
   const [trendingSounds, setTrendingSounds] = useState<any[]>([]);
   const [showMusicPanel, setShowMusicPanel] = useState(false);
   const [loadingTrending, setLoadingTrending] = useState(false);
+
+  // Smart Schedule
+  const { suggestion: smartSuggestion, loading: smartLoading, applySuggestion } = useSmartSchedule(selectedFormat);
 
   useEffect(() => {
     clearForm();
@@ -806,6 +810,40 @@ export default function PublisherHub() {
 
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em]">Agendar (opcional)</label>
+                  
+                  {smartSuggestion && !scheduledFor && (
+                    <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-bold text-primary uppercase tracking-[0.1em]">Sugestão Inteligente</span>
+                      </div>
+                      <p className="text-xs text-text-secondary">
+                        {smartSuggestion.reason}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const dateStr = applySuggestion();
+                          if (dateStr) {
+                            setScheduledFor(dateStr);
+                            toast.success("Horário aplicado!");
+                          }
+                        }}
+                        disabled={smartLoading}
+                        className="w-full text-xs h-8"
+                      >
+                        {smartLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                        ) : (
+                          <Sparkles className="w-3 h-3 mr-2" />
+                        )}
+                        Aplicar sugestão
+                      </Button>
+                    </div>
+                  )}
+                  
                   <Input
                     type="datetime-local"
                     value={scheduledFor}
