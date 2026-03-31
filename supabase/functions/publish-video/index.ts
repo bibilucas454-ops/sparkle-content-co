@@ -17,6 +17,33 @@ async function logEvent(supabase: any, targetId: string, event: string, details?
   });
 }
 
+async function logPublishApi(supabase: any, targetId: string, platform: string, contentType: string, endpoint: string, method: string, requestBody: any, responseBody: any, responseStatus: number, success: boolean, errorMessage?: string) {
+  await supabase.from("publish_logs").insert({
+    publication_target_id: targetId,
+    platform,
+    content_type: contentType,
+    endpoint,
+    method,
+    request_body: requestBody,
+    response_body: responseBody,
+    response_status: responseStatus,
+    success,
+    error_message: errorMessage || null,
+  });
+}
+
+async function validateStoryMedia(media: any, meta: any) {
+  const isVideo = media.mime_type?.startsWith("video");
+  
+  if (isVideo && media.duration_seconds) {
+    if (media.duration_seconds > 60) {
+      throw new Error("Story em vídeo deve ter no máximo 60 segundos");
+    }
+  }
+  
+  return { isVideo };
+}
+
 // ====== Polling Helper para Facebook/Instagram ======
 async function pollInstagramContainer(containerId: string, accessToken: string) {
   let ready = false;
@@ -38,8 +65,6 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
   }
   if (!ready) throw new Error("Timeout: Instagram não finalizou o processamento da mídia.");
 }
-
-// ====== API Publishing Handlers ======
 
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
@@ -107,21 +132,70 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
   const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
   const format = meta.contentFormat || "reels";
 
-  if (mediaFiles.length === 1 && format !== "carousel") {
-    const media = mediaFiles[0];
-    const isVideo = media.mime_type?.startsWith("video");
-    const body: any = { caption, access_token: accessToken };
-    
-    if (format === "story") body.media_type = "STORIES";
-    else if (isVideo) body.media_type = "REELS";
+  const isStory = format === "story";
+  const isCarousel = format === "carousel";
 
+  if (isStory) {
+    if (mediaFiles.length > 1) throw new Error("Stories não suportam múltiplas mídias.");
+    const media = mediaFiles[0];
+    const { isVideo } = await validateStoryMedia(media, meta);
+
+    const body: any = { access_token: accessToken };
+    body.media_type = "STORIES";
+    
     if (isVideo) body.video_url = media.publicUrl;
     else body.image_url = media.publicUrl;
+
+    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, null, 0, false);
 
     const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     const containerData = await containerRes.json();
+    
+    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
+
+    if (containerData.error) throw new Error(containerData.error.message);
+
+    await updateTargetStatus(supabase, targetId, "processando");
+    if (isVideo) await pollInstagramContainer(containerData.id, accessToken);
+
+    const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ creation_id: containerData.id, access_token: accessToken }),
+    });
+    const publishData = await publishRes.json();
+
+    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media_publish`, "POST", { creation_id: containerData.id }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
+
+    if (publishData.error) throw new Error(publishData.error.message);
+
+    await updateTargetStatus(supabase, targetId, "publicado", {
+      platform_post_id: publishData.id, platform_post_url: null, published_at: new Date().toISOString(),
+    });
+    return;
+  }
+
+  if (mediaFiles.length === 1 && !isCarousel) {
+    const media = mediaFiles[0];
+    const isVideo = media.mime_type?.startsWith("video");
+    const body: any = { caption, access_token: accessToken };
+    
+    if (isVideo) body.media_type = "REELS";
+    else body.media_type = "IMAGE";
+
+    if (isVideo) body.video_url = media.publicUrl;
+    else body.image_url = media.publicUrl;
+
+    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media`, "POST", body, null, 0, false);
+
+    const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const containerData = await containerRes.json();
+
+    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
+
     if (containerData.error) throw new Error(containerData.error.message);
 
     const containerId = containerData.id;
@@ -133,6 +207,9 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: containerId, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
+
+    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media_publish`, "POST", { creation_id: containerId }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
+
     if (publishData.error) throw new Error(publishData.error.message);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
@@ -142,8 +219,6 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       platform_post_id: publishData.id, platform_post_url: mediaDat.permalink || null, published_at: new Date().toISOString(),
     });
   } else {
-    // Carousel logic... (simplified here for brevity, assume full implementation matches previous working state)
-    // [Full Carousel implementation as per previous clean version]
     const childIds: string[] = [];
     for (const media of mediaFiles) {
       const isVideo = media.mime_type?.startsWith("video");
@@ -272,7 +347,7 @@ Deno.serve(async (req) => {
     }));
 
     // 6. Route to Platform
-    const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, contentFormat: pub.content_format, ...pub.platform_settings };
+    const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, ...pub.platform_settings, contentFormat: pub.content_format };
     if (target.platform === "youtube") await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
     else if (target.platform === "instagram") await publishToInstagram(supabaseAdmin, accessToken, account.account_id, mediaFilesReady, pMeta, target.id);
     // TikTok removed
