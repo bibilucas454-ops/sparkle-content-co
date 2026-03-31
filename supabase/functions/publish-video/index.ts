@@ -136,42 +136,58 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
   const isCarousel = format === "carousel";
 
   if (isStory) {
-    if (mediaFiles.length > 1) throw new Error("Stories não suportam múltiplas mídias.");
-    const media = mediaFiles[0];
-    const { isVideo } = await validateStoryMedia(media, meta);
+    // Instagram API requires one POST per story — loop through all media sequentially
+    const publishedIds: string[] = [];
 
-    const body: any = { access_token: accessToken };
-    body.media_type = "STORIES";
-    
-    if (isVideo) body.video_url = media.publicUrl;
-    else body.image_url = media.publicUrl;
+    for (let i = 0; i < mediaFiles.length; i++) {
+      const media = mediaFiles[i];
+      const { isVideo } = await validateStoryMedia(media, meta);
 
-    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, null, 0, false);
+      console.log(`[publish-video] Publishing story ${i + 1}/${mediaFiles.length} (${isVideo ? "video" : "image"})`);
 
-    const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-    });
-    const containerData = await containerRes.json();
-    
-    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
+      const body: any = { access_token: accessToken };
+      body.media_type = "STORIES";
 
-    if (containerData.error) throw new Error(containerData.error.message);
+      if (isVideo) body.video_url = media.publicUrl;
+      else body.image_url = media.publicUrl;
 
-    await updateTargetStatus(supabase, targetId, "processando");
-    if (isVideo) await pollInstagramContainer(containerData.id, accessToken);
+      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, null, 0, false);
 
-    const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ creation_id: containerData.id, access_token: accessToken }),
-    });
-    const publishData = await publishRes.json();
+      const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const containerData = await containerRes.json();
 
-    await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media_publish`, "POST", { creation_id: containerData.id }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
+      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
 
-    if (publishData.error) throw new Error(publishData.error.message);
+      if (containerData.error) throw new Error(`Story ${i + 1}/${mediaFiles.length}: ${containerData.error.message}`);
+
+      await updateTargetStatus(supabase, targetId, "processando");
+      if (isVideo) await pollInstagramContainer(containerData.id, accessToken);
+
+      const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ creation_id: containerData.id, access_token: accessToken }),
+      });
+      const publishData = await publishRes.json();
+
+      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media_publish`, "POST", { creation_id: containerData.id }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
+
+      if (publishData.error) throw new Error(`Story ${i + 1}/${mediaFiles.length}: ${publishData.error.message}`);
+
+      publishedIds.push(publishData.id);
+      console.log(`[publish-video] Story ${i + 1}/${mediaFiles.length} published OK — id: ${publishData.id}`);
+
+      // Small delay between stories to respect Instagram rate limits
+      if (i < mediaFiles.length - 1) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
 
     await updateTargetStatus(supabase, targetId, "publicado", {
-      platform_post_id: publishData.id, platform_post_url: null, published_at: new Date().toISOString(),
+      platform_post_id: publishedIds[0],
+      platform_post_url: null,
+      published_at: new Date().toISOString(),
     });
     return;
   }
