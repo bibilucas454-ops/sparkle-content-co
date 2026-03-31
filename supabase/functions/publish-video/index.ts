@@ -176,7 +176,8 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
     return;
   }
 
-  if (mediaFiles.length === 1 && !isCarousel) {
+  // Single-media: Reels or IMAGE — but NOT story (story handled above) and NOT forced carousel
+  if (mediaFiles.length === 1 && !isCarousel && !isStory) {
     const media = mediaFiles[0];
     const isVideo = media.mime_type?.startsWith("video");
     const body: any = { caption, access_token: accessToken };
@@ -347,7 +348,16 @@ Deno.serve(async (req) => {
     }));
 
     // 6. Route to Platform
-    const pMeta = { title: pub.title, caption: pub.caption, hashtags: pub.hashtags, ...pub.platform_settings, contentFormat: pub.content_format };
+    // CRITICAL: contentFormat must override anything in platform_settings to prevent story→carousel routing bug
+    const rawContentFormat = pub.content_format || "reels";
+    const pMeta = {
+      title: pub.title,
+      caption: pub.caption,
+      hashtags: pub.hashtags,
+      ...(pub.platform_settings && typeof pub.platform_settings === "object" ? pub.platform_settings : {}),
+      contentFormat: rawContentFormat,  // Always explicit, always last — prevents overwrite
+    };
+    console.log(`[publish-video] Routing job ${captureJobId} → platform=${target.platform}, contentFormat=${rawContentFormat}`);
     if (target.platform === "youtube") await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
     else if (target.platform === "instagram") await publishToInstagram(supabaseAdmin, accessToken, account.account_id, mediaFilesReady, pMeta, target.id);
     // TikTok removed
