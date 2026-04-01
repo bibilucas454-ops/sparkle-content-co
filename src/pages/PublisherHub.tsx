@@ -404,8 +404,7 @@ export default function PublisherHub() {
         publication_id: publication.id,
         upload_id: up.id,
         sort_order: index,
-        media_type: up.mime_type.startsWith("video") ? "video" : "image",
-        audio_upload_id: index === 0 && audioUploadId ? audioUploadId : null
+        media_type: up.mime_type.startsWith("video") ? "video" : "image"
       }));
       const { error: pmError } = await supabase.from("post_media").insert(postMediaInserts);
       if (pmError) throw pmError;
