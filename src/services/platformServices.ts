@@ -132,8 +132,37 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
   }
 }
 
-export async function retryPublication(targetId: string, platform: string, payload: PublishPayload): Promise<void> {
-  // Reset status
+export async function retryPublication(targetId: string): Promise<void> {
+  const { data: target, error: targetError } = await supabase
+    .from("publication_targets")
+    .select("*, publications(*), uploads(*)")
+    .eq("id", targetId)
+    .single();
+
+  if (targetError || !target) {
+    throw new Error("Target não encontrado");
+  }
+
+  const pub = target.publications;
+  const upload = target.uploads;
+
+  if (!pub || !upload) {
+    throw new Error("Dados da publicação ou upload não encontrados");
+  }
+
+  const payload: PublishPayload = {
+    publicationTargetId: targetId,
+    platform: target.platform,
+    uploadId: upload.id,
+    videoUrl: upload.file_path ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/videos/${upload.file_path}` : undefined,
+    title: pub.title || "Sem título",
+    caption: pub.caption,
+    hashtags: pub.hashtags,
+    privacyStatus: target.privacy_status || "public",
+    platformSpecificTitle: target.platform_specific_title || undefined,
+    platformSpecificCaption: target.platform_specific_caption || undefined,
+  };
+
   await supabase
     .from("publication_targets")
     .update({ status: "pendente", error_message: null, updated_at: new Date().toISOString() })
@@ -145,7 +174,7 @@ export async function retryPublication(targetId: string, platform: string, paylo
     details: "Tentando publicar novamente",
   });
 
-  await publishToPlatform({ ...payload, publicationTargetId: targetId });
+  await publishToPlatform(payload);
 }
 
 export function validateVideoForPlatforms(

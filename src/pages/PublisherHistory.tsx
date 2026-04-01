@@ -10,6 +10,7 @@ import {
   Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { retryPublication } from "@/services/platformServices";
 
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
 
@@ -75,6 +76,7 @@ export default function PublisherHistory() {
   const [filter, setFilter] = useState("all");
   const [formatFilter, setFormatFilter] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [retryingTargetId, setRetryingTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchHistory();
@@ -115,6 +117,41 @@ export default function PublisherHistory() {
     } else {
       toast.success("Publicação excluída.");
       setItems((prev) => prev.filter((i) => i.id !== id));
+    }
+  };
+
+  const handleRetry = async (targetId: string, publicationId: string) => {
+    if (retryingTargetId) return;
+    
+    setRetryingTargetId(targetId);
+    toast.info("Iniciando republicação...");
+
+    try {
+      // Chamar a Edge Function de retry (já existe!)
+      const { data, error } = await supabase.functions.invoke("retry-publish", {
+        body: { targetId },
+      });
+
+      if (error) {
+        throw new Error(error.message || "Erro ao tentar novamente");
+      }
+
+      if (data && !data.success) {
+        throw new Error(data.message || "Erro ao tentar novamente");
+      }
+
+      toast.success("Republicação iniciada com sucesso!");
+      
+      // Recarregar os dados após 3 segundos para mostrar o novo status
+      setTimeout(() => {
+        fetchHistory();
+      }, 3000);
+
+    } catch (err: any) {
+      console.error("Erro ao tentar novamente:", err);
+      toast.error(err.message || "Falha ao tentar novamente");
+    } finally {
+      setRetryingTargetId(null);
     }
   };
 
@@ -356,9 +393,18 @@ export default function PublisherHistory() {
                                 </a>
                               )}
                               {t.status === "erro" && (
-                                <Button variant="ghost" size="sm" className="h-7 text-xs">
-                                  <RotateCcw className="w-3 h-3" />
-                                  Tentar novamente
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-7 text-xs"
+                                  disabled={retryingTargetId === t.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRetry(t.id, item.id);
+                                  }}
+                                >
+                                  <RotateCcw className={`w-3 h-3 ${retryingTargetId === t.id ? "animate-spin" : ""}`} />
+                                  {retryingTargetId === t.id ? "Enviando..." : "Tentar novamente"}
                                 </Button>
                               )}
                             </div>

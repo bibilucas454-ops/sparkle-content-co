@@ -289,11 +289,49 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const payload = await req.json();
-    const { jobId, idempotencyKey, correlationId } = payload;
+    const { jobId, targetId: directTargetId, idempotencyKey, correlationId, action } = payload;
     captureJobId = jobId;
+    captureTargetId = directTargetId;
 
-    // 1. Idempotency & Status Check
-    if (jobId) {
+    // 1. Retry Action - Reset failed job and re-run
+    if (action === "retry" && directTargetId) {
+      console.log(`[publish-video] Retry action for target ${directTargetId}`);
+      
+      const { data: target } = await supabaseAdmin.from("publication_targets")
+        .select("*, publications(*)")
+        .eq("id", directTargetId)
+        .single();
+      
+      if (!target) throw new Error("Target não encontrado");
+      
+      const { data: job } = await supabaseAdmin.from("publication_jobs")
+        .select("id, status")
+        .eq("publication_target_id", directTargetId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (job) {
+        await supabaseAdmin.from("publication_jobs").update({
+          status: "ready",
+          attempt_count: 0,
+          last_error: null,
+          run_at: new Date().toISOString()
+        }).eq("id", job.id);
+        
+        captureJobId = job.id;
+      }
+      
+      // Reset target status
+      await supabaseAdmin.from("publication_targets").update({
+        status: "queued",
+        error_message: null,
+        updated_at: new Date().toISOString()
+      }).eq("id", directTargetId);
+    }
+
+    // 1b. Idempotency & Status Check (original logic)
+    if (jobId && !captureTargetId) {
       const { data: job } = await supabaseAdmin.from("publication_jobs").select("status, publication_target_id").eq("id", jobId).single();
       if (!job) throw new Error("Job não encontrado");
       if (job.status === "published") return jsonResponse({ success: true, message: "Já publicado" });
