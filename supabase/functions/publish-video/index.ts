@@ -313,14 +313,65 @@ Deno.serve(async (req) => {
     });
 
     // 3. Resolve Media
-    const { data: pmList } = await supabaseAdmin.from("post_media").select("*, uploads(*)").eq("publication_id", pub.id).order("sort_order");
-    let mediaList = pmList?.map(pm => pm.uploads) || [];
+    const { data: pmList } = await supabaseAdmin
+      .from("post_media")
+      .select("*, uploads(*), audio_uploads:audio_upload_id(*)")
+      .eq("publication_id", pub.id)
+      .order("sort_order");
+    let mediaList = pmList?.map((pm: any) => ({
+      ...pm.uploads,
+      audio_upload: pm.audio_uploads
+    })) || [];
     if (mediaList.length === 0 && pub.upload_id) {
        const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", pub.upload_id).single();
        if (up) mediaList = [up];
     }
     if (mediaList.length === 0) throw new Error("Sem mídia vinculada");
 
+    // 3.5. Handle Audio Merge for Stories (if audio is attached)
+    const musicEnabled = Deno.env.get("FF_MUSIC_IN_STORIES") === "true";
+    const isStory = (pub.content_format || "reels") === "story";
+    const hasAudio = mediaList.some((m: any) => m.audio_upload?.file_path);
+    
+    if (musicEnabled && isStory && hasAudio) {
+      console.log("[publish-video] Audio detected for Story, checking for existing merge...");
+      
+      // Check if merge already exists
+      const { data: existingMerge } = await supabaseAdmin
+        .from("audio_merges")
+        .select("*, merged_upload_id(*)")
+        .eq("publication_id", pub.id)
+        .eq("status", "completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (existingMerge?.merged_upload_id) {
+        console.log("[publish-video] Using existing merged video");
+        const { data: mergedUpload } = await supabaseAdmin
+          .from("uploads")
+          .select("*")
+          .eq("id", existingMerge.merged_upload_id)
+          .single();
+        
+        if (mergedUpload) {
+          mediaList[0] = {
+            ...mergedUpload,
+            is_merged: true,
+            original_video_id: mediaList[0].id,
+          };
+        }
+      } else {
+        // Trigger merge (async) - for now, continue without audio and log warning
+        console.log("[publish-video] No merged video found, publishing without audio. Run merge-audio-video first.");
+        await supabaseAdmin.from("publication_logs").insert({
+          publication_target_id: target.id,
+          event: "audio_merge_skipped",
+          details: "No completed merge found - user must run merge before publishing",
+        });
+      }
+    }
+    
     // 4. Token & Auto-Refresh (with proper re-fetch after refresh)
     const { data: account } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", target.platform).eq("user_id", pUserId).single();
     if (!account) throw new Error("Conta não conectada");
