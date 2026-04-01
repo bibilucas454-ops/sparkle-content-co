@@ -42,7 +42,7 @@ export function useSmartSchedule(selectedFormat: string) {
         .select("id, content_format, scheduled_for, overall_status, created_at")
         .eq("user_id", user.id)
         .eq("content_format", selectedFormat)
-        .in("overall_status", ["published", "publicado"])
+        .in("overall_status", ["published", "publicado", "pendente", "scheduled"])
         .order("created_at", { ascending: false })
         .limit(1);
 
@@ -53,10 +53,11 @@ export function useSmartSchedule(selectedFormat: string) {
         return;
       }
 
-      const slotResult = getNextContentSlot(
-        publications && publications.length > 0 ? new Date(publications[0].created_at) : null,
-        "America/Sao_Paulo"
-      );
+      const lastDate = publications && publications.length > 0
+        ? new Date(publications[0].scheduled_for || publications[0].created_at)
+        : null;
+
+      const slotResult = getNextContentSlot(lastDate, "America/Sao_Paulo");
 
       const lastLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
       
@@ -119,7 +120,7 @@ export function useSmartSchedule(selectedFormat: string) {
       slotResult,
       lastPostFormatted: null,
       nextPostFormatted: nextFormatted,
-  };
+    };
   };
 
   const applySuggestion = () => {
