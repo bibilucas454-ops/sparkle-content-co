@@ -105,6 +105,11 @@ export default function PublisherHub() {
   const [showMusicPanel, setShowMusicPanel] = useState(false);
   const [loadingTrending, setLoadingTrending] = useState(false);
 
+  // Audio file upload state
+  const [audioFile, setAudioFile] = useState<{id: string; file: File; name: string; previewUrl: string} | null>(null);
+  const audioFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+
   // Smart Schedule
   const { suggestion: smartSuggestion, loading: smartLoading, applySuggestion } = useSmartSchedule(selectedFormat);
 
@@ -178,6 +183,65 @@ export default function PublisherHub() {
 
   const removeMusic = () => {
     setSelectedMusic(null);
+  };
+
+  const handleAudioFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    if (!file.type.startsWith("audio/")) {
+      toast.error("Apenas arquivos de áudio são permitidos (MP3, WAV, etc)");
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Arquivo de áudio muito grande (Max 50MB)");
+      return;
+    }
+    
+    const previewUrl = URL.createObjectURL(file);
+    setAudioFile({
+      id: Math.random().toString(36).substring(7),
+      file,
+      name: file.name,
+      previewUrl
+    });
+    toast.success(`🎵 Áudio carregado: ${file.name}`);
+  };
+
+  const removeAudioFile = () => {
+    if (audioFile?.previewUrl) {
+      URL.revokeObjectURL(audioFile.previewUrl);
+    }
+    setAudioFile(null);
+  };
+
+  const uploadAudioFile = async (): Promise<string | null> => {
+    if (!audioFile || !user) return null;
+    
+    setUploadingAudio(true);
+    try {
+      const filePath = `${user.id}/audio/${Date.now()}-${audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, audioFile.file);
+      if (uploadError) throw uploadError;
+
+      const { data: uploadRecord, error: uploadRecError } = await supabase.from("uploads").insert({
+        user_id: user.id,
+        file_path: filePath,
+        file_name: audioFile.file.name,
+        mime_type: audioFile.file.type,
+        size_bytes: audioFile.file.size,
+      }).select().single();
+
+      if (uploadRecError) throw uploadRecError;
+      return uploadRecord.id;
+    } catch (err: any) {
+      console.error("Error uploading audio:", err);
+      toast.error("Erro ao fazer upload do áudio");
+      return null;
+    } finally {
+      setUploadingAudio(false);
+    }
   };
 
   const processFiles = (files: FileList | File[]) => {
@@ -276,7 +340,7 @@ export default function PublisherHub() {
 
       const uploadRecords = [];
 
-      // 1. Upload All files
+      // 1. Upload All files (video/image)
       for (const m of mediaFiles) {
         const filePath = `${user!.id}/${Date.now()}-${m.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
         const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, m.file);
@@ -292,6 +356,16 @@ export default function PublisherHub() {
 
         if (uploadRecError) throw uploadRecError;
         uploadRecords.push(uploadRecord);
+      }
+
+      // 1b. Upload audio file if present (for Story with music)
+      let audioUploadId: string | null = null;
+      if (selectedFormat === "story" && audioFile) {
+        audioUploadId = await uploadAudioFile();
+        if (!audioUploadId) {
+          throw new Error("Falha ao upload do arquivo de áudio");
+        }
+        toast.success("🎵 Áudio processado com sucesso!");
       }
 
       clearInterval(progressInterval);
@@ -330,7 +404,8 @@ export default function PublisherHub() {
         publication_id: publication.id,
         upload_id: up.id,
         sort_order: index,
-        media_type: up.mime_type.startsWith("video") ? "video" : "image"
+        media_type: up.mime_type.startsWith("video") ? "video" : "image",
+        audio_upload_id: index === 0 && audioUploadId ? audioUploadId : null
       }));
       const { error: pmError } = await supabase.from("post_media").insert(postMediaInserts);
       if (pmError) throw pmError;
@@ -475,6 +550,7 @@ export default function PublisherHub() {
     setShowMusicPanel(false);
     setMusicSearch("");
     setApproved(false);
+    setAudioFile(null);
     setPlatformSettings({
       youtube: { title: "", description: "", privacy: "public" },
       instagram: { caption: "", useGlobalHashtags: true },
@@ -548,6 +624,60 @@ export default function PublisherHub() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Audio Upload for Story */}
+            {selectedFormat === "story" && (
+              <div className="premium-card p-4 space-y-3 border-2 border-primary/20 bg-primary/5">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                  <Music className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Áudio para Story</h3>
+                </div>
+                
+                {!audioFile ? (
+                  <div
+                    onClick={() => audioFileInputRef.current?.click()}
+                    className="border-2 border-dashed border-border/60 rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-secondary/20 transition-all text-center"
+                  >
+                    <Volume2 className="w-6 h-6 text-text-secondary mx-auto mb-2" />
+                    <p className="text-sm text-text-secondary">
+                      Clique para adicionar arquivo de áudio (MP3, WAV)
+                    </p>
+                    <p className="text-xs text-text-muted mt-1">
+                      O áudio será mesclado ao vídeo automaticamente
+                    </p>
+                    <input
+                      ref={audioFileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      className="hidden"
+                      onChange={handleAudioFileSelect}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-secondary/30 rounded-lg p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                        <Volume2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground truncate max-w-[200px]">
+                          {audioFile.name}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {uploadingAudio ? "Enviando..." : "Pronto para mesclar"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={removeAudioFile}
+                      className="text-destructive hover:bg-destructive/10 rounded-full p-2 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
