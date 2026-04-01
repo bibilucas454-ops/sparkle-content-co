@@ -65,6 +65,8 @@ Deno.serve(async (req) => {
             locked_at: null
           })
           .eq("id", existingJob.id);
+      } else if (existingJob.status === "queued" || existingJob.status === "processing" || existingJob.status === "ready") {
+        console.log("Job already in progress, not creating duplicate");
       }
     } else {
       await supabaseAdmin
@@ -76,11 +78,15 @@ Deno.serve(async (req) => {
         });
     }
 
-    await supabaseAdmin.from("publication_logs").insert({
-      publication_target_id: targetId,
-      event: "retry_initiated",
-      details: `Tentativa de republicação iniciada pelo usuário ${userData.user.id}`
-    });
+    try {
+      await supabaseAdmin.from("publication_logs").insert({
+        publication_target_id: targetId,
+        event: "retry_initiated",
+        details: `Tentativa de republicação iniciada pelo usuário ${userData.user.id}`
+      });
+    } catch (logErr) {
+      console.warn("Log insert failed (non-critical):", logErr);
+    }
 
     return jsonResponse({ 
       success: true, 
