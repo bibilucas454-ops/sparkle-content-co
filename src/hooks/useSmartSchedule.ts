@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { getNextContentSlot, formatDateTimeForInput, formatDateTimeDisplay, type SlotResult } from "@/lib/schedule-utils";
 
 interface SmartScheduleSuggestion {
   recommendedDate: Date;
   reason: string;
   basedOnLastPost: boolean;
   lastPostDate: Date | null;
+  slotResult?: SlotResult;
+  lastPostFormatted: string | null;
+  nextPostFormatted: string;
 }
 
 const FORMAT_LABELS: Record<string, string> = {
@@ -14,12 +18,6 @@ const FORMAT_LABELS: Record<string, string> = {
   carousel: "Carrossel",
   story: "Story",
 };
-
-const DEFAULT_BEST_TIMES = [
-  { day: 1, hour: 10, label: "Segunda-feira" },
-  { day: 3, hour: 15, label: "Quarta-feira" },
-  { day: 5, hour: 18, label: "Sexta-feira" },
-];
 
 export function useSmartSchedule(selectedFormat: string) {
   const { user } = useAuth();
@@ -30,6 +28,7 @@ export function useSmartSchedule(selectedFormat: string) {
     if (user?.id && selectedFormat) {
       analyzeAndSuggest();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, selectedFormat]);
 
   const analyzeAndSuggest = async () => {
@@ -45,7 +44,7 @@ export function useSmartSchedule(selectedFormat: string) {
         .eq("content_format", selectedFormat)
         .in("overall_status", ["published", "publicado"])
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(1);
 
       if (error) {
         console.warn("Error fetching publications:", error);
@@ -54,39 +53,50 @@ export function useSmartSchedule(selectedFormat: string) {
         return;
       }
 
-      if (!publications || publications.length === 0) {
-        setSuggestion(getDefaultSuggestion());
-        setLoading(false);
-        return;
-      }
+      const slotResult = getNextContentSlot(
+        publications && publications.length > 0 ? new Date(publications[0].created_at) : null,
+        "America/Sao_Paulo"
+      );
 
-      const lastPost = publications[0];
-      const lastPostDate = new Date(lastPost.created_at);
-      const now = new Date();
-      const daysSinceLastPost = Math.floor((now.getTime() - lastPostDate.getTime()) / (1000 * 60 * 60 * 24));
+      const lastLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
       
-      let recommendedDate = new Date();
-      
-      if (daysSinceLastPost < 2) {
-        recommendedDate.setDate(recommendedDate.getDate() + (2 - daysSinceLastPost));
-      }
-      
-      const formatBestTimes = getBestTimesForFormat(selectedFormat);
-      recommendedDate.setHours(formatBestTimes.hour, 0, 0, 0);
-      
-      if (recommendedDate <= now) {
-        recommendedDate.setDate(recommendedDate.getDate() + 1);
-      }
+      if (slotResult.lastPublishedAt) {
+        const lastFormatted = formatDateTimeDisplay(slotResult.lastPublishedAt);
+        const nextFormatted = formatDateTimeDisplay(slotResult.nextSuggestedAt);
+        const isNextDay = slotResult.nextSuggestedAt.getDate() !== slotResult.lastPublishedAt.getDate();
+        
+        let reason = `Último ${lastLabel}: ${lastFormatted}`;
+        if (isNextDay) {
+          reason += ` → Próximo: ${nextFormatted}`;
+        } else {
+          reason += ` → Próximo ${lastLabel}: ${nextFormatted.split(" ")[1]}`;
+        }
+        
+        if (slotResult.fallbackUsed) {
+          reason += " (horário não-padrão)";
+        }
 
-      const dayName = recommendedDate.toLocaleDateString("pt-BR", { weekday: "long" });
-      const formattedTime = recommendedDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-      
-      setSuggestion({
-        recommendedDate,
-        reason: `Último ${FORMAT_LABELS[selectedFormat] || selectedFormat} foi há ${daysSinceLastPost} dia(s). Melhor horário: ${dayName} às ${formattedTime}`,
-        basedOnLastPost: true,
-        lastPostDate: lastPostDate,
-      });
+        setSuggestion({
+          recommendedDate: slotResult.nextSuggestedAt,
+          reason,
+          basedOnLastPost: true,
+          lastPostDate: slotResult.lastPublishedAt,
+          slotResult,
+          lastPostFormatted: lastFormatted,
+          nextPostFormatted: nextFormatted,
+        });
+      } else {
+        const nextFormatted = formatDateTimeDisplay(slotResult.nextSuggestedAt);
+        setSuggestion({
+          recommendedDate: slotResult.nextSuggestedAt,
+          reason: `Primeiro ${lastLabel}: ${nextFormatted}`,
+          basedOnLastPost: false,
+          lastPostDate: null,
+          slotResult,
+          lastPostFormatted: null,
+          nextPostFormatted: nextFormatted,
+        });
+      }
 
     } catch (error) {
       console.error("Error in smart schedule:", error);
@@ -97,42 +107,24 @@ export function useSmartSchedule(selectedFormat: string) {
   };
 
   const getDefaultSuggestion = (): SmartScheduleSuggestion => {
-    const formatBestTimes = getBestTimesForFormat(selectedFormat);
-    const now = new Date();
-    const nextDayWithBestTime = new Date(now);
+    const slotResult = getNextContentSlot(null, "America/Sao_Paulo");
+    const formatLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
+    const nextFormatted = formatDateTimeDisplay(slotResult.nextSuggestedAt);
     
-    const daysUntilBest = (formatBestTimes.day - now.getDay() + 7) % 7;
-    nextDayWithBestTime.setDate(now.getDate() + (daysUntilBest === 0 ? 7 : daysUntilBest));
-    nextDayWithBestTime.setHours(formatBestTimes.hour, 0, 0, 0);
-
     return {
-      recommendedDate: nextDayWithBestTime,
-      reason: `Horário padrão para ${FORMAT_LABELS[selectedFormat] || selectedFormat}: ${formatBestTimes.label} às ${String(formatBestTimes.hour).padStart(2, '0')}:00`,
+      recommendedDate: slotResult.nextSuggestedAt,
+      reason: `Sugestão ${formatLabel}: ${nextFormatted}`,
       basedOnLastPost: false,
       lastPostDate: null,
-    };
+      slotResult,
+      lastPostFormatted: null,
+      nextPostFormatted: nextFormatted,
   };
-
-  const getBestTimesForFormat = (format: string) => {
-    const defaults: Record<string, typeof DEFAULT_BEST_TIMES[0]> = {
-      reels: { day: 5, hour: 18, label: "Sexta-feira" },
-      carousel: { day: 3, hour: 15, label: "Quarta-feira" },
-      story: { day: 1, hour: 10, label: "Segunda-feira" },
-    };
-    return defaults[format] || DEFAULT_BEST_TIMES[0];
   };
 
   const applySuggestion = () => {
     if (!suggestion) return null;
-    
-    const date = suggestion.recommendedDate;
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return formatDateTimeForInput(suggestion.recommendedDate);
   };
 
   return {

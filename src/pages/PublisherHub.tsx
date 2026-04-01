@@ -942,14 +942,27 @@ export default function PublisherHub() {
                   <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em]">Agendar (opcional)</label>
                   
                   {smartSuggestion && !scheduledFor && (
-                    <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-3 space-y-2">
+                    <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-3 space-y-3">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-bold text-primary uppercase tracking-[0.1em]">Sugestão Inteligente</span>
+                        <span className="text-xs font-bold text-primary uppercase tracking-[0.1em]">Próximo Horário</span>
                       </div>
-                      <p className="text-xs text-text-secondary">
-                        {smartSuggestion.reason}
-                      </p>
+                      {smartSuggestion.lastPostFormatted ? (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-text-muted">Último {selectedFormat}:</span>
+                            <span className="font-mono font-semibold text-foreground">{smartSuggestion.lastPostFormatted}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-text-muted">Próximo {selectedFormat}:</span>
+                            <span className="font-mono font-bold text-primary">{smartSuggestion.nextPostFormatted}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-text-secondary">
+                          Primeiro {selectedFormat}: {smartSuggestion.nextPostFormatted}
+                        </p>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
@@ -969,7 +982,7 @@ export default function PublisherHub() {
                         ) : (
                           <Sparkles className="w-3 h-3 mr-2" />
                         )}
-                        Aplicar sugestão
+                        Aplicar próximo horário
                       </Button>
                     </div>
                   )}
