@@ -158,7 +158,7 @@ export const translations: Record<Language, Translations> = {
     valor: 'Valor',
     conexao: 'Conexión',
     bastidor: 'Bastidores',
-    prueba: 'Prueba',
+    prova: 'Prueba',
     corte: 'Corte de Creencia',
     cta: 'Llamada a la Acción',
     humor: 'Humor',
