@@ -11,7 +11,22 @@ verify_jwt = false
 [functions.refresh-token]
 verify_jwt = false
 
-[functions.retry-publish]
+[functions.tiktok-auth-start]
+verify_jwt = false
+
+[functions.tiktok-auth-callback]
+verify_jwt = false
+
+[functions.tiktok-refresh-token]
+verify_jwt = false
+
+[functions.tiktok-upload-video]
+verify_jwt = false
+
+[functions.tiktok-publish]
+verify_jwt = false
+
+[functions.tiktok-check-status]
 verify_jwt = false
 
 [functions.cron-scheduler]

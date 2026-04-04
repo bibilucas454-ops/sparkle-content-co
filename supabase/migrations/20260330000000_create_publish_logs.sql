@@ -26,4 +26,4 @@ CREATE POLICY "Users can view own publish logs" ON public.publish_logs
   ));
 
 CREATE POLICY "Service role can insert publish logs" ON public.publish_logs
-  FOR INSERT TO service_role USING (true);
+  FOR INSERT TO service_role WITH CHECK (true);
