@@ -1,0 +1,25 @@
+
+[functions.oauth-callback]
+verify_jwt = false
+
+[functions.oauth-connect]
+verify_jwt = false
+
+[functions.publish-video]
+verify_jwt = false
+
+[functions.refresh-token]
+verify_jwt = false
+
+[functions.retry-publish]
+verify_jwt = false
+
+[functions.cron-scheduler]
+enabled = true
+verify_jwt = false
+
+[functions.generate-content]
+verify_jwt = false
+
+[functions.generate-stories]
+verify_jwt = false

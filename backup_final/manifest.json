@@ -1,0 +1,91 @@
+{
+  "backup": {
+    "name": "Sparkle Content Co - Full Backup",
+    "timestamp": "2026-04-04T00:42:00Z",
+    "version": "1.0.0",
+    "status": "COMPLETE"
+  },
+  "modules": {
+    "database": {
+      "status": "complete",
+      "files": 35,
+      "description": "Supabase migrations and schema"
+    },
+    "functions": {
+      "status": "complete", 
+      "files": 14,
+      "description": "Edge Functions (oauth-connect, oauth-callback, publish-video, etc.)"
+    },
+    "code": {
+      "status": "complete",
+      "files": "multiple",
+      "description": "Frontend React/Vite code"
+    },
+    "env": {
+      "status": "complete",
+      "description": "Environment variables (Supabase config)"
+    },
+    "integrations": {
+      "status": "complete",
+      "description": "OAuth and platform integrations config"
+    }
+  },
+  "checksum_file": "checksums.txt",
+  "structure": {
+    "code/": "Frontend source code",
+    "database/": "Database migrations",
+    "env/": "Environment variables backup",
+    "functions/": "Edge Functions",
+    "integrations/": "OAuth config"
+  },
+  "integrations": {
+    "youtube": {
+      "auth_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "scopes": [
+        "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/youtube.readonly",
+        "https://www.googleapis.com/auth/userinfo.profile"
+      ],
+      "env_vars": ["YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET"]
+    },
+    "instagram": {
+      "auth_url": "https://www.facebook.com/v19.0/dialog/oauth",
+      "scopes": [
+        "instagram_basic",
+        "instagram_content_publish", 
+        "pages_show_list",
+        "pages_read_engagement",
+        "business_management"
+      ],
+      "env_vars": ["INSTAGRAM_CLIENT_ID", "INSTAGRAM_CLIENT_SECRET"]
+    },
+    "tiktok": {
+      "auth_url": "https://www.tiktok.com/v2/auth/authorize/",
+      "scopes": ["user.info.basic", "video.publish", "video.upload"],
+      "env_vars": ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"]
+    }
+  },
+  "supabase": {
+    "project_id": "wjzxntgpuimiubrnqfnz",
+    "url": "https://wjzxntgpuimiubrnqfnz.supabase.co"
+  },
+  "edge_functions": [
+    "oauth-connect",
+    "oauth-callback", 
+    "publish-video",
+    "retry-publish",
+    "cron-scheduler",
+    "generate-content",
+    "generate-stories",
+    "generate-story-plan",
+    "refresh-token",
+    "sync-music",
+    "merge-audio-video",
+    "serve-static",
+    "analyze-trends"
+  ],
+  "validation": {
+    "integrity_check": "PASSED",
+    "all_modules_backed_up": true
+  }
+}
