@@ -479,6 +479,6 @@ Deno.serve(async (req) => {
          // It's safer to let cron-scheduler handle the job failing by throwing.
       }
     } catch (_) {}
-    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 200, headers: corsHeaders });
   }
 });
