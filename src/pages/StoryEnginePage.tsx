@@ -76,7 +76,7 @@ export default function StoryEnginePage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('config');
 
-  const niches = Object.keys(NICHE_TEMPLATES) as NicheType[];
+  const niches = Object.keys(NICHE_TEMPLATES) as string[];
 
   const handleGenerate = useCallback(async () => {
     if (!formData.nicho || !formData.promessa || !formData.dorPrincipal) {

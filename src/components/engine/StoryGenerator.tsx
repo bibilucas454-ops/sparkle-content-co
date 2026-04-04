@@ -72,7 +72,7 @@ export function StoryGenerator({
   const [activeTab, setActiveTab] = useState('form');
 
   // Lista de niches disponíveis
-  const niches = Object.keys(NICHE_TEMPLATES) as NicheType[];
+  const niches = Object.keys(NICHE_TEMPLATES) as string[];
 
   // Handlers
   const handleInputChange = useCallback((field: keyof StoryGeneratorInput, value: string) => {

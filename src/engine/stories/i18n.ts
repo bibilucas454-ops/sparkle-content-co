@@ -214,7 +214,7 @@ export const translations: Record<Language, Translations> = {
     gerar: 'Générer',
     copiar: 'Copier',
     salvar: 'Sauvegarder',
-    regenerer: 'Régénérer',
+    regenerar: 'Régénérer',
     nichoPlaceholder: 'Ex: Marketing Digital',
     produtoPlaceholder: 'Ex: Mentorat',
     promessaPlaceholder: 'Ex: Gagner 5k/mois',
