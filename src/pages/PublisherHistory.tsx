@@ -24,9 +24,12 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; 
   rascunho: { label: "Rascunho", icon: Clock, className: "text-text-secondary" },
 };
 
+import { Video } from "lucide-react";
+
 const PLATFORM_ICONS: Record<string, { icon: typeof Youtube; color: string; label: string }> = {
   youtube: { icon: Youtube, color: "text-red-500", label: "YouTube Shorts" },
-  instagram: { icon: Instagram, color: "text-pink-500", label: "Instagram Reels" },
+  instagram: { icon: Instagram, color: "text-pink-500", label: "Instagram Reels/Story" },
+  tiktok: { icon: Video as any, color: "text-black dark:text-white", label: "TikTok" },
 };
 
 const FILTERS = [
@@ -366,7 +369,7 @@ export default function PublisherHistory() {
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1">
                                   <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
-                                  <span className={`text-xs font-medium ${statusCfg.className}`}>{statusCfg.label}</span>
+                                  <span className={`text-xs font-medium ${statusCfg.className.replace('animate-spin', '')}`}>{statusCfg.label}</span>
                                 </div>
                                 {t.status === "pendente" && item.scheduled_for && (
                                   <span className="text-[10px] text-text-secondary mt-0.5 ml-4">

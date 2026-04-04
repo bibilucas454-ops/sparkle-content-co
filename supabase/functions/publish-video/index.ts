@@ -132,10 +132,11 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
     
     const body: any = { caption, access_token: accessToken };
     if (isVideo) {
-      body.media_type = "REELS";
+      body.media_type = meta.contentFormat === "story" ? "STORIES" : "REELS";
       body.video_url = media.publicUrl;
     } else {
       body.image_url = media.publicUrl;
+      if (meta.contentFormat === "story") body.media_type = "STORIES";
     }
 
     const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
@@ -262,8 +263,8 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 
     let published = false;
     let attempts = 0;
-    while (!published && attempts < 20) {
-      await new Promise((r) => setTimeout(r, 5000));
+    while (!published && attempts < 8) {
+      await new Promise((r) => setTimeout(r, 4000));
       const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
         method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ publish_id: publishId }),
@@ -280,7 +281,10 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
       attempts++;
     }
 
-    if (!published) throw new Error("Timeout: TikTok não finalizou o processamento das fotos");
+    if (!published) {
+      await updateTargetStatus(supabase, targetId, "processando", { platform_post_id: publishId });
+      await logEvent(supabase, targetId, "processando", "TikTok processando upload da foto.");
+    }
 
   } else {
     // Video mode via PULL_FROM_URL (simpler than FILE_UPLOAD)
@@ -325,8 +329,8 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 
     let published = false;
     let attempts = 0;
-    while (!published && attempts < 20) {
-      await new Promise((r) => setTimeout(r, 5000));
+    while (!published && attempts < 8) {
+      await new Promise((r) => setTimeout(r, 4000));
       const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
         method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify({ publish_id: publishId }),
@@ -343,12 +347,18 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
       attempts++;
     }
 
-    if (!published) throw new Error("Timeout: TikTok não finalizou o processamento do vídeo");
+    if (!published) {
+      await updateTargetStatus(supabase, targetId, "processando", { platform_post_id: publishId });
+      await logEvent(supabase, targetId, "processando", "TikTok processando o upload do vídeo.");
+    }
   }
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") { return new Response(null, { headers: corsHeaders }); }
+
+  let globalPayload: any = {};
+  let globalTargetId: string | undefined;
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -368,14 +378,17 @@ Deno.serve(async (req) => {
       console.error("Error decoding JWT:", e);
     }
 
-    const payload = await req.json();
+    globalPayload = await req.json();
+    const payload = globalPayload;
     const { jobId } = payload;
     
     let pTargetId = payload.targetId;
+    globalTargetId = pTargetId;
     let pPlatform = payload.platform;
     let pMeta = { 
       title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
-      privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption 
+      privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption,
+      contentFormat: payload.contentFormat 
     };
     
     let mediaList: any[] = [];
@@ -395,6 +408,7 @@ Deno.serve(async (req) => {
       pMeta = {
         title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
         privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
+        contentFormat: pub.content_format
       };
       
       userId = pub.user_id;
@@ -456,7 +470,7 @@ Deno.serve(async (req) => {
   } catch (err: any) {
     console.error("Publish Fatal Error:", err);
     try {
-      const { jobId, targetId } = await req.clone().json().catch(() => ({}));
+      const targetId = globalTargetId || globalPayload?.targetId;
       const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       
       if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
