@@ -178,7 +178,7 @@ export default function StoryEnginePage() {
     if (!sequence || !user) return;
 
     try {
-      await supabase.from('story_generations').insert({
+      await supabase.from('story_generations').insert([{
         user_id: user.id,
         nicho: formData.nicho,
         produto: formData.produto,
@@ -188,10 +188,10 @@ export default function StoryEnginePage() {
         objetivo: formData.objetivo,
         cta_principal: formData.ctaPrincipal,
         tipo_sequence: sequenceType,
-        stories: sequence.stories,
-        score_diversidade: sequence.scoreDiversidade,
+        stories: sequence.stories as any,
+        score_diversidade: sequence.scoreDiversidadeTotal,
         status: sequence.status
-      });
+      }]);
       toast.success('Sequência salva!');
     } catch (err) {
       toast.error('Erro ao salvar');
