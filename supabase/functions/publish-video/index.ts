@@ -408,6 +408,7 @@ Deno.serve(async (req) => {
       const { data: job, error: jobErr } = await supabaseAdmin.from("publication_jobs").select("publication_target_id").eq("id", jobId).single();
       if (jobErr || !job) throw new Error("Job não encontrado");
       pTargetId = job.publication_target_id;
+      globalTargetId = pTargetId; // SALVA O ID DO POST PARA A MALHA DE ERROS!
 
       const { data: target, error: targetErr } = await supabaseAdmin.from("publication_targets").select("*, publications(*)").eq("id", pTargetId).single();
       if (targetErr || !target) throw new Error("Target não encontrado");
