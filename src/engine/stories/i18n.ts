@@ -144,7 +144,7 @@ export const translations: Record<Language, Translations> = {
   
   'es-ES': {
     nicho: 'Nicho',
-    producto: 'Producto/Servicio',
+    produto: 'Producto/Servicio',
     promessa: 'Promesa',
     dorPrincipal: 'Dolor Principal',
     objetivo: 'Objetivo',
