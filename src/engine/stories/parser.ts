@@ -243,7 +243,7 @@ export class StoryParser {
    * Retorna formato do tipo
    */
   private getTipoFormat(tipo: StoryType): string {
-    const formats: Record<StoryType, string> = {
+    const formats: Partial<Record<StoryType, string>> = {
       gatilho: 'pergunta_dor',
       contexto: 'experiencia_pessoal',
       valor: 'erro_maioria',
@@ -253,7 +253,7 @@ export class StoryParser {
       corte: 'mentira',
       cta: 'pergunta'
     };
-    return formats[tipo];
+    return formats[tipo] || tipo;
   }
 
   /**
