@@ -176,7 +176,7 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
 export async function retryPublication(targetId: string): Promise<void> {
   const { data: target, error: targetError } = await supabase
     .from("publication_targets")
-    .select("*, publications(*), uploads(*)")
+    .select("*, publications(*)")
     .eq("id", targetId)
     .single();
 
