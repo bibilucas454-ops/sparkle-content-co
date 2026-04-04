@@ -36,8 +36,7 @@ import type {
   StoryGeneratorInput, 
   GeneratedSequence, 
   GeneratedStory,
-  SequenceType,
-  NicheType 
+  SequenceType
 } from "@/engine/stories/types";
 import { NICHE_TEMPLATES, NicheTemplates } from "@/engine/stories/templates";
 
