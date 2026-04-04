@@ -215,28 +215,27 @@ Como TikTok não tem API de agendamento:
 
 ---
 
-## STATUS ATUAL: ✅ IMPLEMENTADO
+## STATUS ATUAL: ✅ CORRIGIDO EM 04/04/2026
 
-### Alterações realizadas em 04/04/2026:
+### Alterações realizadas:
 
 1. **Frontend** (`platformServices.ts`):
-   - ✅ Adicionado `connectTikTokAccount()`
+   - ✅ `connectTikTokAccount()` agora usa `oauth-connect` unificado
+   - ✅ Callback URL correto: `/functions/v1/oauth-callback`
 
-2. **Frontend** (`PublisherAccounts.tsx`):
-   - ✅ Adicionado TikTok na lista de plataformas
-   - ✅ Adicionado ícone Video do Lucide
-   - ✅ Adicionadas credenciais necessárias na UI
+2. **Edge Functions**:
+   - ✅ `oauth-connect` - adicionada plataforma TikTok com `client_key`
+   - ✅ `oauth-callback` - adicionada função `exchangeTikTokCode()`
+   - ✅ `refresh-token` - suporte TikTok (verificado anteriormente)
 
-3. **Edge Functions**:
-   - ✅ `publish-video` - inclui `publishToTikTok()` com suporte a vídeo e foto/carrossel
-   - ✅ `refresh-token` - suporte completo para TikTok OAuth refresh
-
-4. **Configuração**:
-   - ✅ `config.toml` já configurado para todas as funções TikTok
-   - ✅ Migration `20260404000000_add_tiktok_support.sql` executada
+3. **Fluxo OAuth corrigido**:
+   - Usa o MESMO padrão de Meta (YouTube/Instagram)
+   -URL gerada: `https://www.tiktok.com/v2/auth/authorize/?client_key=...&redirect_uri=...&response_type=code&scope=...&state=...`
+   - Callback: `/functions/v1/oauth-callback`
 
 ### Próximos passos para ativar:
 1. Criar app no TikTok Developers
 2. Configurar TIKTOK_CLIENT_KEY e TIKTOK_CLIENT_SECRET no Supabase
-3. Solicitar aprovação do app para produção
+3. Registrar Redirect URI no TikTok: `https://[SEU-PROJETO].supabase.co/functions/v1/oauth-callback`
+4. Solicitar aprovação do app para produção
 

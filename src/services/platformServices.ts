@@ -93,15 +93,33 @@ export async function connectTikTokAccount(): Promise<void> {
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData?.session) throw new Error("Faça login primeiro.");
 
-  const callbackUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-auth-callback`;
+  const callbackUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/oauth-callback`;
 
-  const { data, error } = await supabase.functions.invoke("tiktok-auth-start", {
-    body: { redirectUri: callbackUrl },
+  const { data, error } = await supabase.functions.invoke("oauth-connect", {
+    body: { platform: "tiktok", redirectUri: callbackUrl },
   });
 
   if (error) {
     console.error("[Auth Error] TikTok:", error);
     let errorMessage = error.message || "Erro ao iniciar autenticação TikTok";
+    
+    if (error && typeof error === 'object' && 'context' in error) {
+      const context = (error as any).context;
+      if (context && typeof context.text === 'function') {
+        const cloned = context.clone();
+        const textData = await cloned.text();
+        try {
+          const jsonData = JSON.parse(textData);
+          errorMessage += ` - Detalhes: ${jsonData.error || jsonData.message || textData}`;
+          if (jsonData.missingSecret) {
+            errorMessage += ` (Falta Secret: ${jsonData.missingSecret})`;
+          }
+        } catch {
+          errorMessage += ` - Detalhes: ${textData}`;
+        }
+      }
+    }
+    
     throw new Error(errorMessage);
   }
 
