@@ -219,7 +219,7 @@ export const translations: Record<Language, Translations> = {
     produtoPlaceholder: 'Ex: Mentorat',
     promessaPlaceholder: 'Ex: Gagner 5k/mois',
     dorPlaceholder: "Ex: Je n'arrive pas à vendre",
-    objectifPlaceholder: 'Ex: Revenu supplémentaire'
+    objetivoPlaceholder: 'Ex: Revenu supplémentaire'
   }
 };
 
