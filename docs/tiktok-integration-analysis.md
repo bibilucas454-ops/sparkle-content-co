@@ -180,6 +180,11 @@ Como TikTok não tem API de agendamento:
 | tiktok-publish | supabase/functions/tiktok-publish/index.ts |
 | tiktok-check-status | supabase/functions/tiktok-check-status/index.ts |
 
+### Integração no Fluxo de Publicação
+
+- `publish-video` agora inclui suporte para TikTok
+- `refresh-token` agora renova tokens TikTok automaticamente
+
 ---
 
 ## CHECKLIST FINAL
@@ -207,4 +212,31 @@ Como TikTok não tem API de agendamento:
 - ⚠️ Sem agendamento nativo
 - ⚠️ Sem upload de arquivo direto (só URL)
 - ⚠️ Requer aprovação TikTok para produção
+
+---
+
+## STATUS ATUAL: ✅ IMPLEMENTADO
+
+### Alterações realizadas em 04/04/2026:
+
+1. **Frontend** (`platformServices.ts`):
+   - ✅ Adicionado `connectTikTokAccount()`
+
+2. **Frontend** (`PublisherAccounts.tsx`):
+   - ✅ Adicionado TikTok na lista de plataformas
+   - ✅ Adicionado ícone Video do Lucide
+   - ✅ Adicionadas credenciais necessárias na UI
+
+3. **Edge Functions**:
+   - ✅ `publish-video` - inclui `publishToTikTok()` com suporte a vídeo e foto/carrossel
+   - ✅ `refresh-token` - suporte completo para TikTok OAuth refresh
+
+4. **Configuração**:
+   - ✅ `config.toml` já configurado para todas as funções TikTok
+   - ✅ Migration `20260404000000_add_tiktok_support.sql` executada
+
+### Próximos passos para ativar:
+1. Criar app no TikTok Developers
+2. Configurar TIKTOK_CLIENT_KEY e TIKTOK_CLIENT_SECRET no Supabase
+3. Solicitar aprovação do app para produção
 

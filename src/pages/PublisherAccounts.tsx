@@ -3,11 +3,12 @@ import AppLayout from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Youtube, Instagram, Link2, Unlink, RefreshCw, Loader2, AlertTriangle, CheckCircle2, XCircle, Settings } from "lucide-react";
+import { Youtube, Instagram, Link2, Unlink, RefreshCw, Loader2, AlertTriangle, CheckCircle2, XCircle, Settings, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   connectYouTubeAccount,
   connectInstagramAccount,
+  connectTikTokAccount,
   refreshPlatformToken,
   getAccountStatus,
   getAccountStatusLabel,
@@ -18,6 +19,7 @@ import {
 const PLATFORMS = [
   { id: "youtube", label: "YouTube", icon: Youtube, color: "text-red-500", connectFn: connectYouTubeAccount },
   { id: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500", connectFn: connectInstagramAccount },
+  { id: "tiktok", label: "TikTok", icon: Video, color: "text-black dark:text-white", connectFn: connectTikTokAccount },
 ];
 
 interface Account {
@@ -254,7 +256,7 @@ export default function PublisherAccounts() {
           <p className="text-base text-text-secondary font-medium leading-relaxed">
             Para conectar suas contas, as seguintes variáveis de ambiente devem estar configuradas no Supabase (Edge Function Secrets):
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
               <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">YouTube</span>
               <span className="text-foreground/80 leading-loose">YOUTUBE_CLIENT_ID<br />YOUTUBE_CLIENT_SECRET</span>
@@ -262,6 +264,10 @@ export default function PublisherAccounts() {
             <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
               <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">Instagram</span>
               <span className="text-foreground/80 leading-loose">INSTAGRAM_CLIENT_ID<br />INSTAGRAM_CLIENT_SECRET</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
+              <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">TikTok</span>
+              <span className="text-foreground/80 leading-loose">TIKTOK_CLIENT_KEY<br />TIKTOK_CLIENT_SECRET</span>
             </div>
             <div className="p-4 rounded-2xl bg-secondary/40 border border-border/40 shadow-inner">
               <span className="text-primary font-black uppercase text-[10px] tracking-widest block mb-2">App General</span>

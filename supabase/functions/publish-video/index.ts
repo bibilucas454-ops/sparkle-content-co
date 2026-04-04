@@ -1,6 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/crypto.ts";
-import { corsHeaders, jsonResponse } from "../_shared/responses.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 async function updateTargetStatus(supabase: any, targetId: string, status: string, extra?: Record<string, string | null>) {
   await supabase
@@ -32,18 +37,6 @@ async function logPublishApi(supabase: any, targetId: string, platform: string, 
   });
 }
 
-async function validateStoryMedia(media: any, meta: any) {
-  const isVideo = media.mime_type?.startsWith("video");
-  
-  if (isVideo && media.duration_seconds) {
-    if (media.duration_seconds > 60) {
-      throw new Error("Story em vídeo deve ter no máximo 60 segundos");
-    }
-  }
-  
-  return { isVideo };
-}
-
 // ====== Polling Helper para Facebook/Instagram ======
 async function pollInstagramContainer(containerId: string, accessToken: string) {
   let ready = false;
@@ -66,14 +59,14 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
   if (!ready) throw new Error("Timeout: Instagram não finalizou o processamento da mídia.");
 }
 
+// ====== API Publishing Handlers ======
+
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
-  const media = mediaFiles[0];
-  const finalSizeBytes = media.bytes?.length;
-  if (!finalSizeBytes) throw new Error("Tamanho do vídeo (bytes) não encontrado.");
-
+  const videoBytes = mediaFiles[0].bytes;
+  
   await updateTargetStatus(supabase, targetId, "enviando");
-  await logEvent(supabase, targetId, "enviando", "Iniciando upload via STREAM para YouTube Shorts");
+  await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
 
   const title = meta.platformSpecificTitle || meta.title;
   const description = (meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts";
@@ -87,7 +80,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "X-Upload-Content-Type": "video/mp4",
-        "X-Upload-Content-Length": finalSizeBytes.toString(),
+        "X-Upload-Content-Length": videoBytes.length.toString(),
       },
       body: JSON.stringify({
         snippet: { title, description, categoryId: "22" },
@@ -108,115 +101,52 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
 
   const uploadRes = await fetch(uploadUrl, {
     method: "PUT",
-    headers: { 
-      "Content-Type": "video/mp4",
-      "Content-Range": `bytes 0-${finalSizeBytes - 1}/${finalSizeBytes}`
-    },
-    body: media.bytes,
+    headers: { "Content-Type": "video/mp4" },
+    body: videoBytes,
   });
 
   if (!uploadRes.ok) {
-    throw new Error(`YouTube upload failed: ${await uploadRes.text()}`);
+    const err = await uploadRes.json();
+    throw new Error(err.error?.message || `YouTube upload failed: ${uploadRes.status}`);
   }
 
   const videoData = await uploadRes.json();
+
   await updateTargetStatus(supabase, targetId, "publicado", {
     platform_post_id: videoData.id,
     platform_post_url: `https://youtube.com/shorts/${videoData.id}`,
     published_at: new Date().toISOString(),
   });
+  await logEvent(supabase, targetId, "publicado", `Publicado: https://youtube.com/shorts/${videoData.id}`);
 }
 
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
   const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
-  const format = meta.contentFormat || "reels";
 
-  const isStory = format === "story";
-  const isCarousel = format === "carousel";
-
-  if (isStory) {
-    // Instagram API requires one POST per story — loop through all media sequentially
-    const publishedIds: string[] = [];
-
-    for (let i = 0; i < mediaFiles.length; i++) {
-      const media = mediaFiles[i];
-      const { isVideo } = await validateStoryMedia(media, meta);
-
-      console.log(`[publish-video] Publishing story ${i + 1}/${mediaFiles.length} (${isVideo ? "video" : "image"})`);
-
-      const body: any = { access_token: accessToken };
-      body.media_type = "STORIES";
-
-      if (isVideo) body.video_url = media.publicUrl;
-      else body.image_url = media.publicUrl;
-
-      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, null, 0, false);
-
-      const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-      });
-      const containerData = await containerRes.json();
-
-      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
-
-      if (containerData.error) throw new Error(`Story ${i + 1}/${mediaFiles.length}: ${containerData.error.message}`);
-
-      await updateTargetStatus(supabase, targetId, "processando");
-      if (isVideo) await pollInstagramContainer(containerData.id, accessToken);
-
-      const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ creation_id: containerData.id, access_token: accessToken }),
-      });
-      const publishData = await publishRes.json();
-
-      await logPublishApi(supabase, targetId, "instagram", "story", `/${accountId}/media_publish`, "POST", { creation_id: containerData.id }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
-
-      if (publishData.error) throw new Error(`Story ${i + 1}/${mediaFiles.length}: ${publishData.error.message}`);
-
-      publishedIds.push(publishData.id);
-      console.log(`[publish-video] Story ${i + 1}/${mediaFiles.length} published OK — id: ${publishData.id}`);
-
-      // Small delay between stories to respect Instagram rate limits
-      if (i < mediaFiles.length - 1) {
-        await new Promise((r) => setTimeout(r, 1500));
-      }
-    }
-
-    await updateTargetStatus(supabase, targetId, "publicado", {
-      platform_post_id: publishedIds[0],
-      platform_post_url: null,
-      published_at: new Date().toISOString(),
-    });
-    return;
-  }
-
-  // Single-media: Reels or IMAGE — but NOT story (story handled above) and NOT forced carousel
-  if (mediaFiles.length === 1 && !isCarousel && !isStory) {
+  if (mediaFiles.length === 1) {
+    // Single Media (Reel or Photo)
+    await logEvent(supabase, targetId, "enviando", "Iniciando upload single para Instagram");
     const media = mediaFiles[0];
     const isVideo = media.mime_type?.startsWith("video");
-    const body: any = { caption, access_token: accessToken };
     
-    if (isVideo) body.media_type = "REELS";
-    else body.media_type = "IMAGE";
-
-    if (isVideo) body.video_url = media.publicUrl;
-    else body.image_url = media.publicUrl;
-
-    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media`, "POST", body, null, 0, false);
+    const body: any = { caption, access_token: accessToken };
+    if (isVideo) {
+      body.media_type = "REELS";
+      body.video_url = media.publicUrl;
+    } else {
+      body.image_url = media.publicUrl;
+    }
 
     const containerRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     const containerData = await containerRes.json();
-
-    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media`, "POST", body, containerData, containerRes.status, !containerData.error, containerData.error?.message);
-
     if (containerData.error) throw new Error(containerData.error.message);
 
     const containerId = containerData.id;
     await updateTargetStatus(supabase, targetId, "processando");
+    
     if (isVideo) await pollInstagramContainer(containerId, accessToken);
 
     const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
@@ -224,9 +154,6 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: containerId, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
-
-    await logPublishApi(supabase, targetId, "instagram", "reel", `/${accountId}/media_publish`, "POST", { creation_id: containerId }, publishData, publishRes.status, !publishData.error, publishData.error?.message);
-
     if (publishData.error) throw new Error(publishData.error.message);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
@@ -235,31 +162,52 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
     await updateTargetStatus(supabase, targetId, "publicado", {
       platform_post_id: publishData.id, platform_post_url: mediaDat.permalink || null, published_at: new Date().toISOString(),
     });
+    await logEvent(supabase, targetId, "publicado", `Publicado: ${mediaDat.permalink || publishData.id}`);
   } else {
+    // Carousel (Multi-Media)
+    await logEvent(supabase, targetId, "enviando", "Iniciando upload Carousel para Instagram (Multi-Media)");
     const childIds: string[] = [];
+
+    // Step 1: Create Child Containers
     for (const media of mediaFiles) {
       const isVideo = media.mime_type?.startsWith("video");
       const body: any = { is_carousel_item: "true", access_token: accessToken };
-      if (isVideo) body.video_url = media.publicUrl;
-      else body.image_url = media.publicUrl;
+      if (isVideo) {
+        body.media_type = "REELS";
+        body.video_url = media.publicUrl;
+      } else {
+        body.image_url = media.publicUrl;
+      }
 
       const childRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
       const childData = await childRes.json();
-      if (childData.error) throw new Error(childData.error.message);
+      if (childData.error) throw new Error("Erro na mídia do carrossel: " + childData.error.message);
       childIds.push(childData.id);
     }
-    await updateTargetStatus(supabase, targetId, "processando");
-    for (const cid of childIds) await pollInstagramContainer(cid, accessToken);
 
+    await updateTargetStatus(supabase, targetId, "processando");
+
+    // Poll all children if they contain video (best practice is polling all to be safe)
+    for (const cid of childIds) {
+      await pollInstagramContainer(cid, accessToken);
+    }
+
+    // Step 2: Create Parent Container
     const parentRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
       method: "POST", headers: { "Content-Type": "application/json" }, 
-      body: JSON.stringify({ media_type: "CAROUSEL", children: childIds, caption, access_token: accessToken })
+      body: JSON.stringify({
+        media_type: "CAROUSEL",
+        children: childIds,
+        caption,
+        access_token: accessToken
+      })
     });
     const parentData = await parentRes.json();
-    if (parentData.error) throw new Error(parentData.error.message);
+    if (parentData.error) throw new Error("Erro ao compilar carrossel: " + parentData.error.message);
     
+    // Step 3: Publish Parent
     const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ creation_id: parentData.id, access_token: accessToken }),
@@ -273,241 +221,250 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
     await updateTargetStatus(supabase, targetId, "publicado", {
       platform_post_id: publishData.id, platform_post_url: mediaDat.permalink || null, published_at: new Date().toISOString(),
     });
+    await logEvent(supabase, targetId, "publicado", `Carrossel Publicado: ${mediaDat.permalink || publishData.id}`);
+  }
+}
+
+async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
+  const isCarousel = mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
+  
+  await updateTargetStatus(supabase, targetId, "enviando");
+  await logEvent(supabase, targetId, "enviando", `Iniciando upload para TikTok (${isCarousel ? 'Photo Carousel' : 'Video'})`);
+
+  const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
+
+  if (isCarousel) {
+    // Foto / Photo Carousel mode via PULL_FROM_URL
+    const photoUrls = mediaFiles.map(m => m.publicUrl);
+    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
+    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
+        source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_urls: photoUrls },
+        media_type: "PHOTO"
+      }),
+    });
+
+    const initData = await initRes.json();
+    await logPublishApi(supabase, targetId, "tiktok", "photo", "/v2/post/publish/content/init/", "POST", { post_info: {}, source_info: { photo_urls: "[...]" } }, initData, initRes.status, initRes.ok, initData.error?.message);
+    
+    if (initData.error?.code) throw new Error(initData.error.message || `TikTok init photo error: ${initData.error.code}`);
+
+    const publishId = initData.data?.publish_id;
+    if (!publishId) throw new Error("TikTok não retornou publish_id");
+
+    await updateTargetStatus(supabase, targetId, "processando");
+
+    let published = false;
+    let attempts = 0;
+    while (!published && attempts < 20) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
+        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ publish_id: publishId }),
+      });
+      const statusData = await statusRes.json();
+      const status = statusData.data?.status;
+
+      if (status === "PUBLISH_COMPLETE") {
+        published = true;
+        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
+      } else if (status === "FAILED") {
+        throw new Error(statusData.data?.fail_reason || "TikTok publicação falhou");
+      }
+      attempts++;
+    }
+
+    if (!published) throw new Error("Timeout: TikTok não finalizou o processamento das fotos");
+
+  } else {
+    // Video mode via PULL_FROM_URL (simpler than FILE_UPLOAD)
+    const publicUrl = mediaFiles[0].publicUrl;
+    if (!publicUrl) throw new Error("URL pública do vídeo não disponível para TikTok");
+    
+    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
+    const disableComments = meta.disableComments ?? false;
+    const disableDuet = meta.disableDuet ?? false;
+    const disableStitch = meta.disableStitch ?? false;
+
+    const postBody: Record<string, unknown> = {
+      source_info: {
+        source: "PULL_FROM_URL",
+        video_url: publicUrl,
+      },
+      title: caption.slice(0, 150),
+      privacy_level: privacyLevel,
+      disable_comments: disableComments,
+      disable_duet: disableDuet,
+      disable_stitch: disableStitch,
+    };
+
+    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify(postBody),
+    });
+
+    const initData = await initRes.json();
+    await logPublishApi(supabase, targetId, "tiktok", "video", "/v2/post/publish/content/init/", "POST", postBody, initData, initRes.status, initRes.ok, initData.error?.message);
+
+    if (initData.error?.code) throw new Error(initData.error.message || `TikTok init error: ${initData.error.code}`);
+
+    const publishId = initData.data?.publish_id;
+    if (!publishId) throw new Error("TikTok não retornou publish_id");
+
+    await updateTargetStatus(supabase, targetId, "processando");
+
+    let published = false;
+    let attempts = 0;
+    while (!published && attempts < 20) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
+        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ publish_id: publishId }),
+      });
+      const statusData = await statusRes.json();
+      const status = statusData.data?.status;
+
+      if (status === "PUBLISH_COMPLETE") {
+        published = true;
+        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
+      } else if (status === "FAILED") {
+        throw new Error(statusData.data?.fail_reason || "TikTok publicação falhou");
+      }
+      attempts++;
+    }
+
+    if (!published) throw new Error("Timeout: TikTok não finalizou o processamento do vídeo");
   }
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return jsonResponse({ success: true, message: "OK" });
-
-  let captureJobId: string | undefined;
-  let captureTargetId: string | undefined;
-  let pUserId: string | undefined;
+  if (req.method === "OPTIONS") { return new Response(null, { headers: corsHeaders }); }
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return jsonResponse({ success: false, message: "Não autorizado" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: corsHeaders });
+    }
 
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
     const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    const token = authHeader.replace("Bearer ", "");
+    let userId = "";
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+    } catch (e) {
+      console.error("Error decoding JWT:", e);
+    }
+
     const payload = await req.json();
-    const { jobId, targetId: directTargetId, idempotencyKey, correlationId, action } = payload;
-    captureJobId = jobId;
-    captureTargetId = directTargetId;
-
-    // 1. Retry Action - Reset failed job and re-run
-    if (action === "retry" && directTargetId) {
-      console.log(`[publish-video] Retry action for target ${directTargetId}`);
-      
-      const { data: target } = await supabaseAdmin.from("publication_targets")
-        .select("*, publications(*)")
-        .eq("id", directTargetId)
-        .single();
-      
-      if (!target) throw new Error("Target não encontrado");
-      
-      const { data: job } = await supabaseAdmin.from("publication_jobs")
-        .select("id, status")
-        .eq("publication_target_id", directTargetId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (job) {
-        await supabaseAdmin.from("publication_jobs").update({
-          status: "ready",
-          attempt_count: 0,
-          last_error: null,
-          run_at: new Date().toISOString()
-        }).eq("id", job.id);
-        
-        captureJobId = job.id;
-      }
-      
-      // Reset target status
-      await supabaseAdmin.from("publication_targets").update({
-        status: "queued",
-        error_message: null,
-        updated_at: new Date().toISOString()
-      }).eq("id", directTargetId);
-    }
-
-    // 1b. Idempotency & Status Check (original logic)
-    if (jobId && !captureTargetId) {
-      const { data: job } = await supabaseAdmin.from("publication_jobs").select("status, publication_target_id").eq("id", jobId).single();
-      if (!job) throw new Error("Job não encontrado");
-      if (job.status === "published") return jsonResponse({ success: true, message: "Já publicado" });
-      if (job.status === "cancelled") return jsonResponse({ success: false, message: "Cancelado", code: "CANCELLED" });
-      captureTargetId = job.publication_target_id;
-    }
-
-    // 2. Resolve Data
-    const { data: target } = await supabaseAdmin.from("publication_targets").select("*, publications(*)").eq("id", captureTargetId).single();
-    if (!target) throw new Error("Target não encontrado");
-    const pub = target.publications;
-    pUserId = pub.user_id;
-
-    await supabaseAdmin.rpc("log_audit_event", {
-      p_user_id: pUserId, p_event_type: "publish_started", p_provider: target.platform, p_publication_id: pub.id,
-      p_message: `Worker iniciando ${target.platform}`, p_correlation_id: correlationId || jobId
-    });
-
-    // 3. Resolve Media
-    const { data: pmList } = await supabaseAdmin
-      .from("post_media")
-      .select("*, uploads(*), audio_uploads:audio_upload_id(*)")
-      .eq("publication_id", pub.id)
-      .order("sort_order");
-    let mediaList = pmList?.map((pm: any) => ({
-      ...pm.uploads,
-      audio_upload: pm.audio_uploads
-    })) || [];
-    if (mediaList.length === 0 && pub.upload_id) {
-       const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", pub.upload_id).single();
-       if (up) mediaList = [up];
-    }
-    if (mediaList.length === 0) throw new Error("Sem mídia vinculada");
-
-    // 3.5. Handle Audio Merge for Stories (if audio is attached)
-    const musicEnabled = Deno.env.get("FF_MUSIC_IN_STORIES") === "true";
-    const isStory = (pub.content_format || "reels") === "story";
-    const hasAudio = mediaList.some((m: any) => m.audio_upload?.file_path);
+    const { jobId } = payload;
     
-    if (musicEnabled && isStory && hasAudio) {
-      console.log("[publish-video] Audio detected for Story, checking for existing merge...");
-      
-      // Check if merge already exists
-      const { data: existingMerge } = await supabaseAdmin
-        .from("audio_merges")
-        .select("*, merged_upload_id(*)")
-        .eq("publication_id", pub.id)
-        .eq("status", "completed")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (existingMerge?.merged_upload_id) {
-        console.log("[publish-video] Using existing merged video");
-        const { data: mergedUpload } = await supabaseAdmin
-          .from("uploads")
-          .select("*")
-          .eq("id", existingMerge.merged_upload_id)
-          .single();
-        
-        if (mergedUpload) {
-          mediaList[0] = {
-            ...mergedUpload,
-            is_merged: true,
-            original_video_id: mediaList[0].id,
-          };
-        }
-      } else {
-        // Trigger merge (async) - for now, continue without audio and log warning
-        console.log("[publish-video] No merged video found, publishing without audio. Run merge-audio-video first.");
-        await supabaseAdmin.from("publication_logs").insert({
-          publication_target_id: target.id,
-          event: "audio_merge_skipped",
-          details: "No completed merge found - user must run merge before publishing",
-        });
-      }
-    }
+    let pTargetId = payload.targetId;
+    let pPlatform = payload.platform;
+    let pMeta = { 
+      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
+      privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption 
+    };
     
-    // 4. Token & Auto-Refresh (with proper re-fetch after refresh)
-    const { data: account } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", target.platform).eq("user_id", pUserId).single();
-    if (!account) throw new Error("Conta não conectada");
+    let mediaList: any[] = [];
 
-    const now = new Date();
-    const expiry = account.expires_at ? new Date(account.expires_at) : null;
-    let accessToken: string;
+    // ====== Job & Payload Resolution ======
+    if (jobId) {
+      // Called by cron-scheduler or async worker
+      const { data: job, error: jobErr } = await supabaseAdmin.from("publication_jobs").select("publication_target_id").eq("id", jobId).single();
+      if (jobErr || !job) throw new Error("Job não encontrado");
+      pTargetId = job.publication_target_id;
 
-    // Trigger refresh if token expires within 1 hour (instead of just 5 minutes)
-    if (!expiry || expiry.getTime() < now.getTime() + 60 * 60 * 1000) {
-       console.log(`[publish-video] Token for ${target.platform} expiring soon (${account.expires_at || 'unknown'}). Invoking refresh...`);
-       await supabaseAdmin.functions.invoke("refresh-token", { 
-         body: { platform: target.platform, userId: pUserId },
-         headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` }
-       });
-       
-       // CRITICAL FIX: Re-fetch the updated token from database after refresh
-       console.log(`[publish-video] Re-fetching refreshed token from database...`);
-       const { data: refreshedAccount } = await supabaseAdmin
-         .from("social_tokens")
-         .select("*")
-         .eq("platform", target.platform)
-         .eq("user_id", pUserId)
-         .single();
-       
-       if (!refreshedAccount) {
-         throw new Error(`Token refresh failed: Account not found after refresh for ${target.platform}`);
-       }
-       
-       accessToken = await decryptToken(refreshedAccount.access_token_encrypted!);
+      const { data: target, error: targetErr } = await supabaseAdmin.from("publication_targets").select("*, publications(*)").eq("id", pTargetId).single();
+      if (targetErr || !target) throw new Error("Target não encontrado");
+      
+      const pub = target.publications;
+      pPlatform = target.platform;
+      pMeta = {
+        title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
+        privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
+      };
+      
+      userId = pub.user_id;
+
+      // Extract Media (N mídias or 1 legacy)
+      const { data: pmList } = await supabaseAdmin.from("post_media").select("*, uploads(*)").eq("publication_id", pub.id).order("sort_order");
+      if (pmList && pmList.length > 0) {
+        mediaList = pmList.map(pm => pm.uploads);
+      } else if (pub.upload_id) {
+        const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", pub.upload_id).single();
+        if (up) mediaList = [up];
+      }
     } else {
-       accessToken = await decryptToken(account.access_token_encrypted!);
+      // Legacy caller
+      if (payload.uploadId) {
+         const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", payload.uploadId).single();
+         if (up) mediaList = [up];
+      }
     }
-    
-    // 5. Download Media
-    const mediaFilesReady = await Promise.all(mediaList.map(async (upload: any) => {
-      const { data: signedUrlData } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
-      const { data: fileData } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
-      const bytes = new Uint8Array(await fileData!.arrayBuffer());
-      return { ...upload, bytes, publicUrl: signedUrlData!.signedUrl };
+
+    if (mediaList.length === 0) throw new Error("Nenhuma mídia vinculada encontrada para publicar");
+
+    // ====== Account Resolution ======
+    const { data: account, error: accError } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", pPlatform).eq("user_id", userId).single();
+    if (accError || !account) {
+      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: `Conta ${pPlatform} não conectada/encontrada.` });
+      return new Response(JSON.stringify({ error: `Conta ${pPlatform} não encontrada` }), { status: 400, headers: corsHeaders });
+    }
+
+    const accessToken = await decryptToken(account.access_token_encrypted!);
+
+    // ====== Download Media Bytes ======
+    console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
+    const mediaFilesReady = await Promise.all(mediaList.map(async (upload) => {
+      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
+      if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
+      const bytes = new Uint8Array(await fileData.arrayBuffer());
+      const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
+      if (signedUrlError) throw new Error(`Falha ao gerar URL assinada: ${signedUrlError.message}`);
+      return { ...upload, bytes, publicUrl: signedUrlData.signedUrl };
     }));
 
-    // 6. Route to Platform
-    // CRITICAL: contentFormat must override anything in platform_settings to prevent story→carousel routing bug
-    const rawContentFormat = pub.content_format || "reels";
-    const pMeta = {
-      title: pub.title,
-      caption: pub.caption,
-      hashtags: pub.hashtags,
-      ...(pub.platform_settings && typeof pub.platform_settings === "object" ? pub.platform_settings : {}),
-      contentFormat: rawContentFormat,  // Always explicit, always last — prevents overwrite
-    };
-    console.log(`[publish-video] Routing job ${captureJobId} → platform=${target.platform}, contentFormat=${rawContentFormat}`);
-    if (target.platform === "youtube") await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, target.id);
-    else if (target.platform === "instagram") await publishToInstagram(supabaseAdmin, accessToken, account.account_id, mediaFilesReady, pMeta, target.id);
-    // TikTok removed
+    // ====== Route to Platform ======
+    if (pPlatform === "youtube") {
+      await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, pTargetId);
+    } else if (pPlatform === "instagram") {
+      await publishToInstagram(supabaseAdmin, accessToken, account.account_id!, mediaFilesReady, pMeta, pTargetId);
+    } else if (pPlatform === "tiktok") {
+      await publishToTikTok(supabaseAdmin, accessToken, mediaFilesReady, pMeta, pTargetId);
+    }
 
-    // Success
-    if (jobId) await supabaseAdmin.from("publication_jobs").update({ status: "published" }).eq("id", jobId);
-    await supabaseAdmin.rpc("log_audit_event", {
-      p_user_id: pUserId, p_event_type: "publish_success", p_provider: target.platform, p_publication_id: pub.id,
-      p_message: `Publicado no ${target.platform}`, p_correlation_id: correlationId || jobId
-    });
+    // If we've made it here, mark Job as COMPLETED
+    if (jobId) {
+      await supabaseAdmin.from("publication_jobs").update({ status: "completed" }).eq("id", jobId);
+    }
 
-    return jsonResponse({ success: true, message: "OK" });
+    return new Response(JSON.stringify({ success: true, publishedMediaCount: mediaFilesReady.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
-    console.error("Worker Error:", err.message);
-    if (captureJobId) {
-       const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR") || err.message?.includes("invalid_grant") || err.message?.includes("token");
-       
-       const { data: job } = await supabaseAdmin.from("publication_jobs").select("attempt_count").eq("id", captureJobId).single();
-       const attempts = (job?.attempt_count || 0) + 1;
-       
-       await supabaseAdmin.from("publication_attempts").insert({
-         publication_job_id: captureJobId,
-         attempt_number: attempts,
-         error_message: err.message,
-         http_status: 500
-       });
-       
-       if (attempts >= 3 || isPermanent) {
-         await supabaseAdmin.from("publication_jobs").update({
-           status: "failed",
-           last_error: `Falha permanente após ${attempts} tentativas. Último erro: ${err.message}`
-         }).eq("id", captureJobId);
-       } else {
-         const nextRun = new Date(Date.now() + 60000 * 5);
-         await supabaseAdmin.from("publication_jobs").update({
-           status: "queued",
-           attempt_count: attempts,
-           run_at: nextRun.toISOString(),
-           last_error: err.message,
-           locked_at: null
-         }).eq("id", captureJobId);
-       }
-    }
-    if (captureTargetId) await updateTargetStatus(supabaseAdmin, captureTargetId, "erro", { error_message: err.message });
-    return jsonResponse({ success: false, message: err.message }, 500);
+    console.error("Publish Fatal Error:", err);
+    try {
+      const { jobId, targetId } = await req.clone().json().catch(() => ({}));
+      const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      
+      if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
+      if (jobId) {
+         // Actually, if it fails, cron-scheduler is wrapping this call and dealing with `publication_jobs`
+         // It's safer to let cron-scheduler handle the job failing by throwing.
+      }
+    } catch (_) {}
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
   }
 });

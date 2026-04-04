@@ -89,6 +89,29 @@ export async function connectInstagramAccount(): Promise<void> {
   return initiateOAuth("instagram");
 }
 
+export async function connectTikTokAccount(): Promise<void> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData?.session) throw new Error("Faça login primeiro.");
+
+  const callbackUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-auth-callback`;
+
+  const { data, error } = await supabase.functions.invoke("tiktok-auth-start", {
+    body: { redirectUri: callbackUrl },
+  });
+
+  if (error) {
+    console.error("[Auth Error] TikTok:", error);
+    let errorMessage = error.message || "Erro ao iniciar autenticação TikTok";
+    throw new Error(errorMessage);
+  }
+
+  if (data?.url) {
+    window.location.href = data.url;
+  } else {
+    throw new Error("URL de autenticação TikTok não retornada");
+  }
+}
+
 // ---------- Token Refresh ----------
 
 export async function refreshPlatformToken(platform: string): Promise<void> {
