@@ -166,7 +166,7 @@ export const translations: Record<Language, Translations> = {
     mito: 'Mito',
     desafio: 'Desafío',
     resultado: 'Resultado',
-    ensinamiento: 'Enseñanza',
+    ensinamento: 'Enseñanza',
     generando: 'Generando historias...',
     pronto: '¡Listo!',
     erro: 'Error al generar',
