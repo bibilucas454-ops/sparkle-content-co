@@ -366,8 +366,17 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: corsHeaders });
     }
 
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
-    const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+      console.error("Erro Ambiental Crítico: Chaves do Supabase ausentes (SUPABASE_URL ou KEYS).");
+      return new Response(JSON.stringify({ error: "Erro interno: Variáveis de ambiente de Auth não configuradas no servidor." }), { status: 500, headers: corsHeaders });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: authHeader } } });
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const token = authHeader.replace("Bearer ", "");
     let userId = "";
@@ -433,12 +442,20 @@ Deno.serve(async (req) => {
 
     // ====== Account Resolution ======
     const { data: account, error: accError } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", pPlatform).eq("user_id", userId).single();
-    if (accError || !account) {
-      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: `Conta ${pPlatform} não conectada/encontrada.` });
-      return new Response(JSON.stringify({ error: `Conta ${pPlatform} não encontrada` }), { status: 400, headers: corsHeaders });
+    if (accError || !account || !account.access_token_encrypted) {
+      const errMsg = `Conta ${pPlatform} não conectada/encontrada ou sem token registrado no banco.`;
+      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
+      return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: corsHeaders });
     }
 
-    const accessToken = await decryptToken(account.access_token_encrypted!);
+    const accessToken = await decryptToken(account.access_token_encrypted);
+    
+    if (!accessToken || accessToken.trim() === "") {
+      const msg = `Falha na Autenticação: O Token de Acesso da conta ${pPlatform} está vazio ou corrompido. Por favor, acesse as conexões e reconecte sua conta.`;
+      console.error(msg);
+      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: msg });
+      return new Response(JSON.stringify({ error: msg }), { status: 400, headers: corsHeaders });
+    }
 
     // ====== Download Media Bytes ======
     console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
