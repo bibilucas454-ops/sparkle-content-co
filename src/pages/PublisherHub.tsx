@@ -12,7 +12,7 @@ import {
   Upload, Play, Send, Clock, Youtube, Instagram, CheckCircle2,
   AlertCircle, Loader2, ExternalLink, Trash2, Save, X, ImageIcon,
   Search, Flame, PlayCircle, PauseCircle, TrendingUp, Sparkles, Music,
-  Volume2, RotateCcw
+  Volume2, RotateCcw, Video
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
@@ -32,6 +32,7 @@ import { Progress } from "@/components/ui/progress";
 const PLATFORMS = [
   { id: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-500" },
   { id: "youtube", label: "YouTube Shorts", icon: Youtube, color: "text-red-500" },
+  { id: "tiktok", label: "TikTok", icon: Video, color: "text-black dark:text-white" },
 ];
 
 const CONTENT_FORMATS = [
@@ -62,6 +63,7 @@ const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle
 interface PlatformSettings {
   youtube: { title: string; description: string; privacy: string };
   instagram: { caption: string; useGlobalHashtags: boolean };
+  tiktok: { privacy: string };
 }
 
 interface MediaFile {
@@ -90,6 +92,7 @@ export default function PublisherHub() {
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     youtube: { title: "", description: "", privacy: "public" },
     instagram: { caption: "", useGlobalHashtags: true },
+    tiktok: { privacy: "public" },
   });
 
   const [approved, setApproved] = useState(false);
@@ -553,6 +556,7 @@ export default function PublisherHub() {
     setPlatformSettings({
       youtube: { title: "", description: "", privacy: "public" },
       instagram: { caption: "", useGlobalHashtags: true },
+    tiktok: { privacy: "public" },
     });
   };
 
