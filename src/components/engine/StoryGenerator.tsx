@@ -294,7 +294,7 @@ export function StoryGenerator({
             </div>
             {sequence && (
               <CardDescription>
-                Score de Diversidade: {sequence.scoreDiversidade}
+                Score de Diversidade: {sequence.scoreDiversidadeTotal}
               </CardDescription>
             )}
           </CardHeader>

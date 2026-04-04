@@ -418,8 +418,8 @@ export default function StoryEnginePage() {
                         <Badge variant={sequence.status === 'pronto' ? 'default' : 'secondary'}>
                           {sequence.status}
                         </Badge>
-                        <div className={`text-2xl font-bold ${getScoreColor(sequence.scoreDiversidade)}`}>
-                          {Math.round(sequence.scoreDiversidade * 100)}%
+                        <div className={`text-2xl font-bold ${getScoreColor(sequence.scoreDiversidadeTotal)}`}>
+                          {Math.round(sequence.scoreDiversidadeTotal * 100)}%
                         </div>
                       </div>
                     </div>

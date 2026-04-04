@@ -210,7 +210,7 @@ export class StoryPersistenceService {
       tipo: record.tipo_sequence as any,
       stories: record.stories as GeneratedStory[],
       input,
-      scoreDiversidade: record.score_diversidade,
+      scoreDiversidadeTotal: record.score_diversidade,
       status: record.status as any,
       createdAt: new Date(record.created_at),
       updatedAt: new Date(record.updated_at)

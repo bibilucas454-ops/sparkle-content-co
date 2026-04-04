@@ -212,7 +212,7 @@ export const translations: Record<Language, Translations> = {
     erro: "Erreur d'generation",
     copiaSucesso: 'Copie!',
     gerar: 'Générer',
-    copier: 'Copier',
+    copiar: 'Copier',
     salvar: 'Sauvegarder',
     regenerer: 'Régénérer',
     nichoPlaceholder: 'Ex: Marketing Digital',

@@ -75,7 +75,7 @@ export default function MetricsPage() {
             successful_posts: 0,
             failed_posts: 0,
             success_rate_percent: 0,
-            unique_publications: new Set()
+            unique_publications: 0
           };
           
           existing.total_attempts++;

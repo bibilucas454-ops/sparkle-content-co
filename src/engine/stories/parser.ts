@@ -305,7 +305,7 @@ export class StoryParser {
       tipo: sequenceType,
       stories,
       input,
-      scoreDiversidade: 0,
+      scoreDiversidadeTotal: 0,
       status: 'pendente',
       createdAt: new Date(),
       updatedAt: new Date()

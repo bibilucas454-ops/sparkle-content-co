@@ -296,7 +296,7 @@ Story ${storyNumber}:
 
     // Revalidar
     const validation = this.validator.validate(sequence);
-    sequence.scoreDiversidade = validation.scoreDiversidade;
+    sequence.scoreDiversidadeTotal = validation.scoreDiversidade;
     sequence.status = validation.isValid ? 'pronto' : 'erro';
 
     return sequence;
