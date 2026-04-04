@@ -62,7 +62,7 @@ export class StoryGeneratorEngine {
 
       if (validation.isValid && validation.scoreDiversidade >= this.config.minDiversidade) {
         sequence.status = 'pronto';
-        sequence.scoreDiversidade = validation.scoreDiversidade;
+        sequence.scoreDiversidadeTotal = validation.scoreDiversidade;
         return sequence;
       }
 
