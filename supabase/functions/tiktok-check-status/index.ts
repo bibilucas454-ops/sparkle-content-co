@@ -75,6 +75,6 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[TikTok Status] CRASH:", err);
-    return jsonResponse({ error: "Erro inesperado", message: err.message }, 500);
+    return jsonResponse({ error: "Erro inesperado", message: (err as Error).message }, 500);
   }
 });

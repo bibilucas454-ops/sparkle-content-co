@@ -491,10 +491,6 @@ Deno.serve(async (req) => {
       const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       
       if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
-      if (jobId) {
-         // Actually, if it fails, cron-scheduler is wrapping this call and dealing with `publication_jobs`
-         // It's safer to let cron-scheduler handle the job failing by throwing.
-      }
     } catch (_) {}
     return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 200, headers: corsHeaders });
   }

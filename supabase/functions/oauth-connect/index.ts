@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       userId = payload.sub;
     } catch (e) {
-      return new Response(JSON.stringify({ error: "Token inválido", details: e.message }), {
+      return new Response(JSON.stringify({ error: "Token inválido", details: (e as Error).message }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
