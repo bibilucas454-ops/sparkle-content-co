@@ -62,7 +62,7 @@ export class StoryGeneratorEngine {
 
       if (validation.isValid && validation.scoreDiversidade >= this.config.minDiversidade) {
         sequence.status = 'pronto';
-        sequence.scoreDiversidade = validation.scoreDiversidade;
+        sequence.scoreDiversidadeTotal = validation.scoreDiversidade;
         return sequence;
       }
 
@@ -206,7 +206,7 @@ Story ${storyNumber}:
    * Retorna descrição do tipo de story
    */
   private getTipoDescription(tipo: StoryType): string {
-    const descricoes: Record<StoryType, string> = {
+    const descricoes: Partial<Record<StoryType, string>> = {
       gatilho: 'Parar o scroll, gerar curiosidade imediata',
       contexto: 'Estabelecer tema, criar identificação',
       valor: 'Ensinar algo prático, gerar valor',
@@ -216,7 +216,7 @@ Story ${storyNumber}:
       corte: 'Desconstruir crenças limitantes',
       cta: 'Direcionar para ação específica'
     };
-    return descricoes[tipo];
+    return descricoes[tipo] || tipo;
   }
 
   /**
@@ -296,7 +296,7 @@ Story ${storyNumber}:
 
     // Revalidar
     const validation = this.validator.validate(sequence);
-    sequence.scoreDiversidade = validation.scoreDiversidade;
+    sequence.scoreDiversidadeTotal = validation.scoreDiversidade;
     sequence.status = validation.isValid ? 'pronto' : 'erro';
 
     return sequence;

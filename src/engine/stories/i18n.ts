@@ -144,7 +144,7 @@ export const translations: Record<Language, Translations> = {
   
   'es-ES': {
     nicho: 'Nicho',
-    producto: 'Producto/Servicio',
+    produto: 'Producto/Servicio',
     promessa: 'Promesa',
     dorPrincipal: 'Dolor Principal',
     objetivo: 'Objetivo',
@@ -158,7 +158,7 @@ export const translations: Record<Language, Translations> = {
     valor: 'Valor',
     conexao: 'Conexión',
     bastidor: 'Bastidores',
-    prueba: 'Prueba',
+    prova: 'Prueba',
     corte: 'Corte de Creencia',
     cta: 'Llamada a la Acción',
     humor: 'Humor',
@@ -166,12 +166,12 @@ export const translations: Record<Language, Translations> = {
     mito: 'Mito',
     desafio: 'Desafío',
     resultado: 'Resultado',
-    ensinamiento: 'Enseñanza',
-    generando: 'Generando historias...',
+    ensinamento: 'Enseñanza',
+    gerando: 'Generando historias...',
     pronto: '¡Listo!',
     erro: 'Error al generar',
-    copiaSuceso: '¡Copiado!',
-    generar: 'Generar',
+    copiaSucesso: '¡Copiado!',
+    gerar: 'Generar',
     copiar: 'Copiar',
     salvar: 'Guardar',
     regenerar: 'Regenerar',
@@ -212,14 +212,14 @@ export const translations: Record<Language, Translations> = {
     erro: "Erreur d'generation",
     copiaSucesso: 'Copie!',
     gerar: 'Générer',
-    copier: 'Copier',
+    copiar: 'Copier',
     salvar: 'Sauvegarder',
-    regenerer: 'Régénérer',
+    regenerar: 'Régénérer',
     nichoPlaceholder: 'Ex: Marketing Digital',
     produtoPlaceholder: 'Ex: Mentorat',
     promessaPlaceholder: 'Ex: Gagner 5k/mois',
     dorPlaceholder: "Ex: Je n'arrive pas à vendre",
-    objectifPlaceholder: 'Ex: Revenu supplémentaire'
+    objetivoPlaceholder: 'Ex: Revenu supplémentaire'
   }
 };
 

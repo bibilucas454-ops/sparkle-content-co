@@ -176,7 +176,7 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
 export async function retryPublication(targetId: string): Promise<void> {
   const { data: target, error: targetError } = await supabase
     .from("publication_targets")
-    .select("*, publications(*), uploads(*)")
+    .select("*, publications(*)")
     .eq("id", targetId)
     .single();
 
@@ -185,20 +185,19 @@ export async function retryPublication(targetId: string): Promise<void> {
   }
 
   const pub = target.publications;
-  const upload = target.uploads;
 
-  if (!pub || !upload) {
-    throw new Error("Dados da publicação ou upload não encontrados");
+  if (!pub) {
+    throw new Error("Dados da publicação não encontrados");
   }
 
   const payload: PublishPayload = {
     publicationTargetId: targetId,
     platform: target.platform,
-    uploadId: upload.id,
-    videoUrl: upload.file_path ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/videos/${upload.file_path}` : undefined,
-    title: pub.title || "Sem título",
-    caption: pub.caption,
-    hashtags: pub.hashtags,
+    uploadId: (pub as any).upload_id || "",
+    videoUrl: (pub as any).upload_id ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/videos/${(pub as any).upload_id}` : undefined,
+    title: (pub as any).title || "Sem título",
+    caption: (pub as any).caption,
+    hashtags: (pub as any).hashtags,
     privacyStatus: target.privacy_status || "public",
     platformSpecificTitle: target.platform_specific_title || undefined,
     platformSpecificCaption: target.platform_specific_caption || undefined,

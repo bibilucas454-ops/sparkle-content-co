@@ -70,8 +70,8 @@ async function mergeAudioWithFFmpeg(
   }
   
   const formData = new FormData();
-  formData.append("video", new Blob([videoBytes]), "video.mp4");
-  formData.append("audio", new Blob([audioBytes]), "audio.mp3");
+  formData.append("video", new Blob([videoBytes as BlobPart]), "video.mp4");
+  formData.append("audio", new Blob([audioBytes as BlobPart]), "audio.mp3");
   formData.append("audio_volume", options.audioVolume.toString());
   
   const response = await fetch(`${ffmpegServiceUrl}/merge`, {

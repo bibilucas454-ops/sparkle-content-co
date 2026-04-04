@@ -82,6 +82,6 @@ Deno.serve(async (req) => {
     return jsonResponse({ url: authUrl, state });
   } catch (err) {
     console.error("[TikTok Auth Start] GLOBAL CRASH:", err);
-    return jsonResponse({ error: "Erro inesperado", message: err.message }, 500);
+    return jsonResponse({ error: "Erro inesperado", message: (err as Error).message }, 500);
   }
 });

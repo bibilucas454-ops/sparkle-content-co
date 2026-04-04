@@ -19,7 +19,7 @@ export interface ErrorResponse {
   details?: any;
 }
 
-export function jsonResponse(data: SuccessResponse | ErrorResponse, status = 200) {
+export function jsonResponse(data: Record<string, any>, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },

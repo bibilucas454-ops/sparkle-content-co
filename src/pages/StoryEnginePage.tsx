@@ -36,8 +36,7 @@ import type {
   StoryGeneratorInput, 
   GeneratedSequence, 
   GeneratedStory,
-  SequenceType,
-  NicheType 
+  SequenceType
 } from "@/engine/stories/types";
 import { NICHE_TEMPLATES, NicheTemplates } from "@/engine/stories/templates";
 
@@ -77,7 +76,7 @@ export default function StoryEnginePage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('config');
 
-  const niches = Object.keys(NICHE_TEMPLATES) as NicheType[];
+  const niches = Object.keys(NICHE_TEMPLATES) as string[];
 
   const handleGenerate = useCallback(async () => {
     if (!formData.nicho || !formData.promessa || !formData.dorPrincipal) {
@@ -179,7 +178,7 @@ export default function StoryEnginePage() {
     if (!sequence || !user) return;
 
     try {
-      await supabase.from('story_generations').insert({
+      await supabase.from('story_generations').insert([{
         user_id: user.id,
         nicho: formData.nicho,
         produto: formData.produto,
@@ -189,10 +188,10 @@ export default function StoryEnginePage() {
         objetivo: formData.objetivo,
         cta_principal: formData.ctaPrincipal,
         tipo_sequence: sequenceType,
-        stories: sequence.stories,
-        score_diversidade: sequence.scoreDiversidade,
+        stories: sequence.stories as any,
+        score_diversidade: sequence.scoreDiversidadeTotal,
         status: sequence.status
-      });
+      }]);
       toast.success('Sequência salva!');
     } catch (err) {
       toast.error('Erro ao salvar');
@@ -419,8 +418,8 @@ export default function StoryEnginePage() {
                         <Badge variant={sequence.status === 'pronto' ? 'default' : 'secondary'}>
                           {sequence.status}
                         </Badge>
-                        <div className={`text-2xl font-bold ${getScoreColor(sequence.scoreDiversidade)}`}>
-                          {Math.round(sequence.scoreDiversidade * 100)}%
+                        <div className={`text-2xl font-bold ${getScoreColor(sequence.scoreDiversidadeTotal)}`}>
+                          {Math.round(sequence.scoreDiversidadeTotal * 100)}%
                         </div>
                       </div>
                     </div>
