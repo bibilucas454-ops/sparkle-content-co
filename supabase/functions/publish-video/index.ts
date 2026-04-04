@@ -297,15 +297,18 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
     const disableStitch = meta.disableStitch ?? false;
 
     const postBody: Record<string, unknown> = {
+      post_info: {
+        title: caption.slice(0, 150),
+        privacy_level: privacyLevel,
+        disable_comment: disableComments,
+        disable_duet: disableDuet,
+        disable_stitch: disableStitch,
+      },
       source_info: {
         source: "PULL_FROM_URL",
         video_url: publicUrl,
       },
-      title: caption.slice(0, 150),
-      privacy_level: privacyLevel,
-      disable_comments: disableComments,
-      disable_duet: disableDuet,
-      disable_stitch: disableStitch,
+      media_type: "VIDEO"
     };
 
     const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
