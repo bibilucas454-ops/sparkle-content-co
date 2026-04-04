@@ -12,33 +12,195 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
+      audio_merges: {
+        Row: {
+          audio_upload_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          merged_upload_id: string | null
+          music_fade_in: number | null
+          music_fade_out: number | null
+          music_volume: number | null
+          publication_id: string | null
+          status: string
+          video_upload_id: string
+        }
+        Insert: {
+          audio_upload_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          merged_upload_id?: string | null
+          music_fade_in?: number | null
+          music_fade_out?: number | null
+          music_volume?: number | null
+          publication_id?: string | null
+          status?: string
+          video_upload_id: string
+        }
+        Update: {
+          audio_upload_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          merged_upload_id?: string | null
+          music_fade_in?: number | null
+          music_fade_out?: number | null
+          music_volume?: number | null
+          publication_id?: string | null
+          status?: string
+          video_upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audio_merges_audio_upload_id_fkey"
+            columns: ["audio_upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_merges_merged_upload_id_fkey"
+            columns: ["merged_upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_merges_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "audio_merges_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_merges_video_upload_id_fkey"
+            columns: ["video_upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_music: {
+        Row: {
+          artist: string | null
+          external_id: string | null
+          id: string
+          preview_url: string | null
+          publication_id: string | null
+          selected_at: string | null
+          source_platform: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          artist?: string | null
+          external_id?: string | null
+          id?: string
+          preview_url?: string | null
+          publication_id?: string | null
+          selected_at?: string | null
+          source_platform?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          artist?: string | null
+          external_id?: string | null
+          id?: string
+          preview_url?: string | null
+          publication_id?: string | null
+          selected_at?: string | null
+          source_platform?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_music_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "content_music_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_music_selection: {
+        Row: {
+          created_at: string | null
+          id: string
+          music_catalog_id: string | null
+          publication_id: string | null
+          selected_by_user: boolean | null
+          selected_from_trending: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          music_catalog_id?: string | null
+          publication_id?: string | null
+          selected_by_user?: boolean | null
+          selected_from_trending?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          music_catalog_id?: string | null
+          publication_id?: string | null
+          selected_by_user?: boolean | null
+          selected_from_trending?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_music_selection_music_catalog_id_fkey"
+            columns: ["music_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "music_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_music_selection_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "content_music_selection_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contents: {
         Row: {
           content: string
@@ -78,7 +240,6 @@ export type Database = {
       drafts: {
         Row: {
           caption: string | null
-          content_format: string
           created_at: string | null
           cta: string | null
           hashtags: string | null
@@ -92,7 +253,6 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
-          content_format?: string
           created_at?: string | null
           cta?: string | null
           hashtags?: string | null
@@ -106,7 +266,6 @@ export type Database = {
         }
         Update: {
           caption?: string | null
-          content_format?: string
           created_at?: string | null
           cta?: string | null
           hashtags?: string | null
@@ -158,6 +317,174 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_events: {
+        Row: {
+          correlation_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json | null
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          platform: string
+          user_id: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      music_catalog: {
+        Row: {
+          album_name: string | null
+          artist: string | null
+          category: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          external_id: string | null
+          id: string
+          is_active: boolean | null
+          is_trending: boolean | null
+          last_synced_at: string | null
+          locale: string | null
+          metadata: Json | null
+          preview_url: string | null
+          source_platform: string | null
+          title: string
+          trend_score: number | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          album_name?: string | null
+          artist?: string | null
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_trending?: boolean | null
+          last_synced_at?: string | null
+          locale?: string | null
+          metadata?: Json | null
+          preview_url?: string | null
+          source_platform?: string | null
+          title: string
+          trend_score?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          album_name?: string | null
+          artist?: string | null
+          category?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_trending?: boolean | null
+          last_synced_at?: string | null
+          locale?: string | null
+          metadata?: Json | null
+          preview_url?: string | null
+          source_platform?: string | null
+          title?: string
+          trend_score?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      music_library: {
+        Row: {
+          artist: string
+          category: string | null
+          cover_url: string | null
+          created_at: string
+          duration: number | null
+          id: string
+          title: string
+          url: string
+        }
+        Insert: {
+          artist: string
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          title: string
+          url: string
+        }
+        Update: {
+          artist?: string
+          category?: string | null
+          cover_url?: string | null
+          created_at?: string
+          duration?: number | null
+          id?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      music_sync_jobs: {
+        Row: {
+          created_at: string | null
+          error_log: string | null
+          finished_at: string | null
+          id: string
+          records_fetched: number | null
+          records_inserted: number | null
+          records_updated: number | null
+          source: string
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_log?: string | null
+          finished_at?: string | null
+          id?: string
+          records_fetched?: number | null
+          records_inserted?: number | null
+          records_updated?: number | null
+          source: string
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_log?: string | null
+          finished_at?: string | null
+          id?: string
+          records_fetched?: number | null
+          records_inserted?: number | null
+          records_updated?: number | null
+          source?: string
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       oauth_states: {
         Row: {
           created_at: string
@@ -184,33 +511,47 @@ export type Database = {
       }
       post_media: {
         Row: {
+          audio_upload_id: string | null
           created_at: string
           id: string
           media_type: string
           publication_id: string
           sort_order: number
           upload_id: string
-          audio_upload_id: string | null
         }
         Insert: {
+          audio_upload_id?: string | null
           created_at?: string
           id?: string
           media_type?: string
           publication_id: string
           sort_order?: number
           upload_id: string
-          audio_upload_id?: string | null
         }
         Update: {
+          audio_upload_id?: string | null
           created_at?: string
           id?: string
           media_type?: string
           publication_id?: string
           sort_order?: number
           upload_id?: string
-          audio_upload_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "post_media_audio_upload_id_fkey"
+            columns: ["audio_upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_media_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
           {
             foreignKeyName: "post_media_publication_id_fkey"
             columns: ["publication_id"]
@@ -294,6 +635,7 @@ export type Database = {
           attempt_count: number
           created_at: string
           id: string
+          idempotency_key: string | null
           last_error: string | null
           locked_at: string | null
           publication_target_id: string
@@ -305,6 +647,7 @@ export type Database = {
           attempt_count?: number
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           last_error?: string | null
           locked_at?: string | null
           publication_target_id: string
@@ -316,6 +659,7 @@ export type Database = {
           attempt_count?: number
           created_at?: string
           id?: string
+          idempotency_key?: string | null
           last_error?: string | null
           locked_at?: string | null
           publication_target_id?: string
@@ -324,6 +668,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "publication_jobs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: true
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
           {
             foreignKeyName: "publication_jobs_publication_target_id_fkey"
             columns: ["publication_target_id"]
@@ -360,6 +711,13 @@ export type Database = {
             foreignKeyName: "publication_logs_publication_target_id_fkey"
             columns: ["publication_target_id"]
             isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
+          {
+            foreignKeyName: "publication_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
             referencedRelation: "publication_targets"
             referencedColumns: ["id"]
           },
@@ -374,7 +732,6 @@ export type Database = {
           platform_post_id: string | null
           platform_post_url: string | null
           platform_specific_caption: string | null
-          content_format: string
           platform_specific_title: string | null
           privacy_status: string | null
           publication_id: string
@@ -390,7 +747,6 @@ export type Database = {
           platform_post_id?: string | null
           platform_post_url?: string | null
           platform_specific_caption?: string | null
-          content_format?: string
           platform_specific_title?: string | null
           privacy_status?: string | null
           publication_id: string
@@ -406,7 +762,6 @@ export type Database = {
           platform_post_id?: string | null
           platform_post_url?: string | null
           platform_specific_caption?: string | null
-          content_format?: string
           platform_specific_title?: string | null
           privacy_status?: string | null
           publication_id?: string
@@ -419,6 +774,13 @@ export type Database = {
             foreignKeyName: "publication_targets_publication_id_fkey"
             columns: ["publication_id"]
             isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "publication_targets_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
             referencedRelation: "publications"
             referencedColumns: ["id"]
           },
@@ -426,13 +788,17 @@ export type Database = {
       }
       publications: {
         Row: {
+          approval_status: string
           caption: string | null
           content_format: string
           created_at: string
           cta: string | null
           hashtags: string | null
           id: string
+          music_fade_in: number | null
+          music_fade_out: number | null
           music_metadata: Json | null
+          music_volume: number | null
           overall_status: string | null
           scheduled_for: string | null
           thumbnail_path: string | null
@@ -442,13 +808,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_status?: string
           caption?: string | null
           content_format?: string
           created_at?: string
           cta?: string | null
           hashtags?: string | null
           id?: string
+          music_fade_in?: number | null
+          music_fade_out?: number | null
           music_metadata?: Json | null
+          music_volume?: number | null
           overall_status?: string | null
           scheduled_for?: string | null
           thumbnail_path?: string | null
@@ -458,13 +828,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_status?: string
           caption?: string | null
           content_format?: string
           created_at?: string
           cta?: string | null
           hashtags?: string | null
           id?: string
+          music_fade_in?: number | null
+          music_fade_out?: number | null
           music_metadata?: Json | null
+          music_volume?: number | null
           overall_status?: string | null
           scheduled_for?: string | null
           thumbnail_path?: string | null
@@ -479,6 +853,66 @@ export type Database = {
             columns: ["upload_id"]
             isOneToOne: false
             referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publish_logs: {
+        Row: {
+          content_type: string
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          method: string
+          platform: string
+          publication_target_id: string | null
+          request_body: Json | null
+          response_body: Json | null
+          response_status: number | null
+          success: boolean
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          method: string
+          platform: string
+          publication_target_id?: string | null
+          request_body?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          success?: boolean
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          method?: string
+          platform?: string
+          publication_target_id?: string | null
+          request_body?: Json | null
+          response_body?: Json | null
+          response_status?: number | null
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publish_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
+          {
+            foreignKeyName: "publish_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_targets"
             referencedColumns: ["id"]
           },
         ]
@@ -530,15 +964,19 @@ export type Database = {
           created_at: string
           expires_at: string | null
           id: string
-          last_refreshed_at: string | null
-          platform: string
-          refresh_token_encrypted: string | null
-          updated_at: string
-          user_id: string
-          status: string | null
-          last_sync_at: string | null
           last_error: string | null
           last_error_code: string | null
+          last_refreshed_at: string | null
+          last_sync_at: string | null
+          platform: string
+          raw_response: Json | null
+          refresh_expires_at: string | null
+          refresh_token_encrypted: string | null
+          scope: string | null
+          status: string | null
+          token_type: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
           access_token_encrypted: string
@@ -547,15 +985,19 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
-          last_refreshed_at?: string | null
-          platform: string
-          refresh_token_encrypted?: string | null
-          updated_at?: string
-          user_id: string
-          status?: string | null
-          last_sync_at?: string | null
           last_error?: string | null
           last_error_code?: string | null
+          last_refreshed_at?: string | null
+          last_sync_at?: string | null
+          platform: string
+          raw_response?: Json | null
+          refresh_expires_at?: string | null
+          refresh_token_encrypted?: string | null
+          scope?: string | null
+          status?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
           access_token_encrypted?: string
@@ -564,15 +1006,136 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           id?: string
-          last_refreshed_at?: string | null
-          platform?: string
-          refresh_token_encrypted?: string | null
-          updated_at?: string
-          user_id?: string
-          status?: string | null
-          last_sync_at?: string | null
           last_error?: string | null
           last_error_code?: string | null
+          last_refreshed_at?: string | null
+          last_sync_at?: string | null
+          platform?: string
+          raw_response?: Json | null
+          refresh_expires_at?: string | null
+          refresh_token_encrypted?: string | null
+          scope?: string | null
+          status?: string | null
+          token_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_generations: {
+        Row: {
+          created_at: string | null
+          cta_principal: string
+          dor_principal: string
+          id: string
+          iteracoes: number | null
+          nicho: string
+          nivel_publico: string | null
+          objetivo: string | null
+          produto: string | null
+          promessa: string
+          score_abertura: number | null
+          score_cta: number | null
+          score_diversidade: number | null
+          score_estrutura: number | null
+          score_ritmo: number | null
+          score_vocabulario: number | null
+          status: string | null
+          stories: Json
+          tipo_sequence: string
+          tom_voz: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          cta_principal: string
+          dor_principal: string
+          id?: string
+          iteracoes?: number | null
+          nicho: string
+          nivel_publico?: string | null
+          objetivo?: string | null
+          produto?: string | null
+          promessa: string
+          score_abertura?: number | null
+          score_cta?: number | null
+          score_diversidade?: number | null
+          score_estrutura?: number | null
+          score_ritmo?: number | null
+          score_vocabulario?: number | null
+          status?: string | null
+          stories?: Json
+          tipo_sequence: string
+          tom_voz: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          cta_principal?: string
+          dor_principal?: string
+          id?: string
+          iteracoes?: number | null
+          nicho?: string
+          nivel_publico?: string | null
+          objetivo?: string | null
+          produto?: string | null
+          promessa?: string
+          score_abertura?: number | null
+          score_cta?: number | null
+          score_diversidade?: number | null
+          score_estrutura?: number | null
+          score_ritmo?: number | null
+          score_vocabulario?: number | null
+          status?: string | null
+          stories?: Json
+          tipo_sequence?: string
+          tom_voz?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trending_sounds: {
+        Row: {
+          artist: string | null
+          created_at: string | null
+          external_id: string | null
+          id: string
+          is_active: boolean | null
+          popularity_score: number | null
+          preview_url: string | null
+          source_platform: string | null
+          title: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          popularity_score?: number | null
+          preview_url?: string | null
+          source_platform?: string | null
+          title: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string | null
+          external_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          popularity_score?: number | null
+          preview_url?: string | null
+          source_platform?: string | null
+          title?: string
+          updated_at?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }
@@ -656,7 +1219,66 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      platform_metrics: {
+        Row: {
+          failed_posts: number | null
+          platform: string | null
+          success_rate_percent: number | null
+          successful_posts: number | null
+          total_attempts: number | null
+          unique_publications: number | null
+        }
+        Relationships: []
+      }
+      publication_metrics: {
+        Row: {
+          attempt_count: number | null
+          error_message: string | null
+          overall_status: string | null
+          platform: string | null
+          platform_post_url: string | null
+          publication_created_at: string | null
+          publication_id: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          target_id: string | null
+          target_status: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      story_generation_stats: {
+        Row: {
+          avg_iterations: number | null
+          avg_score: number | null
+          failed_generations: number | null
+          first_generation: string | null
+          last_generation: string | null
+          max_score: number | null
+          min_score: number | null
+          nicho: string | null
+          successful_generations: number | null
+          tipo_sequence: string | null
+          total_generations: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      user_publication_summary: {
+        Row: {
+          failed_count: number | null
+          failed_posts: number | null
+          pending_count: number | null
+          published_count: number | null
+          success_rate_percent: number | null
+          successful_posts: number | null
+          total_publications: number | null
+          total_targets: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       audit_publication_queue: {
@@ -668,6 +1290,28 @@ export type Database = {
         }[]
       }
       invoke_cron_scheduler: { Args: never; Returns: undefined }
+      log_audit_event: {
+        Args: {
+          p_correlation_id?: string
+          p_error_code?: string
+          p_event_type: string
+          p_message?: string
+          p_payload?: Json
+          p_provider?: string
+          p_publication_id?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      log_integration_event: {
+        Args: {
+          p_event_type: string
+          p_payload?: Json
+          p_platform: string
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
@@ -796,9 +1440,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
