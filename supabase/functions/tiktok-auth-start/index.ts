@@ -9,7 +9,8 @@ const TIKTOK_CLIENT_SECRET = Deno.env.get("TIKTOK_CLIENT_SECRET");
 const TIKTOK_SCOPES = [
   "user.info.basic",
   "video.upload",
-  "video.publish"
+  "video.publish",
+  "photo.publish"
 ].join(",");
 
 Deno.serve(async (req) => {
