@@ -228,131 +228,187 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
 
 async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   const isCarousel = mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
-  
-  await updateTargetStatus(supabase, targetId, "enviando");
-  await logEvent(supabase, targetId, "enviando", `Iniciando upload para TikTok (${isCarousel ? 'Photo Carousel' : 'Video'})`);
 
-  const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
+  await updateTargetStatus(supabase, targetId, "enviando");
+  await logEvent(supabase, targetId, "enviando", `Iniciando publicação no TikTok (${isCarousel ? 'Photo Carousel' : 'Video'})`);
+
+  const rawCaption = (meta.platformSpecificCaption || meta.caption || "").trim();
+  const rawHashtags = (meta.hashtags || "").trim();
+  // TikTok title field: max 150 chars
+  const title = (rawCaption ? rawCaption + (rawHashtags ? " " + rawHashtags : "") : rawHashtags).slice(0, 150);
+
+  console.log(`[TikTok] isCarousel=${isCarousel}, title length=${title.length}, files=${mediaFiles.length}`);
+  console.log(`[TikTok] media publicUrls:`, mediaFiles.map(m => m.publicUrl?.substring(0, 80)));
 
   if (isCarousel) {
-    // Foto / Photo Carousel mode via PULL_FROM_URL
-    const photoUrls = mediaFiles.map(m => m.publicUrl);
+    // Photo Carousel mode via PULL_FROM_URL
+    const photoUrls = mediaFiles.map(m => m.publicUrl).filter(Boolean);
+    if (photoUrls.length === 0) throw new Error("Nenhuma URL pública disponível para as fotos do carrossel TikTok");
+
     const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
-    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        post_info: { title: caption.slice(0, 150), privacy_level: privacyLevel, disable_duet: false, disable_comment: false, disable_stitch: false },
-        source_info: { source: "PULL_FROM_URL", photo_cover_index: 0, photo_urls: photoUrls },
-        media_type: "PHOTO"
-      }),
-    });
 
-    const initData = await initRes.json();
-    await logPublishApi(supabase, targetId, "tiktok", "photo", "/v2/post/publish/content/init/", "POST", { post_info: {}, source_info: { photo_urls: "[...]" } }, initData, initRes.status, initRes.ok, initData.error?.message);
-    
-    if (initData.error?.code) throw new Error(initData.error.message || `TikTok init photo error: ${initData.error.code}`);
-
-    const publishId = initData.data?.publish_id;
-    if (!publishId) throw new Error("TikTok não retornou publish_id");
-
-    await updateTargetStatus(supabase, targetId, "processando");
-
-    let published = false;
-    let attempts = 0;
-    while (!published && attempts < 8) {
-      await new Promise((r) => setTimeout(r, 4000));
-      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ publish_id: publishId }),
-      });
-      const statusData = await statusRes.json();
-      const status = statusData.data?.status;
-
-      if (status === "PUBLISH_COMPLETE") {
-        published = true;
-        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
-      } else if (status === "FAILED") {
-        throw new Error(statusData.data?.fail_reason || "TikTok publicação falhou");
-      }
-      attempts++;
-    }
-
-    if (!published) {
-      await updateTargetStatus(supabase, targetId, "processando", { platform_post_id: publishId });
-      await logEvent(supabase, targetId, "processando", "TikTok processando upload da foto.");
-    }
-
-  } else {
-    // Video mode via PULL_FROM_URL (simpler than FILE_UPLOAD)
-    const publicUrl = mediaFiles[0].publicUrl;
-    if (!publicUrl) throw new Error("URL pública do vídeo não disponível para TikTok");
-    
-    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
-    const disableComments = meta.disableComments ?? false;
-    const disableDuet = meta.disableDuet ?? false;
-    const disableStitch = meta.disableStitch ?? false;
-
-    const postBody: Record<string, unknown> = {
+    const carouselBody = {
       post_info: {
-        title: caption.slice(0, 150),
+        title,
         privacy_level: privacyLevel,
-        disable_comment: disableComments,
-        disable_duet: disableDuet,
-        disable_stitch: disableStitch,
+        disable_duet: false,
+        disable_comment: false,
+        disable_stitch: false,
       },
       source_info: {
         source: "PULL_FROM_URL",
-        video_url: publicUrl,
+        photo_cover_index: 0,
+        photo_urls: photoUrls,
       },
-      media_type: "VIDEO"
+      media_type: "PHOTO",
     };
 
+    console.log("[TikTok] Sending carousel init request...");
     const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json; charset=UTF-8",
       },
-      body: JSON.stringify(postBody),
+      body: JSON.stringify(carouselBody),
     });
 
     const initData = await initRes.json();
-    await logPublishApi(supabase, targetId, "tiktok", "video", "/v2/post/publish/content/init/", "POST", postBody, initData, initRes.status, initRes.ok, initData.error?.message);
+    console.log("[TikTok] Carousel init response:", JSON.stringify(initData));
+    await logPublishApi(supabase, targetId, "tiktok", "photo", "/v2/post/publish/content/init/", "POST",
+      { ...carouselBody, source_info: { ...carouselBody.source_info, photo_urls: `[${photoUrls.length} urls]` } },
+      initData, initRes.status, initRes.ok, initData.error?.message);
 
-    if (initData.error?.code) throw new Error(initData.error.message || `TikTok init error: ${initData.error.code}`);
+    if (!initRes.ok || initData.error?.code) {
+      const errCode = initData.error?.code || initRes.status;
+      const errMsg = initData.error?.message || `TikTok API HTTP ${initRes.status}`;
+      throw new Error(`TikTok carrossel falhou (código ${errCode}): ${errMsg}`);
+    }
 
     const publishId = initData.data?.publish_id;
-    if (!publishId) throw new Error("TikTok não retornou publish_id");
+    if (!publishId) throw new Error("TikTok não retornou publish_id para o carrossel");
 
     await updateTargetStatus(supabase, targetId, "processando");
+    console.log("[TikTok] Polling status for carousel publish_id:", publishId);
 
     let published = false;
     let attempts = 0;
-    while (!published && attempts < 8) {
-      await new Promise((r) => setTimeout(r, 4000));
-      const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
-        method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ publish_id: publishId }),
-      });
-      const statusData = await statusRes.json();
-      const status = statusData.data?.status;
-
-      if (status === "PUBLISH_COMPLETE") {
-        published = true;
-        await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
-      } else if (status === "FAILED") {
-        throw new Error(statusData.data?.fail_reason || "TikTok publicação falhou");
-      }
+    while (!published && attempts < 15) {
+      await new Promise((r) => setTimeout(r, 5000));
       attempts++;
+      try {
+        const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify({ publish_id: publishId }),
+        });
+        const statusData = await statusRes.json();
+        const status = statusData.data?.status;
+        console.log(`[TikTok] Carousel status attempt ${attempts}: ${status}`);
+
+        if (status === "PUBLISH_COMPLETE") {
+          published = true;
+          await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
+          await logEvent(supabase, targetId, "publicado", `TikTok carrossel publicado com sucesso. publish_id=${publishId}`);
+        } else if (status === "FAILED") {
+          const failReason = statusData.data?.fail_reason || "Falha reportada pelo TikTok";
+          throw new Error(`TikTok publicação falhou: ${failReason}`);
+        }
+      } catch (pollErr: any) {
+        if (pollErr.message?.includes("TikTok publicação falhou")) throw pollErr;
+        console.warn(`[TikTok] Status poll attempt ${attempts} error (non-fatal):`, pollErr.message);
+      }
     }
 
     if (!published) {
+      // Mark as processing - TikTok is still working on it
       await updateTargetStatus(supabase, targetId, "processando", { platform_post_id: publishId });
-      await logEvent(supabase, targetId, "processando", "TikTok processando o upload do vídeo.");
+      await logEvent(supabase, targetId, "processando", `TikTok ainda processando carrossel após ${attempts} verificações. publish_id=${publishId}`);
+    }
+
+  } else {
+    // Video mode via PULL_FROM_URL
+    const publicUrl = mediaFiles[0].publicUrl;
+    if (!publicUrl) throw new Error("URL pública do vídeo não disponível para o TikTok. Verifique se o arquivo foi enviado corretamente.");
+
+    const privacyLevel = meta.privacyStatus === "private" ? "SELF_ONLY" : "PUBLIC_TO_EVERYONE";
+
+    const videoPostBody = {
+      post_info: {
+        title,
+        privacy_level: privacyLevel,
+        disable_comment: false,
+        disable_duet: false,
+        disable_stitch: false,
+      },
+      source_info: {
+        source: "PULL_FROM_URL",
+        video_url: publicUrl,
+      },
+      media_type: "VIDEO",
+    };
+
+    console.log("[TikTok] Sending video init request. URL prefix:", publicUrl.substring(0, 80));
+    const initRes = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify(videoPostBody),
+    });
+
+    const initData = await initRes.json();
+    console.log("[TikTok] Video init response:", JSON.stringify(initData));
+    await logPublishApi(supabase, targetId, "tiktok", "video", "/v2/post/publish/content/init/", "POST",
+      { ...videoPostBody, source_info: { source: "PULL_FROM_URL", video_url: publicUrl.substring(0, 80) + "..." } },
+      initData, initRes.status, initRes.ok, initData.error?.message);
+
+    if (!initRes.ok || initData.error?.code) {
+      const errCode = initData.error?.code || initRes.status;
+      const errMsg = initData.error?.message || `TikTok API HTTP ${initRes.status}`;
+      throw new Error(`TikTok vídeo falhou (código ${errCode}): ${errMsg}`);
+    }
+
+    const publishId = initData.data?.publish_id;
+    if (!publishId) throw new Error("TikTok não retornou publish_id para o vídeo");
+
+    await updateTargetStatus(supabase, targetId, "processando");
+    console.log("[TikTok] Polling status for video publish_id:", publishId);
+
+    let published = false;
+    let attempts = 0;
+    while (!published && attempts < 15) {
+      await new Promise((r) => setTimeout(r, 5000));
+      attempts++;
+      try {
+        const statusRes = await fetch("https://open.tiktokapis.com/v2/post/publish/status/fetch/", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify({ publish_id: publishId }),
+        });
+        const statusData = await statusRes.json();
+        const status = statusData.data?.status;
+        console.log(`[TikTok] Video status attempt ${attempts}: ${status}`);
+
+        if (status === "PUBLISH_COMPLETE") {
+          published = true;
+          await updateTargetStatus(supabase, targetId, "publicado", { platform_post_id: publishId, published_at: new Date().toISOString() });
+          await logEvent(supabase, targetId, "publicado", `TikTok vídeo publicado com sucesso. publish_id=${publishId}`);
+        } else if (status === "FAILED") {
+          const failReason = statusData.data?.fail_reason || "Falha reportada pelo TikTok";
+          throw new Error(`TikTok publicação falhou: ${failReason}`);
+        }
+      } catch (pollErr: any) {
+        if (pollErr.message?.includes("TikTok publicação falhou")) throw pollErr;
+        console.warn(`[TikTok] Status poll attempt ${attempts} error (non-fatal):`, pollErr.message);
+      }
+    }
+
+    if (!published) {
+      // Still processing — keep it in processing and let the cron check later
+      await updateTargetStatus(supabase, targetId, "processando", { platform_post_id: publishId });
+      await logEvent(supabase, targetId, "processando", `TikTok ainda processando vídeo após ${attempts} verificações. publish_id=${publishId}`);
     }
   }
 }
@@ -461,15 +517,29 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: msg }), { status: 400, headers: corsHeaders });
     }
 
-    // ====== Download Media Bytes ======
-    console.log(`Baixando ${mediaList.length} midia(s) do Storage...`);
+    // ====== Media Resolution ======
+    // For TikTok: skip byte download (PULL_FROM_URL) — just generate signed URLs with longer TTL
+    // For YouTube: must download bytes (uses binary upload)
+    // For Instagram: also PULL_FROM_URL — but Instagram handler is fine with just publicUrl
+    console.log(`Resolvendo ${mediaList.length} midia(s) do Storage para plataforma: ${pPlatform}...`);
     const mediaFilesReady = await Promise.all(mediaList.map(async (upload) => {
-      const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
-      if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
-      const bytes = new Uint8Array(await fileData.arrayBuffer());
-      const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, 3600);
-      if (signedUrlError) throw new Error(`Falha ao gerar URL assinada: ${signedUrlError.message}`);
-      return { ...upload, bytes, publicUrl: signedUrlData.signedUrl };
+      // Signed URL with 2 hours TTL so TikTok has enough time to pull the file
+      const signedUrlTTL = pPlatform === "tiktok" ? 7200 : 3600;
+      const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, signedUrlTTL);
+      if (signedUrlError) throw new Error(`Falha ao gerar URL assinada para ${upload.file_name}: ${signedUrlError.message}`);
+      const publicUrl = signedUrlData.signedUrl;
+      console.log(`[Media] ${upload.file_name} → URL gerada (TTL ${signedUrlTTL}s, plataforma=${pPlatform})`);
+
+      // For YouTube only: download bytes (required for binary resumable upload)
+      if (pPlatform === "youtube") {
+        const { data: fileData, error: fileError } = await supabaseAdmin.storage.from("videos").download(upload.file_path);
+        if (fileError || !fileData) throw new Error(`Falha ao baixar mídia: ${upload.file_name}`);
+        const bytes = new Uint8Array(await fileData.arrayBuffer());
+        return { ...upload, bytes, publicUrl };
+      }
+
+      // For TikTok and Instagram: no byte download needed
+      return { ...upload, bytes: null, publicUrl };
     }));
 
     // ====== Route to Platform ======
@@ -496,6 +566,6 @@ Deno.serve(async (req) => {
       
       if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
     } catch (_) {}
-    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 200, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
   }
 });
