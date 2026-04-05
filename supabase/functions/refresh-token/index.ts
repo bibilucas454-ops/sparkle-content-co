@@ -154,45 +154,6 @@ Deno.serve(async (req) => {
         throw new Error(tokenData.error.message);
       }
       tokenData.refresh_token = tokenData.access_token;
-    } else if (platform === "tiktok") {
-      const clientKey = Deno.env.get("TIKTOK_CLIENT_KEY");
-      const clientSecret = Deno.env.get("TIKTOK_CLIENT_SECRET");
-      if (!clientKey || !clientSecret) {
-        return jsonResponse({ success: false, message: "Credenciais TikTok não configuradas" }, 400);
-      }
-
-      console.log(`[Refresh Token] Chamando TikTok OAuth token endpoint para renovação...`);
-      const res = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_key: clientKey,
-          client_secret: clientSecret,
-          refresh_token: await decryptToken(account.refresh_token_encrypted),
-          grant_type: "refresh_token",
-        }),
-      });
-      tokenData = await res.json();
-      console.log(`[Refresh Token] Resposta do TikTok: error=${tokenData.error || "nenhum"}, has_access_token=${!!tokenData.access_token}`);
-
-      if (tokenData.error) {
-        console.error(`[Refresh Token] TikTok retornou erro:`, JSON.stringify(tokenData));
-        if (tokenData.error === "invalid_grant" || tokenData.error_code === "invalid_refresh_token") {
-          console.error(`[Refresh Token] Erro PERMANENTE (TikTok): O acesso foi revogado ou o refresh token expirou.`);
-          await supabaseAdmin.from("social_tokens").update({ 
-            status: 'needs_reauth', 
-            last_error: tokenData.error_description || tokenData.error,
-            last_error_code: tokenData.error
-          }).eq("id", account.id);
-          throw new Error(`PERMANENT_AUTH_ERROR: ${tokenData.error_description || tokenData.error}`);
-        }
-        await supabaseAdmin.from("social_tokens").update({ 
-          status: 'error', 
-          last_error: tokenData.error_description || tokenData.error,
-          last_error_code: tokenData.error
-        }).eq("id", account.id);
-        throw new Error(tokenData.error_description || tokenData.error);
-      }
     } else {
       return jsonResponse({ success: false, message: "Plataforma não suportada" }, 400);
     }

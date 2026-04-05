@@ -533,8 +533,7 @@ Deno.serve(async (req) => {
     // For Instagram: also PULL_FROM_URL — but Instagram handler is fine with just publicUrl
     console.log(`Resolvendo ${mediaList.length} midia(s) do Storage para plataforma: ${pPlatform}...`);
     const mediaFilesReady = await Promise.all(mediaList.map(async (upload) => {
-      // Signed URL with 2 hours TTL so TikTok has enough time to pull the file
-      const signedUrlTTL = pPlatform === "tiktok" ? 7200 : 3600;
+      const signedUrlTTL = 3600;
       const { data: signedUrlData, error: signedUrlError } = await supabaseAdmin.storage.from("videos").createSignedUrl(upload.file_path, signedUrlTTL);
       if (signedUrlError) throw new Error(`Falha ao gerar URL assinada para ${upload.file_name}: ${signedUrlError.message}`);
       const publicUrl = signedUrlData.signedUrl;
@@ -548,7 +547,7 @@ Deno.serve(async (req) => {
         return { ...upload, bytes, publicUrl };
       }
 
-      // For TikTok and Instagram: no byte download needed
+      // For Instagram: no byte download needed
       return { ...upload, bytes: null, publicUrl };
     }));
 
@@ -557,8 +556,6 @@ Deno.serve(async (req) => {
       await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, pTargetId);
     } else if (pPlatform === "instagram") {
       await publishToInstagram(supabaseAdmin, accessToken, account.account_id!, mediaFilesReady, pMeta, pTargetId);
-    } else if (pPlatform === "tiktok") {
-      await publishToTikTok(supabaseAdmin, accessToken, mediaFilesReady, pMeta, pTargetId);
     }
 
     // If we've made it here, mark Job as COMPLETED

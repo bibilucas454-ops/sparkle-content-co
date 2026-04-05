@@ -26,12 +26,6 @@ const PLATFORM_CONFIG: Record<string, {
     clientIdEnv: "INSTAGRAM_CLIENT_ID",
     clientSecretEnv: "INSTAGRAM_CLIENT_SECRET",
   },
-  tiktok: {
-    authUrl: "https://www.tiktok.com/v2/auth/authorize/",
-    scopes: "user.info.basic,video.publish,video.upload,photo.publish",
-    clientIdEnv: "TIKTOK_CLIENT_KEY",
-    clientSecretEnv: "TIKTOK_CLIENT_SECRET",
-  },
 };
 
 Deno.serve(async (req) => {
@@ -175,19 +169,9 @@ Deno.serve(async (req) => {
         state,
       });
       authorizationUrl = `${config.authUrl}?${params.toString()}`;
-    } else if (platform === "tiktok") {
-      const params = new URLSearchParams({
-        client_key: clientId,
-        redirect_uri: callbackUrl,
-        response_type: "code",
-        scope: config.scopes,
-        state,
-      });
-      authorizationUrl = `${config.authUrl}?${params.toString()}`;
-      console.log("[OAuth Connect] TikTok auth URL generated:", authorizationUrl);
     } else {
       return new Response(
-        JSON.stringify({ error: "Plataforma não suportada. Apenas YouTube, Instagram e TikTok disponíveis." }),
+        JSON.stringify({ error: "Plataforma não suportada. Apenas YouTube e Instagram disponíveis." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

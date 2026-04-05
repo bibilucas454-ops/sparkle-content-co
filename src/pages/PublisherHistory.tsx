@@ -24,12 +24,11 @@ const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; 
   rascunho: { label: "Rascunho", icon: Clock, className: "text-text-secondary" },
 };
 
-import { Video } from "lucide-react";
+
 
 const PLATFORM_ICONS: Record<string, { icon: typeof Youtube; color: string; label: string }> = {
   youtube: { icon: Youtube, color: "text-red-500", label: "YouTube Shorts" },
   instagram: { icon: Instagram, color: "text-pink-500", label: "Instagram Reels/Story" },
-  tiktok: { icon: Video as any, color: "text-black dark:text-white", label: "TikTok" },
 };
 
 const FILTERS = [

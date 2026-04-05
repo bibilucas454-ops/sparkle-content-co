@@ -180,60 +180,6 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   };
 }
 
-async function exchangeTikTokCode(code: string, redirectUri: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
-  console.log("[TikTok OAuth] Exchanging code for token...", { redirectUri });
-  
-  const clientKey = Deno.env.get("TIKTOK_CLIENT_KEY")!;
-  const clientSecret = Deno.env.get("TIKTOK_CLIENT_SECRET")!;
-
-  const tokenRes = await fetch("https://open.tiktokapis.com/v2/oauth/token/", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Cache-Control": "no-cache",
-    },
-    body: new URLSearchParams({
-      client_key: clientKey,
-      client_secret: clientSecret,
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-    }),
-  });
-
-  const tokenData = await tokenRes.json();
-  console.log("[TikTok OAuth] Token response:", JSON.stringify(tokenData, null, 2));
-  
-  if (tokenData.error) {
-    throw new Error(tokenData.error_description || tokenData.error || "Erro ao trocar código TikTok");
-  }
-
-  // Get user info
-  let accountName = "TikTok User";
-  let accountId = tokenData.open_id;
-  
-  try {
-    const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` }
-    });
-    const userData = await userRes.json();
-    console.log("[TikTok OAuth] User info response:", JSON.stringify(userData, null, 2));
-    
-    if (userData.data?.user) {
-      accountName = userData.data.user.display_name || "TikTok User";
-    }
-  } catch (e) {
-    console.warn("[TikTok OAuth] Failed to get user info:", e);
-  }
-
-  return {
-    access_token: tokenData.access_token,
-    refresh_token: tokenData.refresh_token,
-    expires_in: tokenData.expires_in,
-    accountName,
-    accountId,
-  };
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -284,8 +230,6 @@ Deno.serve(async (req) => {
       result = await exchangeYouTubeCode(code, callbackUrl);
     } else if (platform === "instagram") {
       result = await exchangeInstagramCode(code, callbackUrl, supabaseAdmin, userId);
-    } else if (platform === "tiktok") {
-      result = await exchangeTikTokCode(code, callbackUrl);
     } else {
       return redirectToApp("/oauth/callback?error=Plataforma não suportada");
     }

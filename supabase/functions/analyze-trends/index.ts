@@ -37,13 +37,13 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");
 
-    const systemPrompt = `Você é um analista de tendências virais especializado em ${platform || "Instagram Reels, TikTok e YouTube Shorts"}.
+    const systemPrompt = `Você é um analista de tendências virais especializado em ${platform || "Instagram Reels e YouTube Shorts"}.
 Você analisa padrões de conteúdo viral e identifica tendências emergentes.
 REGRA OBRIGATÓRIA: Todo conteúdo DEVE ser em Português do Brasil. Frases curtas e impactantes.`;
 
     const userPrompt = `Analise as tendências atuais para ${platform || "todas as plataformas"} e gere 6 tendências virais.
 Para cada tendência, forneça:
-- Plataforma (TikTok, Instagram ou YouTube)
+- Plataforma (Instagram ou YouTube)
 - Tópico em alta
 - Exemplo de hook chamativo
 - Hashtags relevantes (5 hashtags separadas por espaço)
@@ -78,7 +78,7 @@ Para cada tendência, forneça:
                     items: {
                       type: "object",
                       properties: {
-                        platform: { type: "string", description: "TikTok, Instagram ou YouTube" },
+                        platform: { type: "string", description: "Instagram ou YouTube" },
                         topic: { type: "string", description: "Tópico em alta" },
                         hook: { type: "string", description: "Exemplo de hook chamativo" },
                         hashtags: { type: "string", description: "5 hashtags separadas por espaço" },
