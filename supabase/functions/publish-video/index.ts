@@ -227,10 +227,20 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
 }
 
 async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
-  const isCarousel = mediaFiles.length > 1 || (mediaFiles.length === 1 && !mediaFiles[0].mime_type?.startsWith("video"));
+  const contentFormat = (meta.contentFormat || "").toLowerCase();
+  const singleFile = mediaFiles.length === 1;
+  const isImage = singleFile && !mediaFiles[0].mime_type?.startsWith("video");
+  const isMultiple = mediaFiles.length > 1;
+
+  // TikTok Photo API requires photo.publish scope — older connected accounts may not have it.
+  // If format is story or reels and media is a SINGLE IMAGE → treat as video-less error, not carousel
+  // (TikTok stories are not a native API concept — content_format is handled on our side only)
+  const isCarousel = isMultiple || isImage;
+
+  console.log(`[TikTok] contentFormat=${contentFormat}, isCarousel=${isCarousel}, isImage=${isImage}, files=${mediaFiles.length}`);
 
   await updateTargetStatus(supabase, targetId, "enviando");
-  await logEvent(supabase, targetId, "enviando", `Iniciando publicação no TikTok (${isCarousel ? 'Photo Carousel' : 'Video'})`);
+  await logEvent(supabase, targetId, "enviando", `Iniciando publicação no TikTok (${isCarousel ? 'Foto/Carrossel' : 'Vídeo'})`);
 
   const rawCaption = (meta.platformSpecificCaption || meta.caption || "").trim();
   const rawHashtags = (meta.hashtags || "").trim();
