@@ -62,6 +62,7 @@ const STATUS_CONFIG: Record<PubStatus, { label: string; icon: typeof CheckCircle
 interface PlatformSettings {
   youtube: { title: string; description: string; privacy: string };
   instagram: { caption: string; useGlobalHashtags: boolean };
+  tiktok: { privacy: string };
 }
 
 interface MediaFile {
@@ -90,6 +91,7 @@ export default function PublisherHub() {
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     youtube: { title: "", description: "", privacy: "public" },
     instagram: { caption: "", useGlobalHashtags: true },
+    tiktok: { privacy: "public" },
   });
 
   const [approved, setApproved] = useState(false);
