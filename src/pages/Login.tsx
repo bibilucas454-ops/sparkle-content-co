@@ -1,11 +1,20 @@
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
+import { Zap, Mail } from "lucide-react";
 import { Footer } from "@/components/Footer";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -14,6 +23,26 @@ const Login = () => {
       },
     });
     if (error) toast.error(error.message);
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        toast.success("Verifique seu e-mail para o link de confirmação!");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,6 +93,62 @@ const Login = () => {
               </svg>
               Entrar com Google
             </Button>
+
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/40"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-3 text-muted-foreground/70 font-semibold tracking-wider">
+                  Ou use e-mail
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleAuth} className="space-y-5">
+              <div className="space-y-3">
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                  <Input
+                    type="email"
+                    placeholder="E-mail profissional"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="pl-12 h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl transition-all font-medium"
+                  />
+                </div>
+                <div className="relative">
+                  <Input
+                    type="password"
+                    placeholder="Senha secreta"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl px-6 transition-all font-medium"
+                  />
+                </div>
+              </div>
+              <Button 
+                type="submit" 
+                variant="premium"
+                className="w-full h-16 text-[16px] font-black rounded-2xl"
+                disabled={loading}
+              >
+                {loading ? "Processando..." : isSignUp ? "CRIAR CONTA MESTRE" : "ENTRAR NA PLATAFORMA"}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                type="button"
+              >
+                {isSignUp ? "Já tem uma conta? Fazer login" : "Não tem conta? Cadastre-se"}
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
