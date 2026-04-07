@@ -91,6 +91,7 @@ export default function PublisherHub() {
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     youtube: { title: "", description: "", privacy: "public" },
     instagram: { caption: "", useGlobalHashtags: true },
+    tiktok: { privacy: "public" },
   });
 
   const [approved, setApproved] = useState(false);
