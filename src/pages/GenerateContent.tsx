@@ -135,36 +135,44 @@ export default function GenerateContent() {
 
     const megaPrompt = `
       INSTRUÇÃO SUPREMA MÁQUINA VIRAL:
-      Você deve gerar a estrutura COMPLETA de um vídeo viral em um único retorno contínuo e altamente organizado.
+      Você é um estrategista de conteúdo ULTRA VIRAL. Seu objetivo é criar conteúdo que faça as pessoas pararem de scrollar, comentarem, compartilharem e salvarem.
       
       FOCO DO CRIADOR E PÚBLICO: ${niche}
       TEMA SOLICITADO: ${topic.trim()}
       PLATAFORMA: ${platform}
       
+      GATILHOS MENTAIS OBRIGATÓRIOS (use pelo menos 3):
+      - CURIOSIDADE: Faça eles quererem saber mais
+      - DOR: Fale o que eles sentem mas não conseguem expressar
+      - IDENTIFICAÇÃO: Fale direto na ferida deles
+      - CHOQUE: Dado ou fato surpreendente
+      - QUEBRA DE EXPECTATIVA: Diga o oposto do que esperam
+      
       Formate EXATAMENTE assim usando Markdown claro, separando cada bloco:
       
       ## 💡 Ideia Viral
-      (Descreva a ideia central de forma magnética)
+      (Título ultra chamativo + conceito específico que gera curiosidade imediata)
       
       ## 🎯 Hook (Primeiros 3s)
-      (A frase exata para prender a atenção)
+      (A frase exata para parar o scroll - use gatilho emocional)
       
-      ## 📝 Roteiro Curto
-      **[Cena 1]**: ...
-      **[Cena 2]**: ...
-      **[Cena 3]**: ...
+      ## 📝 Roteiro Curto (15-30s)
+      **[Cena 1 - Hook]**: Frase de abertura
+      **[Cena 2 - Contexto]**: Desenvolvimento rápido
+      **[Cena 3 - Impacto]**: Revelação ou momento clave
+      **[Cena 4 - CTA]**: Call to action natural
       
-      ## ✍️ Legenda Fortemente Persuasiva
-      (A legenda pronta com AIDA)
+      ## ✍️ Legenda Ultra Engajadora
+      (Título que para o scroll + corpo emocional que conecta + CTA específico)
       
-      ## #️⃣ Hashtags
-      (Lista de 5-8 hashtags extremamente relevantes para ${niche})
+      ## #️⃣ Hashtags (10 hashtags)
+      (Mix: 3 alto volume + 4 médio + 3 nicho)
       
-      ## 🚀 Call to Action (CTA)
-      (Instrução exata do que o usuário deve fazer)
+      ## 🚀 Call to Action
+      (Forte, específico, que gere comentário)
       
       ## 🎬 Formato de Vídeo Sugerido
-      (Estilo de edição, áudio em alta ou visual recomendado)
+      (Estilo de edição, áudio, visual recomendado)
     `;
 
     try {

@@ -7,50 +7,122 @@ const corsHeaders = {
 };
 
 const typePrompts: Record<string, string> = {
-  "viral-idea": `Gere 1 ideia de vídeo curto com ALTO potencial de viralização.
-Formato obrigatório:
-- Título da ideia (curto e impactante)
-- Breve descrição do conceito (máximo 2 linhas)
-- Por que vai viralizar (1 linha)
-Use linguagem simples e impactante. Frases curtas. APENAS Português do Brasil.`,
+  "viral-idea": `Gere 1 ideia de vídeo curto com POTENCIAL ULTRA VIRAL (100k+ visualizações).
 
-  "hook": `Crie um HOOK (gancho) extremamente chamativo para os primeiros 2 segundos do vídeo.
-Use uma destas técnicas:
-- Curiosidade irresistível
-- Quebra de expectativa
-- Polêmica leve
-- Mistério
-Formato: Apenas a frase do hook, direta e impactante. Máximo 1-2 frases curtas. APENAS Português do Brasil.`,
+ESTRUTURA OBRIGATÓRIA:
+📌 TÍTULO: Curto, direto, que gera curiosidade imediata
+📌 CONCEITO: O que exatamente vai acontecer no vídeo (1-2 linhas)
+📌 GATILHO: Por que isso vai fazer as pessoas pararem de scrollar (identificação, curiosidade, choque, quebra de expectativa)
 
-  "script": `Escreva um roteiro para vídeo curto (10-20 segundos). Estrutura OBRIGATÓRIA:
+REGRAS CRÍTICAS:
+- NADA de frases genéricas ou motivational quotes vazios
+- Use histórias reais ou dados surpreendentes
+- O título deve fazer a pessoa dizer "nem acredito" ou "me идентифика"
+- O conceito deve ser específico, não abstrato
+APENAS Português do Brasil.`;
 
-🎯 HOOK (0–2s): Frase extremamente chamativa
-📌 CONTEXTO (2–6s): Desenvolvimento rápido
-💥 MOMENTO DE IMPACTO (6–10s): Clímax surpreendente
-📢 CALL TO ACTION (final): CTA direto e claro
+  "hook": `Crie um HOOK (gancho) para OS PRIMEIROS 3 SEGUNDOS que PARE O SCROLL.
 
-Use tom conversacional e coloquial brasileiro. Frases curtas. Maximize retenção, curiosidade e compartilhamento. APENAS Português do Brasil.`,
+TÉCNICAS OBRIGATÓRIAS (use uma ou misture):
+- 🔥 CURIOSIDADE: Algo quefaçaeles quererem saber mais
+- 💔 DOR: Fale o queeles sentem mas não conseguem expressar
+- ⚡ QUEBRA DE EXPECTATIVA: Diga o oposto do queeles esperam
+- 🚀 IDENTIFICAÇÃO: Fale direto na ferida deles
+- 😱 CHOQUE: Dado ou fato absurdamente surpreendente
 
-  "video-text": `Crie frases curtas e impactantes que aparecerão NA TELA durante o vídeo.
-Formato:
-- 4 a 6 frases curtas (máximo 8 palavras cada)
-- Cada frase deve aparecer em um momento diferente do vídeo
-- Use linguagem direta e visual
-APENAS Português do Brasil.`,
+FORMATO: APENAS a frase do hook. Máx 2 frases curtas. Sem rodeios. Sem "Você já se perguntou...". Vá direto ao ponto.
 
-  "caption": `Escreva uma legenda usando o modelo AIDA. Máximo 3 linhas no total:
-✅ Atenção: Frase de impacto/hook
-✅ Interesse: Por que devem se importar
-✅ Desejo: Pinte o cenário ideal
-✅ Ação: CTA claro e direto
-Inclua emojis relevantes. Frases curtas e impactantes. APENAS Português do Brasil.`,
+EXEMPLOS DO QUE FAZER:
+- "Pareçai de fingir que tá tudo bem"
+- "A frase que mudou minha vida tinha apenas 7 palavras"
+- "Aos 25 anos, eu tinha tudo. E me pendurei no teto do quarto"
 
-  "hashtags": `Gere EXATAMENTE 5 hashtags virais e relevantes em português.
-Mix: 2 alto volume, 2 médio volume, 1 nicho específico.
-Formate em uma única linha separadas por espaços. APENAS Português do Brasil.`,
+APENAS Português do Brasil.`;
+
+  "script": `Escreva um roteiro para vídeo CURTO (15-30 segundos) com POTENCIAL VIRAL.
+
+ESTRUTURA OBRIGATÓRIA:
+
+🔥 HOOK (0-3s): Frase que para o scroll - use gatilho emocional
+📖 CONTEXTO (3-10s): Desenvolva a história rapidinho - mostre que você ENTENDE a dor deles
+💥 IMPACTO (10-20s): O momento clave - revelação, solução ou cliffhanger
+🎯 CTA (final): O que você quer que façam (comentar, salvar, compartilhar)
+
+REGRAS:
+- Tom conversacional, como se estivesse falando com um amigo
+- Use "você", não "nós" ou "a gente"
+- Frases curtas, fácil de entender ouvindo
+- Inclua pelo menos 1 gatilho emocional forte
+- NÃO seja motivacional genérico - seja REAL
+- O CTA deve ser natural, não forçado
+
+APENAS Português do Brasil.`;
+
+  "video-text": `Crie frases que APARECEM NA TELA durante o vídeo. Cada frase = 1 corte.
+
+REGRAS:
+- 4 a 6 frases
+- Máx 6 palavras cada frase
+- Use linguagem que GRITA no视觉
+- Inclua pelo menos 1 frase de alto impacto emocional
+- Formato: uma frase por linha
+
+Exemplo de estilo:
+- "PARA DE FINGIR"
+- "NINGUEM TE CONTA ISSO"
+- "O SEGREDO"
+- "RESULTADO"
+
+APENAS Português do Brasil.`;
+
+  "caption": `Escreva uma LEGENDA ULTRA ENGAJADORA para Instagram/Reels.
+
+STRUTURA OBRIGATÓRIA:
+
+1️⃣ TÍTULO (1 linha): Algo que para o scroll imediatamente
+- Use curiosity gap, dor, ou quebra de expectativa
+- NADA de "Você não vai acreditar" ou "3 dicas..."
+
+2️⃣ CORPO (3-5 linhas): Conecte emocionalmente
+- Fale a VERDADE que ninguém conta
+- Use histórias ou dados reais
+- Mostre que você ENTENDE o que eles sentem
+- Use linguagem natural e conversacional
+
+3️⃣ CTA (1 linha): Forte e específico
+- Não "comenta abaixo" - seja específico
+- Ex: "Me conta: qual é a sua maior dificuldade HOJE?"
+- Ex: "Se você já passou por isso, salva 💪"
+
+HASHTAGS: Inclua 8-12 hashtags no final (mix alto/médio/nicho)
+
+IMPORTANTE:
+- NADA de frases motivacionais vazias
+- NADA de "a gente" - use "você"
+- Seja raw, real, vulnerável
+- Use EMojis estrategicamente
+APENAS Português do Brasil.`;
+
+  "hashtags": `Gere EXATAMENTE 10 hashtags em português do Brasil.
+
+MIX OBRIGATÓRIO:
+- 3 hashtags de ALTO volume (milhões de posts)
+- 4 hashtags de MÉDIO volume (100k-500k posts)
+- 3 hashtags de NICHO específico (10k-50k posts)
+
+REGRAS:
+- Todas relevantes ao tema
+- Variadas, não só as mesmas de sempre
+- Formato: #hashtag (espaço entre cada)
+- NADA de hashtags em inglês
+
+Exemplo para nicho "desenvolvimento pessoal":
+#desenvolvimentopessoal #motivacao #fe #superacao #mindset #autoconhecimento #crescimento #propósito #amorproprio #introspeccao
+
+APENAS Português do Brasil.`;
 
   "tags": `Gere EXATAMENTE 5 tags/palavras-chave para SEO em português.
-Inclua palavras-chave primárias e variações. Formate como lista separada por vírgulas. APENAS Português do Brasil.`,
+Inclua palavras-chave primárias e variações. Formate como lista separada por vírgulas. APENAS Português do Brasil.`;
 
   "video-prompt": `Crie um prompt detalhado para gerar o vídeo em ferramentas de IA (Runway, Pika, Sora, Grok).
 Formato obrigatório:
@@ -59,7 +131,7 @@ Formato obrigatório:
 🎥 Movimento de câmera:
 🌍 Ambiente:
 🌀 Atmosfera:
-O prompt principal pode ser em inglês para compatibilidade, mas toda explicação DEVE ser em Português do Brasil.`,
+O prompt principal pode ser em inglês para compatibilidade, mas toda explicação DEVE ser em Português do Brasil.`;
 
   "viral-score": `Analise o potencial viral deste conteúdo. Dê uma pontuação de 0 a 100.
 Avalie cada critério:
