@@ -58,6 +58,14 @@ export default function StoryEnginePage() {
   const { niche } = useNiche();
   
   // Form state
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    const urls = files.map(f => URL.createObjectURL(f));
+    setSelectedImages(urls);
+  };
   const [formData, setFormData] = useState<StoryGeneratorInput>({
     userId: user?.id || '',
     nicho: 'marketing_digital',
@@ -75,6 +83,42 @@ export default function StoryEnginePage() {
   const [sequence, setSequence] = useState<GeneratedSequence | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('config');
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    // Limit to 5 images to avoid abuse
+    if (files.length > 5) {
+      toast.error('Máximo de 5 imagens permitido');
+      return;
+    }
+    const urls = files.map(f => URL.createObjectURL(f));
+    setSelectedImages(urls);
+  };
+
+  const removeImage = (index: number) => {
+    const newUrls = selectedImages.filter((_, i) => i !== index);
+    // Revoke object URLs
+    newUrls.forEach((url, newIndex) => {
+      if (index < newIndex) return;
+      URL.revokeObjectURL(url);
+      // Recreate URL for remaining items after removal
+      if (newIndex > index) {
+        const revoked = selectedImages[index + 1];
+        if (revoked) URL.revokeObjectURL(revoked);
+      }
+    });
+    setSelectedImages(newUrls);
+  };
+
+  // Cleanup object URLs on unmount or when dependencies change
+  useEffect(() => {
+    return () => {
+      selectedImages.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [selectedImages]);
 
   const niches = Object.keys(NICHE_TEMPLATES) as string[];
 
