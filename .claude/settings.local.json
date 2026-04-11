@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(product-strategy.md:*)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}
