@@ -14,7 +14,6 @@ export interface StoryGeneratorInput {
   objetivo: string;
   nivelPublico: 'iniciante' | 'intermediario' | 'avancado';
   ctaPrincipal: 'dm' | 'link' | 'highlight';
-  images?: string[];
 }
 
 // Tipos de story dentro de uma sequência
