@@ -19,7 +19,7 @@ REGRAS CRÍTICAS:
 - Use histórias reais ou dados surpreendentes
 - O título deve fazer a pessoa dizer "nem acredito" ou "me идентифика"
 - O conceito deve ser específico, não abstrato
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "hook": `Crie um HOOK (gancho) para OS PRIMEIROS 3 SEGUNDOS que PARE O SCROLL.
 
@@ -37,7 +37,7 @@ EXEMPLOS DO QUE FAZER:
 - "A frase que mudou minha vida tinha apenas 7 palavras"
 - "Aos 25 anos, eu tinha tudo. E me pendurei no teto do quarto"
 
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "script": `Escreva um roteiro para vídeo CURTO (15-30 segundos) com POTENCIAL VIRAL.
 
@@ -56,7 +56,7 @@ REGRAS:
 - NÃO seja motivacional genérico - seja REAL
 - O CTA deve ser natural, não forçado
 
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "video-text": `Crie frases que APARECEM NA TELA durante o vídeo. Cada frase = 1 corte.
 
@@ -73,7 +73,7 @@ Exemplo de estilo:
 - "O SEGREDO"
 - "RESULTADO"
 
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "caption": `Escreva uma LEGENDA ULTRA ENGAJADORA para Instagram/Reels.
 
@@ -101,7 +101,7 @@ IMPORTANTE:
 - NADA de "a gente" - use "você"
 - Seja raw, real, vulnerável
 - Use EMojis estrategicamente
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "hashtags": `Gere EXATAMENTE 10 hashtags em português do Brasil.
 
@@ -119,10 +119,10 @@ REGRAS:
 Exemplo para nicho "desenvolvimento pessoal":
 #desenvolvimentopessoal #motivacao #fe #superacao #mindset #autoconhecimento #crescimento #propósito #amorproprio #introspeccao
 
-APENAS Português do Brasil.`;
+APENAS Português do Brasil.`,
 
   "tags": `Gere EXATAMENTE 5 tags/palavras-chave para SEO em português.
-Inclua palavras-chave primárias e variações. Formate como lista separada por vírgulas. APENAS Português do Brasil.`;
+Inclua palavras-chave primárias e variações. Formate como lista separada por vírgulas. APENAS Português do Brasil.`,
 
   "video-prompt": `Crie um prompt detalhado para gerar o vídeo em ferramentas de IA (Runway, Pika, Sora, Grok).
 Formato obrigatório:
@@ -131,7 +131,7 @@ Formato obrigatório:
 🎥 Movimento de câmera:
 🌍 Ambiente:
 🌀 Atmosfera:
-O prompt principal pode ser em inglês para compatibilidade, mas toda explicação DEVE ser em Português do Brasil.`;
+O prompt principal pode ser em inglês para compatibilidade, mas toda explicação DEVE ser em Português do Brasil.`,
 
   "viral-score": `Analise o potencial viral deste conteúdo. Dê uma pontuação de 0 a 100.
 Avalie cada critério:

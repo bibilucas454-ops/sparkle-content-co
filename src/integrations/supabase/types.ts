@@ -1217,6 +1217,54 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          filename: string
+          filepath: string | null
+          id: number
+          metadata: Json | null
+          platform: string | null
+          platform_response: Json | null
+          priority: number | null
+          published_at: string | null
+          scheduled_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          filename: string
+          filepath?: string | null
+          id?: number
+          metadata?: Json | null
+          platform?: string | null
+          platform_response?: Json | null
+          priority?: number | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          filename?: string
+          filepath?: string | null
+          id?: number
+          metadata?: Json | null
+          platform?: string | null
+          platform_response?: Json | null
+          priority?: number | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       platform_metrics: {
