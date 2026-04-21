@@ -306,10 +306,21 @@ Deno.serve(async (req) => {
 });
 
 function redirectToApp(path: string): Response {
-  // Use the app URL from env or construct from Supabase URL
-  const appUrl = Deno.env.get("APP_URL") || "https://sparkle-content-co.lovable.app";
+  const configuredAppUrl = Deno.env.get("APP_URL")?.trim().replace(/\/$/, "");
+  const fallbackAppUrl = "https://creatorosai.lovable.app";
+  const legacyAppUrls = new Set([
+    "https://sparkle-content-co.lovable.app",
+    "https://www.sparkle-content-co.lovable.app",
+  ]);
+
+  const baseAppUrl = !configuredAppUrl || legacyAppUrls.has(configuredAppUrl)
+    ? fallbackAppUrl
+    : configuredAppUrl;
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
   return new Response(null, {
     status: 302,
-    headers: { Location: `${appUrl}${path}`, ...corsHeaders },
+    headers: { Location: `${baseAppUrl}${normalizedPath}`, ...corsHeaders },
   });
 }
