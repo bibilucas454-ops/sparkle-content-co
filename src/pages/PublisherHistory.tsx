@@ -7,10 +7,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Youtube, Instagram, Play, CheckCircle2, AlertCircle, Loader2,
-  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
+  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History, Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { retryPublication } from "@/services/platformServices";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+// Status considerados "publicados" para fins de limpeza/contagem (PT + EN)
+const PUBLISHED_STATUSES = ["published", "publicado", "publicada", "success", "sucesso"];
 
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
 
