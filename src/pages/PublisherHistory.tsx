@@ -149,23 +149,42 @@ export default function PublisherHistory() {
     if (!user?.id || cleaning) return;
     setCleaning(true);
     try {
-      const { data, error } = await supabase
+      // Buscar publicações ativas + targets para decidir quais estão "publicadas".
+      // Uma publicação é considerada publicada quando:
+      //  - overall_status está em PUBLISHED_STATUSES, OU
+      //  - possui ao menos 1 target e TODOS os targets estão em PUBLISHED_STATUSES
+      const { data: pubs, error: fetchErr } = await supabase
+        .from("publications")
+        .select("id, overall_status, publication_targets ( status )")
+        .eq("user_id", user.id)
+        .is("deleted_at", null);
+
+      if (fetchErr) throw fetchErr;
+
+      const toClean = (pubs || [])
+        .filter((p: any) => {
+          if (PUBLISHED_STATUSES.includes(p.overall_status)) return true;
+          const targets = p.publication_targets || [];
+          if (targets.length === 0) return false;
+          return targets.every((t: any) => PUBLISHED_STATUSES.includes(t.status));
+        })
+        .map((p: any) => p.id);
+
+      if (toClean.length === 0) {
+        toast.info("Nenhuma publicação concluída para limpar.");
+        return;
+      }
+
+      const { error: updErr } = await supabase
         .from("publications")
         .update({ deleted_at: new Date().toISOString() })
-        .eq("user_id", user.id)
-        .is("deleted_at", null)
-        .in("overall_status", PUBLISHED_STATUSES)
-        .select("id");
+        .in("id", toClean);
 
-      if (error) throw error;
+      if (updErr) throw updErr;
 
-      const removedIds = new Set((data || []).map((r: any) => r.id));
-      setItems((prev) => prev.filter((i) => !removedIds.has(i.id)));
-      toast.success(
-        removedIds.size > 0
-          ? `${removedIds.size} publicação(ões) removida(s) do histórico.`
-          : "Nenhuma publicação concluída para limpar."
-      );
+      const removed = new Set(toClean);
+      setItems((prev) => prev.filter((i) => !removed.has(i.id)));
+      toast.success(`${toClean.length} publicação(ões) removida(s) do histórico.`);
     } catch (err: any) {
       console.error("Erro ao limpar publicados:", err);
       toast.error("Falha ao limpar publicações.");
