@@ -112,6 +112,7 @@ export default function PublisherHistory() {
         publication_targets (id, platform, status, platform_post_url, error_message, published_at)
       `)
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -126,13 +127,50 @@ export default function PublisherHistory() {
     setLoading(false);
   };
 
+  // Soft delete: marca como deleted_at = now() em vez de deletar fisicamente.
+  // Não toca em arquivos do storage nem em targets/jobs.
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("publications").delete().eq("id", id);
+    const { error } = await supabase
+      .from("publications")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) {
       toast.error("Falha ao excluir publicação.");
     } else {
       toast.success("Publicação excluída.");
       setItems((prev) => prev.filter((i) => i.id !== id));
+    }
+  };
+
+  const [cleaning, setCleaning] = useState(false);
+  // "Limpar Publicados": soft delete em massa apenas dos itens já publicados.
+  // Não afeta scheduled, processing, failed nem rascunhos. Não remove arquivos do storage.
+  const handleCleanPublished = async () => {
+    if (!user?.id || cleaning) return;
+    setCleaning(true);
+    try {
+      const { data, error } = await supabase
+        .from("publications")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .in("overall_status", PUBLISHED_STATUSES)
+        .select("id");
+
+      if (error) throw error;
+
+      const removedIds = new Set((data || []).map((r: any) => r.id));
+      setItems((prev) => prev.filter((i) => !removedIds.has(i.id)));
+      toast.success(
+        removedIds.size > 0
+          ? `${removedIds.size} publicação(ões) removida(s) do histórico.`
+          : "Nenhuma publicação concluída para limpar."
+      );
+    } catch (err: any) {
+      console.error("Erro ao limpar publicados:", err);
+      toast.error("Falha ao limpar publicações.");
+    } finally {
+      setCleaning(false);
     }
   };
 
