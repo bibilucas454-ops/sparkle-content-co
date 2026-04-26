@@ -7,10 +7,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Youtube, Instagram, Play, CheckCircle2, AlertCircle, Loader2,
-  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History,
+  Clock, ExternalLink, Copy, RotateCcw, Trash2, Search, Eye, History, Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { retryPublication } from "@/services/platformServices";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+// Status considerados "publicados" para fins de limpeza/contagem (PT + EN)
+const PUBLISHED_STATUSES = ["published", "publicado", "publicada", "success", "sucesso"];
 
 type PubStatus = "pendente" | "queued" | "enviando" | "processando" | "publicado" | "erro" | "rascunho";
 
@@ -98,6 +112,7 @@ export default function PublisherHistory() {
         publication_targets (id, platform, status, platform_post_url, error_message, published_at)
       `)
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -112,13 +127,50 @@ export default function PublisherHistory() {
     setLoading(false);
   };
 
+  // Soft delete: marca como deleted_at = now() em vez de deletar fisicamente.
+  // Não toca em arquivos do storage nem em targets/jobs.
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("publications").delete().eq("id", id);
+    const { error } = await supabase
+      .from("publications")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
     if (error) {
       toast.error("Falha ao excluir publicação.");
     } else {
       toast.success("Publicação excluída.");
       setItems((prev) => prev.filter((i) => i.id !== id));
+    }
+  };
+
+  const [cleaning, setCleaning] = useState(false);
+  // "Limpar Publicados": soft delete em massa apenas dos itens já publicados.
+  // Não afeta scheduled, processing, failed nem rascunhos. Não remove arquivos do storage.
+  const handleCleanPublished = async () => {
+    if (!user?.id || cleaning) return;
+    setCleaning(true);
+    try {
+      const { data, error } = await supabase
+        .from("publications")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .is("deleted_at", null)
+        .in("overall_status", PUBLISHED_STATUSES)
+        .select("id");
+
+      if (error) throw error;
+
+      const removedIds = new Set((data || []).map((r: any) => r.id));
+      setItems((prev) => prev.filter((i) => !removedIds.has(i.id)));
+      toast.success(
+        removedIds.size > 0
+          ? `${removedIds.size} publicação(ões) removida(s) do histórico.`
+          : "Nenhuma publicação concluída para limpar."
+      );
+    } catch (err: any) {
+      console.error("Erro ao limpar publicados:", err);
+      toast.error("Falha ao limpar publicações.");
+    } finally {
+      setCleaning(false);
     }
   };
 
@@ -185,6 +237,36 @@ export default function PublisherHistory() {
               </div>
               </div>
             </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={cleaning || loading}
+                  className="gap-2 self-start md:self-auto"
+                >
+                  <Sparkles className={`w-4 h-4 ${cleaning ? "animate-pulse" : ""}`} />
+                  {cleaning ? "Limpando..." : "Limpar Publicados"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Limpar publicações concluídas?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja limpar publicações já concluídas?
+                    Apenas itens com status <strong>publicado</strong> serão removidos do histórico.
+                    Agendamentos, processamentos em andamento, falhas e rascunhos não serão afetados.
+                    Os arquivos de mídia continuam preservados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCleanPublished}>
+                    Sim, limpar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
 

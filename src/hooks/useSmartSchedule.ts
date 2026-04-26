@@ -42,6 +42,7 @@ export function useSmartSchedule(selectedFormat: string) {
         .select("id, content_format, scheduled_for, overall_status, created_at")
         .eq("user_id", user.id)
         .eq("content_format", selectedFormat)
+        .is("deleted_at", null)
         .in("overall_status", ["published", "publicado", "pendente", "scheduled"])
         .order("created_at", { ascending: false })
         .limit(1);

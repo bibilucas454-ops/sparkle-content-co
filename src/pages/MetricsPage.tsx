@@ -52,11 +52,12 @@ export default function MetricsPage() {
       throw new Error("Usuário não autenticado");
     }
 
-    // 1) Buscar publicações reais do usuário (fonte da verdade)
+    // 1) Buscar publicações reais do usuário (fonte da verdade), ignorando soft-deleted
     const { data: publications, error: pubErr } = await supabase
       .from("publications")
       .select("id, overall_status, created_at, updated_at")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false });
 
     if (pubErr) throw pubErr;
