@@ -237,6 +237,36 @@ export default function PublisherHistory() {
               </div>
               </div>
             </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={cleaning || loading}
+                  className="gap-2 self-start md:self-auto"
+                >
+                  <Sparkles className={`w-4 h-4 ${cleaning ? "animate-pulse" : ""}`} />
+                  {cleaning ? "Limpando..." : "Limpar Publicados"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Limpar publicações concluídas?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja limpar publicações já concluídas?
+                    Apenas itens com status <strong>publicado</strong> serão removidos do histórico.
+                    Agendamentos, processamentos em andamento, falhas e rascunhos não serão afetados.
+                    Os arquivos de mídia continuam preservados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCleanPublished}>
+                    Sim, limpar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
 
