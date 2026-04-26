@@ -793,6 +793,7 @@ export type Database = {
           content_format: string
           created_at: string
           cta: string | null
+          deleted_at: string | null
           hashtags: string | null
           id: string
           music_fade_in: number | null
@@ -813,6 +814,7 @@ export type Database = {
           content_format?: string
           created_at?: string
           cta?: string | null
+          deleted_at?: string | null
           hashtags?: string | null
           id?: string
           music_fade_in?: number | null
@@ -833,6 +835,7 @@ export type Database = {
           content_format?: string
           created_at?: string
           cta?: string | null
+          deleted_at?: string | null
           hashtags?: string | null
           id?: string
           music_fade_in?: number | null
@@ -1280,7 +1283,6 @@ export type Database = {
       }
       publication_metrics: {
         Row: {
-          attempt_count: number | null
           error_message: string | null
           overall_status: string | null
           platform: string | null
