@@ -218,12 +218,15 @@ export default function PublisherHub() {
     setAudioFile(null);
   };
 
-  const uploadAudioFile = async (): Promise<string | null> => {
+  const uploadAudioFile = async (scheduled = false): Promise<string | null> => {
     if (!audioFile || !user) return null;
     
     setUploadingAudio(true);
     try {
-      const filePath = `${user.id}/audio/${Date.now()}-${audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const safeName = audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const filePath = scheduled
+        ? `${user.id}/agendados/audios/${Date.now()}-${safeName}`
+        : `${user.id}/audio/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, audioFile.file);
       if (uploadError) throw uploadError;
 
@@ -344,7 +347,12 @@ export default function PublisherHub() {
 
       // 1. Upload All files (video/image)
       for (const m of mediaFiles) {
-        const filePath = `${user!.id}/${Date.now()}-${m.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const safeName = m.file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const isImage = m.file.type.startsWith("image/");
+        const subfolder = isImage ? "imagens" : "videos";
+        const filePath = schedule
+          ? `${user!.id}/agendados/${subfolder}/${Date.now()}-${safeName}`
+          : `${user!.id}/${Date.now()}-${safeName}`;
         const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, m.file);
         if (uploadError) throw uploadError;
 
@@ -363,7 +371,7 @@ export default function PublisherHub() {
       // 1b. Upload audio file if present (for Story with music)
       let audioUploadId: string | null = null;
       if (selectedFormat === "story" && audioFile) {
-        audioUploadId = await uploadAudioFile();
+        audioUploadId = await uploadAudioFile(schedule);
         if (!audioUploadId) {
           throw new Error("Falha ao upload do arquivo de áudio");
         }
