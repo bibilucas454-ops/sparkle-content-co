@@ -371,7 +371,7 @@ export default function PublisherHub() {
       // 1b. Upload audio file if present (for Story with music)
       let audioUploadId: string | null = null;
       if (selectedFormat === "story" && audioFile) {
-        audioUploadId = await uploadAudioFile();
+        audioUploadId = await uploadAudioFile(schedule);
         if (!audioUploadId) {
           throw new Error("Falha ao upload do arquivo de áudio");
         }
