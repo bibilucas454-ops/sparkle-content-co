@@ -347,7 +347,12 @@ export default function PublisherHub() {
 
       // 1. Upload All files (video/image)
       for (const m of mediaFiles) {
-        const filePath = `${user!.id}/${Date.now()}-${m.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const safeName = m.file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const isImage = m.file.type.startsWith("image/");
+        const subfolder = isImage ? "imagens" : "videos";
+        const filePath = schedule
+          ? `agendados/${subfolder}/${user!.id}/${Date.now()}-${safeName}`
+          : `${user!.id}/${Date.now()}-${safeName}`;
         const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, m.file);
         if (uploadError) throw uploadError;
 
