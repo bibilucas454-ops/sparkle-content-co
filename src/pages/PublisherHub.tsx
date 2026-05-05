@@ -225,7 +225,7 @@ export default function PublisherHub() {
     try {
       const safeName = audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
       const filePath = scheduled
-        ? `agendados/audios/${user.id}/${Date.now()}-${safeName}`
+        ? `${user.id}/agendados/audios/${Date.now()}-${safeName}`
         : `${user.id}/audio/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, audioFile.file);
       if (uploadError) throw uploadError;
