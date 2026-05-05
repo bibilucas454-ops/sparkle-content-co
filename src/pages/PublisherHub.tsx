@@ -218,12 +218,15 @@ export default function PublisherHub() {
     setAudioFile(null);
   };
 
-  const uploadAudioFile = async (): Promise<string | null> => {
+  const uploadAudioFile = async (scheduled = false): Promise<string | null> => {
     if (!audioFile || !user) return null;
     
     setUploadingAudio(true);
     try {
-      const filePath = `${user.id}/audio/${Date.now()}-${audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const safeName = audioFile.file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const filePath = scheduled
+        ? `agendados/audios/${user.id}/${Date.now()}-${safeName}`
+        : `${user.id}/audio/${Date.now()}-${safeName}`;
       const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, audioFile.file);
       if (uploadError) throw uploadError;
 
