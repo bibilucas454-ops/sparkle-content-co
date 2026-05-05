@@ -351,7 +351,7 @@ export default function PublisherHub() {
         const isImage = m.file.type.startsWith("image/");
         const subfolder = isImage ? "imagens" : "videos";
         const filePath = schedule
-          ? `agendados/${subfolder}/${user!.id}/${Date.now()}-${safeName}`
+          ? `${user!.id}/agendados/${subfolder}/${Date.now()}-${safeName}`
           : `${user!.id}/${Date.now()}-${safeName}`;
         const { error: uploadError } = await supabase.storage.from("videos").upload(filePath, m.file);
         if (uploadError) throw uploadError;
