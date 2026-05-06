@@ -80,14 +80,7 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   try {
     const permsRes = await fetch(`https://graph.facebook.com/v19.0/me/permissions?access_token=${accessToken}`);
     permsData = await permsRes.json();
-    console.log("[IG OAuth] GET /me/permissions response:", JSON.stringify(permsData, null, 2));
-    
-    // Save to database for debugging
-    await supabaseAdmin.from("social_tokens").upsert({
-      user_id: userId,
-      platform: "debug_instagram_perms",
-      access_token_encrypted: JSON.stringify(permsData)
-    }, { onConflict: "user_id,platform" });
+    console.log("[IG OAuth] GET /me/permissions response received.");
   } catch (e) {
     console.error("[IG OAuth] Error fetching /me/permissions:", e);
   }
@@ -99,14 +92,7 @@ async function exchangeInstagramCode(code: string, redirectUri: string, supabase
   );
   
   const pagesText = await pagesRes.text();
-  console.log("[IG OAuth] GET /me/accounts RAW response:", pagesText);
-  
-  // Save to database for debugging
-  await supabaseAdmin.from("social_tokens").upsert({
-    user_id: userId,
-    platform: "debug_instagram_pages",
-    access_token_encrypted: pagesText
-  }, { onConflict: "user_id,platform" });
+  console.log("[IG OAuth] GET /me/accounts response received.");
   
   let pagesData;
   try {

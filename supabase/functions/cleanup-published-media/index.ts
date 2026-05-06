@@ -16,6 +16,13 @@ const BUCKETS = ["videos", "creator-media", "thumbnails", "post-audio"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  
+  // Security Check
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!authHeader || authHeader !== `Bearer ${serviceRoleKey}`) {
+    return json({ error: "Unauthorized" }, 401);
+  }
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,

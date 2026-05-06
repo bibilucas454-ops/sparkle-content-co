@@ -38,3 +38,18 @@ export async function logIntegrationEvent(supabaseAdmin: any, userId: string, pl
     console.error(`[Error Logging Event] ${platform} ${eventType}:`, err);
   }
 }
+export async function validateAuth(req: Request, supabase: any) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { user: null, error: "Missing or invalid authorization header" };
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  
+  if (error || !user) {
+    return { user: null, error: error?.message || "Invalid token" };
+  }
+
+  return { user, error: null };
+}
