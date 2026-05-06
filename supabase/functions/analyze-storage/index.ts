@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,47 +43,52 @@ async function listAllFiles(supabase: any, bucket: string): Promise<{ name: stri
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // 1. Validação de Segurança - Obrigatório Bearer token
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    console.error("[Analyze Storage] Acesso não autorizado - Token ausente.");
-    return json({ error: "Não autorizado. Bearer token obrigatório." }, 401);
-  }
+  const corsHeadersWithAuth = {
+    ...corsHeaders,
+    "Content-Type": "application/json",
+  };
 
-  const bearerToken = authHeader.replace("Bearer ", "");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  // Aceita service_role key OU JWT válido de usuário
-  const isServiceRole = bearerToken === serviceRoleKey;
-
-  let authenticatedUserId: string | undefined;
-  if (isServiceRole) {
-    console.log("[Analyze Storage] Chamada via service_role - acesso administrativo.");
-  } else {
-    // Usuário normal - extrai userId do JWT
-    try {
-      const payload = JSON.parse(atob(bearerToken.split('.')[1]));
-      authenticatedUserId = payload.sub;
-    } catch (e) {
-      return json({ error: "Token JWT inválido" }, 401);
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      console.error("[Analyze Storage] Acesso não autorizado - Token ausente.");
+      return new Response(JSON.stringify({ error: "Não autorizado. Bearer token obrigatório." }), { status: 401, headers: corsHeadersWithAuth });
     }
-  }
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    serviceRoleKey,
-  );
+    const bearerToken = authHeader.replace("Bearer ", "");
+    
+    const isServiceRole = bearerToken === serviceRoleKey;
+    
+    let authenticatedUser: { id: string } | null = null;
+    let authenticatedUserId: string | undefined;
+    
+    if (isServiceRole) {
+      console.log("[Analyze Storage] Chamada via service_role - acesso administrativo.");
+    } else {
+      const { data: userData, error: authError } = await supabase.auth.getUser(bearerToken);
+      if (authError || !userData?.user) {
+        console.error("[Analyze Storage] Falha na autenticação:", authError?.message);
+        return new Response(JSON.stringify({ error: "Token JWT inválido ou expirado" }), { status: 401, headers: corsHeadersWithAuth });
+      }
+      authenticatedUser = userData.user;
+      authenticatedUserId = authenticatedUser.id;
+      console.log(`[Analyze Storage] Usuário autenticado: ${authenticatedUserId}`);
+    }
 
-  const body = await req.json().catch(() => ({}));
-  const { dryRun = true } = body;
+    const body = await req.json().catch(() => ({}));
+    const { dryRun = true } = body;
 
-  console.log("=== INÍCIO DA ANÁLISE DE STORAGE ===");
+    console.log("=== INÍCIO DA ANÁLISE DE STORAGE ===");
 
-  // Determina se é visualização administrativa ou do usuário
-  const isAdminView = isServiceRole || !authenticatedUserId;
-  console.log(`[Analyze Storage] Modo: ${isAdminView ? 'ADMINISTRATIVO' : 'USUÁRIO: ' + authenticatedUserId}`);
+    const isAdminView = isServiceRole;
+    console.log(`[Analyze Storage] Modo: ${isAdminView ? 'ADMINISTRATIVO' : 'USUÁRIO: ' + authenticatedUserId}`);
 
-  const analysis: any = {
+    const analysis: any = {
     buckets: {},
     orphan_analysis: {
       bucket_files_without_db_ref: [],
@@ -110,7 +115,7 @@ Deno.serve(async (req) => {
   const { data: allUploads, error: uError } = await query;
   
   if (uError) {
-    return json({ error: "Erro ao buscar uploads: " + uError.message }, 500);
+    return new Response(JSON.stringify({ error: "Erro ao buscar uploads: " + uError.message }), { status: 500, headers: corsHeadersWithAuth });
   }
 
   const dbFilePaths = new Set<string>();
@@ -229,15 +234,12 @@ Deno.serve(async (req) => {
   console.log(`Inválidos (DB sem Storage): ${analysis.summary.invalid_refs_count}`);
 
   if (dryRun) {
-    return json({ analysis, dryRun: true });
+      return new Response(JSON.stringify({ analysis, dryRun: true }), { status: 200, headers: corsHeadersWithAuth });
+    }
+
+    return new Response(JSON.stringify({ analysis, dryRun: false }), { status: 200, headers: corsHeadersWithAuth });
+  } catch (err: any) {
+    console.error("[Analyze Storage] Erro geral:", err.message);
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeadersWithAuth });
   }
-
-  return json({ analysis, dryRun: false });
 });
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body, {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  }));
-}

@@ -9,11 +9,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    serviceRoleKey
-  );
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
   let userId: string | undefined;
   let targetUserId: string | undefined;
@@ -27,39 +25,30 @@ Deno.serve(async (req) => {
 
     const bearerToken = authHeader.replace("Bearer ", "");
 
-    // Support two authentication modes:
-    // 1. Internal service call: Authorization = service_role key (from publish-video / cron-scheduler)
-    // 2. User call: Authorization = user JWT (from frontend)
     const isInternalServiceCall = bearerToken === serviceRoleKey;
 
     if (isInternalServiceCall) {
-      // Internal call — userId MUST come from the request body
       console.log("[Refresh Token] Chamada interna via service_role detectada.");
     } else {
-      // User JWT — extract userId from token
-      try {
-        const payload = JSON.parse(atob(bearerToken.split('.')[1]));
-        userId = payload.sub;
-      } catch (e) {
-        return jsonResponse({ success: false, message: "Token inválido" }, 401);
+      const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(bearerToken);
+      if (authError || !userData?.user) {
+        console.error("[Refresh Token] Falha na autenticação:", authError?.message);
+        return jsonResponse({ success: false, message: "Token JWT inválido ou expirado" }, 401);
       }
+      userId = userData.user.id;
+      console.log(`[Refresh Token] Usuário autenticado: ${userId}`);
     }
 
     const body = await req.json();
     platform = body.platform;
     const bodyUserId = body.userId;
 
-    // Resolve the target user safely:
-    // IMPORTANTE: Para chamadas de usuário, IGNORAR qualquer userId do body
     if (isInternalServiceCall) {
-      // For internal calls (e.g. from scheduler), we MUST trust the bodyUserId
       if (!bodyUserId) {
         return jsonResponse({ success: false, message: "userId obrigatório para chamadas internas" }, 400);
       }
       targetUserId = bodyUserId;
     } else {
-      // For user calls, we MUST ALWAYS use the userId from the JWT to prevent IDOR
-      // SECURITY: Ignorar completamente qualquer userId do body para usuários normais
       targetUserId = userId;
       console.log(`[Refresh Token] SECURITY: Usando userId do JWT (ignorado body userId=${bodyUserId})`);
     }
