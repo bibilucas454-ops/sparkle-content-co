@@ -22,6 +22,3 @@ verify_jwt = false
 
 [functions.cleanup-published-media]
 verify_jwt = false
-
-[functions.analyze-storage]
-verify_jwt = false

@@ -1,6 +1,5 @@
 // generate-stories v4 - Zero external imports, guaranteed response
-// Uses only Deno built-ins. No Supabase client needed for core logic, but added for auth validation.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// Uses only Deno built-ins. No Supabase client needed.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -200,29 +199,6 @@ Deno.serve(async (req: Request) => {
   }
 
   console.log("[generate-stories] v4 Request:", req.method, new Date().toISOString());
-
-  // Auth validation
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-  
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: "No authorization header" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  const token = authHeader.replace("Bearer ", "");
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Invalid token" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
 
   // We wrap EVERYTHING in a try-catch that always returns 200
   // This guarantees no non-2xx response except for true malformed requests

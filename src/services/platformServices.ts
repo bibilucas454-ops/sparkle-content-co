@@ -43,6 +43,7 @@ async function initiateOAuth(platform: string): Promise<void> {
   });
 
   if (error) {
+    console.error(`[Auth Error] ${platform}:`, error);
     let errorMessage = error.message || "Erro ao iniciar autenticação";
     
     // Attempt to extract detail from the error context (Edge Function body)
@@ -59,17 +60,15 @@ async function initiateOAuth(platform: string): Promise<void> {
              if (jsonData.missingSecret) {
                errorMessage += ` (Falta Secret: ${jsonData.missingSecret})`;
              }
-} catch (parseError) {
-              errorMessage += ` - Detalhes: ${textData}`;
-            }
+           } catch {
+             errorMessage += ` - Detalhes: ${textData}`;
+           }
         } else if (context) {
           errorMessage += ` - Detalhes: ${JSON.stringify(context)}`;
         }
       }
-    } catch (parseError) {
-      if (import.meta.env.DEV) {
-        console.warn("Could not parse error context", parseError);
-      }
+    } catch (e) {
+      console.warn("Could not parse error context", e);
     }
     
     throw new Error(errorMessage);

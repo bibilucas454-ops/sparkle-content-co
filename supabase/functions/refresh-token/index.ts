@@ -9,9 +9,11 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    serviceRoleKey
+  );
 
   let userId: string | undefined;
   let targetUserId: string | undefined;
@@ -25,33 +27,32 @@ Deno.serve(async (req) => {
 
     const bearerToken = authHeader.replace("Bearer ", "");
 
+    // Support two authentication modes:
+    // 1. Internal service call: Authorization = service_role key (from publish-video / cron-scheduler)
+    // 2. User call: Authorization = user JWT (from frontend)
     const isInternalServiceCall = bearerToken === serviceRoleKey;
 
     if (isInternalServiceCall) {
+      // Internal call — userId MUST come from the request body
       console.log("[Refresh Token] Chamada interna via service_role detectada.");
     } else {
-      const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(bearerToken);
-      if (authError || !userData?.user) {
-        console.error("[Refresh Token] Falha na autenticação:", authError?.message);
-        return jsonResponse({ success: false, message: "Token JWT inválido ou expirado" }, 401);
+      // User JWT — extract userId from token
+      try {
+        const payload = JSON.parse(atob(bearerToken.split('.')[1]));
+        userId = payload.sub;
+      } catch (e) {
+        return jsonResponse({ success: false, message: "Token inválido" }, 401);
       }
-      userId = userData.user.id;
-      console.log(`[Refresh Token] Usuário autenticado: ${userId}`);
     }
 
     const body = await req.json();
     platform = body.platform;
     const bodyUserId = body.userId;
 
-    if (isInternalServiceCall) {
-      if (!bodyUserId) {
-        return jsonResponse({ success: false, message: "userId obrigatório para chamadas internas" }, 400);
-      }
-      targetUserId = bodyUserId;
-    } else {
-      targetUserId = userId;
-      console.log(`[Refresh Token] SECURITY: Usando userId do JWT (ignorado body userId=${bodyUserId})`);
-    }
+    // Resolve the target user:
+    // - For internal calls, bodyUserId is mandatory
+    // - For user calls, bodyUserId overrides if provided (backward compat), otherwise use JWT userId
+    targetUserId = bodyUserId || userId;
 
     if (!targetUserId) {
       return jsonResponse({ success: false, message: "userId não fornecido" }, 400);

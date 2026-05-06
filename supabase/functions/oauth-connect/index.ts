@@ -187,6 +187,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: "Exceção inesperada na Edge Function", 
+        message: msg,
+        stack
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

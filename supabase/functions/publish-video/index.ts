@@ -1,30 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/crypto.ts";
 
-// CORS: Restricts to known origins in production.
-// Supabase cron-scheduler uses internal invocation (no Origin header) — still accepted.
-const ALLOWED_ORIGINS = [
-  "https://sparkle-content-co.lovable.app",
-  "https://sparkle-content-co.vercel.app",
-  // dev
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-function getCorsHeaders(req: Request) {
-  const origin = req.headers.get("Origin") ?? "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Vary": "Origin",
-  };
-}
-
-// backward-compat alias
-const corsHeaders = getCorsHeaders({ headers: new Headers() } as Request);
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 async function updateTargetStatus(supabase: any, targetId: string, status: string, extra?: Record<string, string | null>) {
   await supabase
@@ -443,8 +424,7 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 }
 
 Deno.serve(async (req) => {
-  const dynamicCors = getCorsHeaders(req);
-  if (req.method === "OPTIONS") { return new Response(null, { headers: dynamicCors }); }
+  if (req.method === "OPTIONS") { return new Response(null, { headers: corsHeaders }); }
 
   let globalPayload: any = {};
   let globalTargetId: string | undefined;
@@ -452,7 +432,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: dynamicCors });
+      return new Response(JSON.stringify({ error: "Não autorizado" }), { status: 401, headers: corsHeaders });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -461,25 +441,19 @@ Deno.serve(async (req) => {
 
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
       console.error("Erro Ambiental Crítico: Chaves do Supabase ausentes (SUPABASE_URL ou KEYS).");
-      return new Response(JSON.stringify({ error: "Erro interno: Variáveis de ambiente de Auth não configuradas no servidor." }), { status: 500, headers: dynamicCors });
+      return new Response(JSON.stringify({ error: "Erro interno: Variáveis de ambiente de Auth não configuradas no servidor." }), { status: 500, headers: corsHeaders });
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: authHeader } } });
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // ====== SECURITY: Verificação JWT via Supabase (valida assinatura e expiração) ======
-    // Permite: (a) service_role key (cron interno), (b) JWT de usuário autenticado verificado
     const token = authHeader.replace("Bearer ", "");
-    const isServiceRole = token === supabaseServiceKey;
     let userId = "";
-    
-    if (!isServiceRole) {
-      const { data: userData, error: authError } = await supabase.auth.getUser(token);
-      if (authError || !userData?.user) {
-        console.error("[Auth] JWT inválido ou expirado:", authError?.message);
-        return new Response(JSON.stringify({ error: "Não autorizado: JWT inválido ou sessão expirada." }), { status: 401, headers: dynamicCors });
-      }
-      userId = userData.user.id;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userId = payload.sub;
+    } catch (e) {
+      console.error("Error decoding JWT:", e);
     }
 
     globalPayload = await req.json();
@@ -527,25 +501,9 @@ Deno.serve(async (req) => {
         if (up) mediaList = [up];
       }
     } else {
-      // Direct API call: enforce ownership
-      if (!userId) {
-        return new Response(JSON.stringify({ error: "Não autorizado: userId não identificado." }), { status: 401, headers: dynamicCors });
-      }
-      if (pTargetId) {
-        // Verify ownership: the target must belong to the authenticated user
-        const { data: ownerTarget } = await supabaseAdmin
-          .from("publication_targets")
-          .select("id, publications(user_id)")
-          .eq("id", pTargetId)
-          .single();
-        const pubUserId = (ownerTarget as any)?.publications?.user_id;
-        if (!ownerTarget || pubUserId !== userId) {
-          console.error(`[Security] User ${userId} tentou publicar target ${pTargetId} de ${pubUserId}`);
-          return new Response(JSON.stringify({ error: "Acesso negado: você não tem permissão para publicar este conteúdo." }), { status: 403, headers: dynamicCors });
-        }
-      }
+      // Legacy caller
       if (payload.uploadId) {
-         const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", payload.uploadId).eq("user_id", userId).single();
+         const { data: up } = await supabaseAdmin.from("uploads").select("*").eq("id", payload.uploadId).single();
          if (up) mediaList = [up];
       }
     }
@@ -557,7 +515,7 @@ Deno.serve(async (req) => {
     if (accError || !account || !account.access_token_encrypted) {
       const errMsg = `Conta ${pPlatform} não conectada/encontrada ou sem token registrado no banco.`;
       await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
-      return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: dynamicCors });
+      return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: corsHeaders });
     }
 
     const accessToken = await decryptToken(account.access_token_encrypted);
@@ -566,7 +524,7 @@ Deno.serve(async (req) => {
       const msg = `Falha na Autenticação: O Token de Acesso da conta ${pPlatform} está vazio ou corrompido. Por favor, acesse as conexões e reconecte sua conta.`;
       console.error(msg);
       await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: msg });
-      return new Response(JSON.stringify({ error: msg }), { status: 400, headers: dynamicCors });
+      return new Response(JSON.stringify({ error: msg }), { status: 400, headers: corsHeaders });
     }
 
     // ====== Media Resolution ======
@@ -605,7 +563,7 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("publication_jobs").update({ status: "completed" }).eq("id", jobId);
     }
 
-    return new Response(JSON.stringify({ success: true, publishedMediaCount: mediaFilesReady.length }), { headers: { ...dynamicCors, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: true, publishedMediaCount: mediaFilesReady.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
     console.error("Publish Fatal Error:", err);
@@ -615,6 +573,6 @@ Deno.serve(async (req) => {
       
       if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
     } catch (_) {}
-    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: dynamicCors });
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
   }
 });

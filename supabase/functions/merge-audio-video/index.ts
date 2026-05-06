@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, jsonResponse, validateAuth } from "../_shared/responses.ts";
+import { corsHeaders, jsonResponse } from "../_shared/responses.ts";
 
 async function logMergeEvent(
   supabase: any,
@@ -104,9 +104,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { user, error: authError } = await validateAuth(req, supabaseAdmin);
-    if (authError) {
-      return jsonResponse({ success: false, message: authError }, 401);
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ success: false, message: "Unauthorized" }, 401);
     }
 
     const payload = await req.json();
