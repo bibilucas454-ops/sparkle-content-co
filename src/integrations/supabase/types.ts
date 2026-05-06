@@ -76,6 +76,13 @@ export type Database = {
             foreignKeyName: "audio_merges_publication_id_fkey"
             columns: ["publication_id"]
             isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "audio_merges_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
             referencedRelation: "publications"
             referencedColumns: ["id"]
           },
@@ -127,6 +134,13 @@ export type Database = {
             foreignKeyName: "content_music_publication_id_fkey"
             columns: ["publication_id"]
             isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "content_music_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
             referencedRelation: "publications"
             referencedColumns: ["id"]
           },
@@ -170,6 +184,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "music_catalog"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_music_selection_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
           },
           {
             foreignKeyName: "content_music_selection_publication_id_fkey"
@@ -528,6 +549,13 @@ export type Database = {
             foreignKeyName: "post_media_publication_id_fkey"
             columns: ["publication_id"]
             isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
+          {
+            foreignKeyName: "post_media_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
             referencedRelation: "publications"
             referencedColumns: ["id"]
           },
@@ -644,6 +672,13 @@ export type Database = {
             foreignKeyName: "publication_jobs_publication_target_id_fkey"
             columns: ["publication_target_id"]
             isOneToOne: true
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
+          {
+            foreignKeyName: "publication_jobs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: true
             referencedRelation: "publication_targets"
             referencedColumns: ["id"]
           },
@@ -672,6 +707,13 @@ export type Database = {
           publication_target_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "publication_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
           {
             foreignKeyName: "publication_logs_publication_target_id_fkey"
             columns: ["publication_target_id"]
@@ -728,6 +770,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "publication_targets_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["publication_id"]
+          },
           {
             foreignKeyName: "publication_targets_publication_id_fkey"
             columns: ["publication_id"]
@@ -855,6 +904,13 @@ export type Database = {
           success?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "publish_logs_publication_target_id_fkey"
+            columns: ["publication_target_id"]
+            isOneToOne: false
+            referencedRelation: "publication_metrics"
+            referencedColumns: ["target_id"]
+          },
           {
             foreignKeyName: "publish_logs_publication_target_id_fkey"
             columns: ["publication_target_id"]
@@ -1222,6 +1278,23 @@ export type Database = {
           successful_posts: number | null
           total_attempts: number | null
           unique_publications: number | null
+        }
+        Relationships: []
+      }
+      publication_metrics: {
+        Row: {
+          error_message: string | null
+          overall_status: string | null
+          platform: string | null
+          platform_post_url: string | null
+          publication_created_at: string | null
+          publication_id: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          target_id: string | null
+          target_status: string | null
+          title: string | null
+          user_id: string | null
         }
         Relationships: []
       }
