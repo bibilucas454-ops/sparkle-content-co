@@ -1,10 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// CORS: Restrict to known origins
+const ALLOWED_ORIGINS = [
+  "https://sparkle-content-co.lovable.app",
+  "https://sparkle-content-co.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") ?? "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 const typePrompts: Record<string, string> = {
   "viral-idea": `Gere 1 ideia de vídeo curto com POTENCIAL ULTRA VIRAL (100k+ visualizações).
@@ -145,15 +159,16 @@ Explique brevemente cada nota. APENAS Português do Brasil.`,
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const dynamicCors = getCorsHeaders(req);
+  if (req.method === "OPTIONS") return new Response(null, { headers: dynamicCors });
 
   try {
-    // 1. JWT signature programmatic verification to allow CORS OPTIONS preflight
+    // 1. JWT signature verification via Supabase (validates signature, not manual decode)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Acesso negado. Token ausente ou inválido (Requer JWT válido)." }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...dynamicCors, "Content-Type": "application/json" },
       });
     }
 
@@ -169,7 +184,7 @@ serve(async (req) => {
       console.error("Auth erro de acesso da Edge Function:", claimsError);
       return new Response(JSON.stringify({ error: "Sessão expirada ou JWT inválido. Faça login novamente." }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...dynamicCors, "Content-Type": "application/json" },
       });
     }
     const userId = claimsData.claims.sub;
@@ -265,13 +280,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...dynamicCors, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("generate-content error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...dynamicCors, "Content-Type": "application/json" } }
     );
   }
 });
