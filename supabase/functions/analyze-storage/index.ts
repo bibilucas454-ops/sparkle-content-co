@@ -43,9 +43,21 @@ async function listAllFiles(supabase: any, bucket: string): Promise<{ name: stri
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // 1. Validação de Segurança (Apenas Service Role)
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  
+  if (!authHeader || (authHeader !== `Bearer ${serviceRoleKey}` && authHeader !== serviceRoleKey)) {
+    console.error("[Analyze Storage] Acesso não autorizado detectado.");
+    return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    serviceRoleKey,
   );
 
   const body = await req.json().catch(() => ({}));

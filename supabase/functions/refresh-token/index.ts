@@ -49,10 +49,14 @@ Deno.serve(async (req) => {
     platform = body.platform;
     const bodyUserId = body.userId;
 
-    // Resolve the target user:
-    // - For internal calls, bodyUserId is mandatory
-    // - For user calls, bodyUserId overrides if provided (backward compat), otherwise use JWT userId
-    targetUserId = bodyUserId || userId;
+    // Resolve the target user safely:
+    if (isInternalServiceCall) {
+      // For internal calls (e.g. from scheduler), we MUST trust the bodyUserId
+      targetUserId = bodyUserId;
+    } else {
+      // For user calls, we MUST ALWAYS use the userId from the JWT to prevent IDOR
+      targetUserId = userId;
+    }
 
     if (!targetUserId) {
       return jsonResponse({ success: false, message: "userId não fornecido" }, 400);
