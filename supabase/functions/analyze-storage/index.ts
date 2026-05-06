@@ -43,16 +43,30 @@ async function listAllFiles(supabase: any, bucket: string): Promise<{ name: stri
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // 1. Validação de Segurança (Apenas Service Role)
+  // 1. Validação de Segurança - Obrigatório Bearer token
   const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    console.error("[Analyze Storage] Acesso não autorizado - Token ausente.");
+    return json({ error: "Não autorizado. Bearer token obrigatório." }, 401);
+  }
+
+  const bearerToken = authHeader.replace("Bearer ", "");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  
-  if (!authHeader || (authHeader !== `Bearer ${serviceRoleKey}` && authHeader !== serviceRoleKey)) {
-    console.error("[Analyze Storage] Acesso não autorizado detectado.");
-    return new Response(JSON.stringify({ error: "Não autorizado" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+
+  // Aceita service_role key OU JWT válido de usuário
+  const isServiceRole = bearerToken === serviceRoleKey;
+
+  let authenticatedUserId: string | undefined;
+  if (isServiceRole) {
+    console.log("[Analyze Storage] Chamada via service_role - acesso administrativo.");
+  } else {
+    // Usuário normal - extrai userId do JWT
+    try {
+      const payload = JSON.parse(atob(bearerToken.split('.')[1]));
+      authenticatedUserId = payload.sub;
+    } catch (e) {
+      return json({ error: "Token JWT inválido" }, 401);
+    }
   }
 
   const supabase = createClient(
@@ -64,6 +78,10 @@ Deno.serve(async (req) => {
   const { dryRun = true } = body;
 
   console.log("=== INÍCIO DA ANÁLISE DE STORAGE ===");
+
+  // Determina se é visualização administrativa ou do usuário
+  const isAdminView = isServiceRole || !authenticatedUserId;
+  console.log(`[Analyze Storage] Modo: ${isAdminView ? 'ADMINISTRATIVO' : 'USUÁRIO: ' + authenticatedUserId}`);
 
   const analysis: any = {
     buckets: {},
@@ -79,10 +97,17 @@ Deno.serve(async (req) => {
     },
   };
 
-  // 1) Buscar TODAS as referências no banco
-  const { data: allUploads, error: uError } = await supabase
+  // 1) Buscar referências no banco - FILTRADO POR USUÁRIO
+  let query = supabase
     .from("uploads")
     .select("id, file_path, thumbnail_path, file_name, size_bytes, user_id, created_at");
+  
+  // Se não for admin, filtra apenas pelos uploads do usuário
+  if (!isAdminView && authenticatedUserId) {
+    query = query.eq("user_id", authenticatedUserId);
+  }
+  
+  const { data: allUploads, error: uError } = await query;
   
   if (uError) {
     return json({ error: "Erro ao buscar uploads: " + uError.message }, 500);
@@ -105,9 +130,26 @@ Deno.serve(async (req) => {
 
   console.log(`Referências no banco: ${dbFilePaths.size} files + ${dbThumbPaths.size} thumbnails`);
 
-  // 2) Listar arquivos em cada bucket
+  // 2) Listar arquivos em cada bucket - APENAS para admins
   for (const bucket of BUCKETS) {
     console.log(`\nAnalisando bucket: ${bucket}`);
+    
+    // Se não for admin, mostra apenas resumo (não lista arquivos individuais)
+    if (!isAdminView) {
+      // Usuário normal: mostra só total, não arquivos individuais por segurança
+      const { data: files } = await supabase.storage.from(bucket).list("", { limit: 1000, offset: 0 });
+      const bucketSize = files?.reduce((sum, f) => sum + (f.metadata?.size || 0), 0) || 0;
+      
+      analysis.buckets[bucket] = {
+        files_count: files?.length || 0,
+        total_size_bytes: bucketSize,
+        note: "Resumo apenas - use service_role para análise completa",
+      };
+      analysis.summary.total_storage_bytes += bucketSize;
+      analysis.summary.total_files += files?.length || 0;
+      continue;
+    }
+    
     const files = await listAllFiles(supabase, bucket);
     
     let bucketSize = 0;

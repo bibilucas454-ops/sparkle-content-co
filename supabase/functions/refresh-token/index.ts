@@ -50,12 +50,18 @@ Deno.serve(async (req) => {
     const bodyUserId = body.userId;
 
     // Resolve the target user safely:
+    // IMPORTANTE: Para chamadas de usuário, IGNORAR qualquer userId do body
     if (isInternalServiceCall) {
       // For internal calls (e.g. from scheduler), we MUST trust the bodyUserId
+      if (!bodyUserId) {
+        return jsonResponse({ success: false, message: "userId obrigatório para chamadas internas" }, 400);
+      }
       targetUserId = bodyUserId;
     } else {
       // For user calls, we MUST ALWAYS use the userId from the JWT to prevent IDOR
+      // SECURITY: Ignorar completamente qualquer userId do body para usuários normais
       targetUserId = userId;
+      console.log(`[Refresh Token] SECURITY: Usando userId do JWT (ignorado body userId=${bodyUserId})`);
     }
 
     if (!targetUserId) {
