@@ -570,6 +570,9 @@ export default function PublisherHub() {
     setMusicSearch("");
     setApproved(false);
     setAudioFile(null);
+    setAutoCommentEnabled(false);
+    setAutoCommentText(DEFAULT_AUTO_COMMENT);
+    setAutoCommentDelay(0);
     setPlatformSettings({
       youtube: { title: "", description: "", privacy: "public" },
       instagram: { caption: "", useGlobalHashtags: true },
