@@ -522,6 +522,25 @@ export default function PublisherHistory() {
                               )}
                             </div>
                           </div>
+                          {(() => {
+                            const acKey = t.auto_comment_enabled
+                              ? (t.auto_comment_status || "pending")
+                              : "disabled";
+                            const ac = AUTO_COMMENT_LABELS[acKey] || AUTO_COMMENT_LABELS.disabled;
+                            return (
+                              <div className="ml-7 -mt-1 flex items-center gap-2">
+                                <span className={`text-[10px] font-semibold ${ac.className}`}>
+                                  • {ac.label}
+                                </span>
+                                {acKey === "failed" && t.auto_comment_error && (
+                                  <span className="text-[10px] text-red-400/80 truncate max-w-[260px]">
+                                    {t.auto_comment_error}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
                         );
                       })}
 
