@@ -725,6 +725,14 @@ export type Database = {
       }
       publication_targets: {
         Row: {
+          auto_comment_delay_minutes: number
+          auto_comment_enabled: boolean
+          auto_comment_error: string | null
+          auto_comment_platform_id: string | null
+          auto_comment_posted_at: string | null
+          auto_comment_run_at: string | null
+          auto_comment_status: string
+          auto_comment_text: string | null
           created_at: string
           error_message: string | null
           id: string
@@ -740,6 +748,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_comment_delay_minutes?: number
+          auto_comment_enabled?: boolean
+          auto_comment_error?: string | null
+          auto_comment_platform_id?: string | null
+          auto_comment_posted_at?: string | null
+          auto_comment_run_at?: string | null
+          auto_comment_status?: string
+          auto_comment_text?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -755,6 +771,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_comment_delay_minutes?: number
+          auto_comment_enabled?: boolean
+          auto_comment_error?: string | null
+          auto_comment_platform_id?: string | null
+          auto_comment_posted_at?: string | null
+          auto_comment_run_at?: string | null
+          auto_comment_status?: string
+          auto_comment_text?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
