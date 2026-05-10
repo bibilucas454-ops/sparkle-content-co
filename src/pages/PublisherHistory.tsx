@@ -81,8 +81,18 @@ interface PublicationItem {
     platform_post_url: string | null;
     error_message: string | null;
     published_at: string | null;
+    auto_comment_enabled?: boolean | null;
+    auto_comment_status?: string | null;
+    auto_comment_error?: string | null;
   }[];
 }
+
+const AUTO_COMMENT_LABELS: Record<string, { label: string; className: string }> = {
+  disabled: { label: "Comentário desativado", className: "text-text-muted" },
+  pending: { label: "Aguardando comentário", className: "text-amber-400" },
+  posted: { label: "Comentário publicado", className: "text-green-400" },
+  failed: { label: "Falha ao publicar comentário", className: "text-red-400" },
+};
 
 export default function PublisherHistory() {
   const { user } = useAuth();
