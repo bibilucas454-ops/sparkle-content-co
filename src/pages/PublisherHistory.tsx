@@ -119,7 +119,7 @@ export default function PublisherHistory() {
       .from("publications")
       .select(`
         id, title, created_at, overall_status, scheduled_for, thumbnail_path, content_format,
-        publication_targets (id, platform, status, platform_post_url, error_message, published_at)
+        publication_targets (id, platform, status, platform_post_url, error_message, published_at, auto_comment_enabled, auto_comment_status, auto_comment_error)
       `)
       .eq("user_id", user.id)
       .is("deleted_at", null)
