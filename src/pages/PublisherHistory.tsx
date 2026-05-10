@@ -469,78 +469,76 @@ export default function PublisherHistory() {
                         const statusCfg = STATUS_CONFIG[t.status] || STATUS_CONFIG.pendente;
                         const Icon = platInfo?.icon || Play;
                         return (
-                          <div
-                            key={t.id}
-                            className="flex items-center justify-between gap-3 rounded-md bg-secondary/50 px-3 py-2.5"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Icon className={`w-4 h-4 ${platInfo?.color}`} />
-                              <span className="text-sm text-text-primary">{platInfo?.label}</span>
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-1">
-                                  <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
-                                  <span className={`text-xs font-medium ${statusCfg.className.replace('animate-spin', '')}`}>{statusCfg.label}</span>
+                          <div key={t.id} className="space-y-1">
+                            <div className="flex items-center justify-between gap-3 rounded-md bg-secondary/50 px-3 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <Icon className={`w-4 h-4 ${platInfo?.color}`} />
+                                <span className="text-sm text-text-primary">{platInfo?.label}</span>
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-1">
+                                    <statusCfg.icon className={`w-3.5 h-3.5 ${statusCfg.className}`} />
+                                    <span className={`text-xs font-medium ${statusCfg.className.replace('animate-spin', '')}`}>{statusCfg.label}</span>
+                                  </div>
+                                  {t.status === "pendente" && item.scheduled_for && (
+                                    <span className="text-[10px] text-text-secondary mt-0.5 ml-4">
+                                      {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'short' })}, {new Date(item.scheduled_for).toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  )}
                                 </div>
-                                {t.status === "pendente" && item.scheduled_for && (
-                                  <span className="text-[10px] text-text-secondary mt-0.5 ml-4">
-                                    {new Date(item.scheduled_for).toLocaleDateString("pt-BR", { weekday: 'short' })}, {new Date(item.scheduled_for).toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {t.error_message && (
+                                  <span className="text-xs text-red-400 max-w-[200px] truncate">
+                                    {t.error_message}
                                   </span>
+                                )}
+                                {t.platform_post_url && (
+                                  <a
+                                    href={t.platform_post_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary text-xs flex items-center gap-1 hover:underline"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    Ver post
+                                  </a>
+                                )}
+                                {t.status === "erro" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    disabled={retryingTargetId === t.id}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRetry(t.id, item.id);
+                                    }}
+                                  >
+                                    <RotateCcw className={`w-3 h-3 ${retryingTargetId === t.id ? "animate-spin" : ""}`} />
+                                    {retryingTargetId === t.id ? "Enviando..." : "Tentar novamente"}
+                                  </Button>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {t.error_message && (
-                                <span className="text-xs text-red-400 max-w-[200px] truncate">
-                                  {t.error_message}
-                                </span>
-                              )}
-                              {t.platform_post_url && (
-                                <a
-                                  href={t.platform_post_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary text-xs flex items-center gap-1 hover:underline"
-                                >
-                                  <ExternalLink className="w-3 h-3" />
-                                  Ver post
-                                </a>
-                              )}
-                              {t.status === "erro" && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-7 text-xs"
-                                  disabled={retryingTargetId === t.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRetry(t.id, item.id);
-                                  }}
-                                >
-                                  <RotateCcw className={`w-3 h-3 ${retryingTargetId === t.id ? "animate-spin" : ""}`} />
-                                  {retryingTargetId === t.id ? "Enviando..." : "Tentar novamente"}
-                                </Button>
-                              )}
-                            </div>
+                            {(() => {
+                              const acKey = t.auto_comment_enabled
+                                ? (t.auto_comment_status || "pending")
+                                : "disabled";
+                              const ac = AUTO_COMMENT_LABELS[acKey] || AUTO_COMMENT_LABELS.disabled;
+                              return (
+                                <div className="ml-3 flex items-center gap-2">
+                                  <span className={`text-[10px] font-semibold ${ac.className}`}>
+                                    • {ac.label}
+                                  </span>
+                                  {acKey === "failed" && t.auto_comment_error && (
+                                    <span className="text-[10px] text-red-400/80 truncate max-w-[260px]">
+                                      {t.auto_comment_error}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
-                          {(() => {
-                            const acKey = t.auto_comment_enabled
-                              ? (t.auto_comment_status || "pending")
-                              : "disabled";
-                            const ac = AUTO_COMMENT_LABELS[acKey] || AUTO_COMMENT_LABELS.disabled;
-                            return (
-                              <div className="ml-7 -mt-1 flex items-center gap-2">
-                                <span className={`text-[10px] font-semibold ${ac.className}`}>
-                                  • {ac.label}
-                                </span>
-                                {acKey === "failed" && t.auto_comment_error && (
-                                  <span className="text-[10px] text-red-400/80 truncate max-w-[260px]">
-                                    {t.auto_comment_error}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
                         );
                       })}
 
