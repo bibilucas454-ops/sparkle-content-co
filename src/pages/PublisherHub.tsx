@@ -452,7 +452,11 @@ export default function PublisherHub() {
           platform_specific_title: (settings as any)?.title || null,
           platform_specific_caption: (settings as any)?.caption || null,
           privacy_status: (settings as any)?.privacy || "public",
-        }).select().single();
+          auto_comment_enabled: autoCommentEnabled && (platform === "youtube" || platform === "instagram"),
+          auto_comment_text: autoCommentEnabled ? autoCommentText : null,
+          auto_comment_delay_minutes: autoCommentDelay,
+          auto_comment_status: autoCommentEnabled && (platform === "youtube" || platform === "instagram") ? "pending" : "disabled",
+        } as any).select().single();
         if (targetError || !target) throw targetError;
 
         // Define Job for the Background Worker (Only if approved or scheduled)
