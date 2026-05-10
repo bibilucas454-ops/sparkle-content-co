@@ -53,6 +53,14 @@ Deno.serve(async (req) => {
       console.error("Erro na rotina de manutenção de tokens:", e);
     }
 
+    // 0b. Processar comentários automáticos pendentes (não bloqueia o resto)
+    try {
+      const acRes = await supabaseAdmin.functions.invoke("post-auto-comment", { body: {} });
+      console.log("[Scheduler] post-auto-comment result:", acRes?.data || acRes?.error);
+    } catch (e) {
+      console.warn("[Scheduler] Falha ao invocar post-auto-comment:", e);
+    }
+
     // 1. Fetch pending jobs (ready, scheduled, queued OR stuck in processing for > 5mins)
     const now = new Date();
     const fiveMinsAgo = new Date(now.getTime() - 5 * 60000);

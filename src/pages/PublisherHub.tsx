@@ -100,6 +100,12 @@ export default function PublisherHub() {
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
 
+  // Comentário automático (CTA)
+  const DEFAULT_AUTO_COMMENT = "👉 Faça o Diagnóstico Gratuito: painel-estoico.vercel.app";
+  const [autoCommentEnabled, setAutoCommentEnabled] = useState(false);
+  const [autoCommentText, setAutoCommentText] = useState(DEFAULT_AUTO_COMMENT);
+  const [autoCommentDelay, setAutoCommentDelay] = useState<number>(0);
+
   // Music state
   const [selectedMusic, setSelectedMusic] = useState<{title: string; artist: string; preview_url?: string; source_platform?: string} | null>(null);
   const [musicSearch, setMusicSearch] = useState("");
@@ -446,7 +452,11 @@ export default function PublisherHub() {
           platform_specific_title: (settings as any)?.title || null,
           platform_specific_caption: (settings as any)?.caption || null,
           privacy_status: (settings as any)?.privacy || "public",
-        }).select().single();
+          auto_comment_enabled: autoCommentEnabled && (platform === "youtube" || platform === "instagram"),
+          auto_comment_text: autoCommentEnabled ? autoCommentText : null,
+          auto_comment_delay_minutes: autoCommentDelay,
+          auto_comment_status: autoCommentEnabled && (platform === "youtube" || platform === "instagram") ? "pending" : "disabled",
+        } as any).select().single();
         if (targetError || !target) throw targetError;
 
         // Define Job for the Background Worker (Only if approved or scheduled)
@@ -560,6 +570,9 @@ export default function PublisherHub() {
     setMusicSearch("");
     setApproved(false);
     setAudioFile(null);
+    setAutoCommentEnabled(false);
+    setAutoCommentText(DEFAULT_AUTO_COMMENT);
+    setAutoCommentDelay(0);
     setPlatformSettings({
       youtube: { title: "", description: "", privacy: "public" },
       instagram: { caption: "", useGlobalHashtags: true },
@@ -785,6 +798,64 @@ export default function PublisherHub() {
                 </Accordion>
               </div>
             )}
+
+            {/* Comentário Automático (CTA) */}
+            <div className="premium-card p-6 space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-border/40">
+                <div className="flex items-center gap-2">
+                  <Send className="w-4 h-4 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">Comentário automático</h3>
+                </div>
+                <Switch checked={autoCommentEnabled} onCheckedChange={setAutoCommentEnabled} />
+              </div>
+
+              <p className="text-xs text-text-secondary -mt-2">
+                Publica um comentário CTA logo após o post ser publicado (YouTube e Instagram).
+              </p>
+
+              <div className={`space-y-4 transition-opacity ${autoCommentEnabled ? "opacity-100" : "opacity-50 pointer-events-none"}`}>
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">
+                    Texto do comentário
+                  </label>
+                  <Textarea
+                    value={autoCommentText}
+                    onChange={(e) => setAutoCommentText(e.target.value)}
+                    placeholder={DEFAULT_AUTO_COMMENT}
+                    className="bg-secondary/50 border-border min-h-[80px] text-sm"
+                    maxLength={2000}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">
+                    Quando publicar
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { v: 0, label: "Imediato" },
+                      { v: 1, label: "1 min" },
+                      { v: 5, label: "5 min" },
+                      { v: 10, label: "10 min" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.v}
+                        type="button"
+                        onClick={() => setAutoCommentDelay(opt.v)}
+                        className={`px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                          autoCommentDelay === opt.v
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border bg-secondary/30 text-text-secondary hover:text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
 
             {/* Histórico - sempre no final da coluna esquerda */}
             <div className="mt-8">

@@ -12,6 +12,31 @@ async function updateTargetStatus(supabase: any, targetId: string, status: strin
     .from("publication_targets")
     .update({ status, updated_at: new Date().toISOString(), ...extra })
     .eq("id", targetId);
+
+  // Quando publicado com sucesso, agenda comentário automático (se habilitado)
+  if (status === "publicado" || status === "published") {
+    try {
+      const { data: tgt } = await supabase
+        .from("publication_targets")
+        .select("auto_comment_enabled, auto_comment_delay_minutes, auto_comment_status")
+        .eq("id", targetId)
+        .single();
+      if (tgt?.auto_comment_enabled && tgt.auto_comment_status !== "posted") {
+        const delay = Number(tgt.auto_comment_delay_minutes || 0);
+        const runAt = new Date(Date.now() + delay * 60_000).toISOString();
+        await supabase
+          .from("publication_targets")
+          .update({
+            auto_comment_status: "pending",
+            auto_comment_run_at: runAt,
+            auto_comment_error: null,
+          })
+          .eq("id", targetId);
+      }
+    } catch (e) {
+      console.warn("[auto-comment] schedule error:", e);
+    }
+  }
 }
 
 async function logEvent(supabase: any, targetId: string, event: string, details?: string) {
