@@ -100,6 +100,12 @@ export default function PublisherHub() {
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
 
+  // Comentário automático (CTA)
+  const DEFAULT_AUTO_COMMENT = "👉 Faça o Diagnóstico Gratuito: painel-estoico.vercel.app";
+  const [autoCommentEnabled, setAutoCommentEnabled] = useState(false);
+  const [autoCommentText, setAutoCommentText] = useState(DEFAULT_AUTO_COMMENT);
+  const [autoCommentDelay, setAutoCommentDelay] = useState<number>(0);
+
   // Music state
   const [selectedMusic, setSelectedMusic] = useState<{title: string; artist: string; preview_url?: string; source_platform?: string} | null>(null);
   const [musicSearch, setMusicSearch] = useState("");
