@@ -16,13 +16,13 @@ const PLATFORM_CONFIG: Record<string, {
 }> = {
   youtube: {
     authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    scopes: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/userinfo.profile",
+    scopes: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/userinfo.profile",
     clientIdEnv: "YOUTUBE_CLIENT_ID",
     clientSecretEnv: "YOUTUBE_CLIENT_SECRET",
   },
   instagram: {
     authUrl: "https://www.facebook.com/v19.0/dialog/oauth",
-    scopes: "instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement,business_management",
+    scopes: "instagram_basic,instagram_content_publish,instagram_manage_comments,pages_show_list,pages_read_engagement,pages_manage_engagement,business_management",
     clientIdEnv: "INSTAGRAM_CLIENT_ID",
     clientSecretEnv: "INSTAGRAM_CLIENT_SECRET",
   },
