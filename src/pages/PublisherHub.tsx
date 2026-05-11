@@ -101,7 +101,7 @@ export default function PublisherHub() {
   const [dragging, setDragging] = useState(false);
 
   // Comentário automático (CTA)
-  const DEFAULT_AUTO_COMMENT = "👉 Faça o Diagnóstico Gratuito: painel-estoico.vercel.app";
+  const DEFAULT_AUTO_COMMENT = "Se você está buscando mais clareza, disciplina e paz interior,\nEstá no link da Bio.";
   const [autoCommentEnabled, setAutoCommentEnabled] = useState(false);
   const [autoCommentText, setAutoCommentText] = useState(DEFAULT_AUTO_COMMENT);
   const [autoCommentDelay, setAutoCommentDelay] = useState<number>(0);
