@@ -75,15 +75,36 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: false, message: `Conta ${platform} não encontrada para o usuário.` }, 404);
     }
 
+    // Guarda 1: estados terminais — não tentar até reconexão manual
+    if (["needs_reauth", "reconnect_required", "disabled"].includes(account.status)) {
+      console.warn(`[Refresh Token] Skip ${platform}/${targetUserId}: status=${account.status} (precisa reconectar).`);
+      return jsonResponse({
+        success: false,
+        message: "Conta precisa ser reconectada manualmente.",
+        details: { reconnectRequired: true, status: account.status }
+      }, 409);
+    }
+
+    // Guarda 2: backoff — respeita janela mínima entre tentativas
+    if (account.next_refresh_attempt_at && new Date(account.next_refresh_attempt_at) > new Date()) {
+      console.warn(`[Refresh Token] Skip ${platform}/${targetUserId}: em backoff até ${account.next_refresh_attempt_at}.`);
+      return jsonResponse({
+        success: false,
+        message: "Tentativa recente falhou. Aguardando janela de backoff.",
+        details: { nextAttemptAt: account.next_refresh_attempt_at }
+      }, 429);
+    }
+
     if (!account.refresh_token_encrypted) {
-      console.error(`[Refresh Token] ERRO: refresh_token_encrypted está NULL no banco para platform=${platform} user=${targetUserId}. O usuário precisa reconectar a conta!`);
-      await supabaseAdmin.from("social_tokens").update({ 
-        status: 'error', 
+      console.error(`[Refresh Token] refresh_token ausente para ${platform}/${targetUserId}.`);
+      await supabaseAdmin.from("social_tokens").update({
+        status: 'needs_reauth',
         last_error: "Refresh token ausente no banco.",
-        last_error_code: 'MISSING_REFRESH_TOKEN'
+        last_error_code: 'MISSING_REFRESH_TOKEN',
+        last_refresh_attempt_at: new Date().toISOString(),
       }).eq("id", account.id);
-      
-      return jsonResponse({ success: false, message: "Refresh token ausente no banco. Reconecte a conta.", details: { missingRefreshToken: true } }, 400);
+
+      return jsonResponse({ success: false, message: "Refresh token ausente. Reconecte a conta.", details: { missingRefreshToken: true, reconnectRequired: true } }, 400);
     }
 
     let tokenData: any;
