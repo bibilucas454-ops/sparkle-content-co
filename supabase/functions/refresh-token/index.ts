@@ -192,6 +192,9 @@ Deno.serve(async (req) => {
       last_error: null,
       last_error_code: null,
       last_refreshed_at: new Date().toISOString(),
+      last_refresh_attempt_at: new Date().toISOString(),
+      next_refresh_attempt_at: null,
+      refresh_attempt_count: 0,
       updated_at: new Date().toISOString(),
     }).eq("id", account.id);
 
