@@ -126,15 +126,31 @@ Deno.serve(async (req) => {
 
         results.push({ targetId, status: "posted", commentId });
       } catch (err: any) {
-        console.error(`[auto-comment] falha target=${targetId}:`, err);
+        console.error(`[auto-comment] falha target=${targetId}:`, err?.message || err);
+        const msg = (err?.message || "").toLowerCase();
+        const isAuthError = msg.includes("401") || msg.includes("oauth") ||
+          msg.includes("expired") || msg.includes("invalid") || msg.includes("revoked") ||
+          msg.includes("permission");
+
+        // Se for erro de auth, marca a conta como needs_reauth para parar de tentar
+        if (isAuthError && userId && t.platform) {
+          await supabase.from("social_tokens").update({
+            status: "needs_reauth",
+            last_error: err?.message?.slice(0, 500) || "Auth error em post-auto-comment",
+            last_error_code: "AUTH_ERROR",
+            last_refresh_attempt_at: new Date().toISOString(),
+            next_refresh_attempt_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          }).eq("user_id", userId).eq("platform", t.platform);
+        }
+
         await supabase
           .from("publication_targets")
           .update({
             auto_comment_status: "failed",
-            auto_comment_error: err.message?.slice(0, 500) || "Erro desconhecido",
+            auto_comment_error: err?.message?.slice(0, 500) || "Erro desconhecido",
           })
           .eq("id", targetId);
-        results.push({ targetId, status: "failed", error: err.message });
+        results.push({ targetId, status: "failed", error: err?.message });
       }
     }
 
