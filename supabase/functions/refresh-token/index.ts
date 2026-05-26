@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     }
 
     // Guarda 1: estados terminais — não tentar até reconexão manual
-    if (["needs_reauth", "reconnect_required", "disabled"].includes(account.status)) {
+    if (["needs_reauth", "reconnect_required", "disabled", "error"].includes(account.status)) {
       console.warn(`[Refresh Token] Skip ${platform}/${targetUserId}: status=${account.status} (precisa reconectar).`);
       return jsonResponse({
         success: false,

@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         .from("social_tokens")
         .select("user_id, platform, status, next_refresh_attempt_at")
         .lt("expires_at", expiryThreshold)
-        .not("status", "in", "(needs_reauth,reconnect_required,disabled)")
+        .not("status", "in", "(needs_reauth,reconnect_required,disabled,error)")
         .or(`next_refresh_attempt_at.is.null,next_refresh_attempt_at.lte.${nowIso}`)
         .limit(20);
 
