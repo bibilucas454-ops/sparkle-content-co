@@ -10,11 +10,16 @@ const corsHeaders = {
 async function getAccessToken(supabase: any, userId: string, platform: string): Promise<{ token: string; accountId: string | null } | null> {
   const { data: tokenRow } = await supabase
     .from("social_tokens")
-    .select("access_token_encrypted, account_id")
+    .select("access_token_encrypted, account_id, status")
     .eq("user_id", userId)
     .eq("platform", platform)
     .maybeSingle();
   if (!tokenRow?.access_token_encrypted) return null;
+  // Não tenta postar com contas em estado terminal — evita 401 em cascata
+  if (["needs_reauth", "reconnect_required", "disabled"].includes(tokenRow.status)) {
+    console.warn(`[auto-comment] skip ${platform}/${userId}: status=${tokenRow.status}`);
+    return null;
+  }
   try {
     const token = await decryptToken(tokenRow.access_token_encrypted);
     return { token, accountId: tokenRow.account_id || null };
