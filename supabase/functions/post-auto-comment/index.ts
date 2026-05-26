@@ -16,7 +16,7 @@ async function getAccessToken(supabase: any, userId: string, platform: string): 
     .maybeSingle();
   if (!tokenRow?.access_token_encrypted) return null;
   // Não tenta postar com contas em estado terminal — evita 401 em cascata
-  if (["needs_reauth", "reconnect_required", "disabled"].includes(tokenRow.status)) {
+  if (["needs_reauth", "reconnect_required", "disabled", "error"].includes(tokenRow.status)) {
     console.warn(`[auto-comment] skip ${platform}/${userId}: status=${tokenRow.status}`);
     return null;
   }
