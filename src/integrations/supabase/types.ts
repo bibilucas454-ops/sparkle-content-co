@@ -993,10 +993,13 @@ export type Database = {
           id: string
           last_error: string | null
           last_error_code: string | null
+          last_refresh_attempt_at: string | null
           last_refreshed_at: string | null
           last_sync_at: string | null
+          next_refresh_attempt_at: string | null
           platform: string
           raw_response: Json | null
+          refresh_attempt_count: number
           refresh_expires_at: string | null
           refresh_token_encrypted: string | null
           scope: string | null
@@ -1014,10 +1017,13 @@ export type Database = {
           id?: string
           last_error?: string | null
           last_error_code?: string | null
+          last_refresh_attempt_at?: string | null
           last_refreshed_at?: string | null
           last_sync_at?: string | null
+          next_refresh_attempt_at?: string | null
           platform: string
           raw_response?: Json | null
+          refresh_attempt_count?: number
           refresh_expires_at?: string | null
           refresh_token_encrypted?: string | null
           scope?: string | null
@@ -1035,10 +1041,13 @@ export type Database = {
           id?: string
           last_error?: string | null
           last_error_code?: string | null
+          last_refresh_attempt_at?: string | null
           last_refreshed_at?: string | null
           last_sync_at?: string | null
+          next_refresh_attempt_at?: string | null
           platform?: string
           raw_response?: Json | null
+          refresh_attempt_count?: number
           refresh_expires_at?: string | null
           refresh_token_encrypted?: string | null
           scope?: string | null

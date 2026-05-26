@@ -75,15 +75,36 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: false, message: `Conta ${platform} não encontrada para o usuário.` }, 404);
     }
 
+    // Guarda 1: estados terminais — não tentar até reconexão manual
+    if (["needs_reauth", "reconnect_required", "disabled"].includes(account.status)) {
+      console.warn(`[Refresh Token] Skip ${platform}/${targetUserId}: status=${account.status} (precisa reconectar).`);
+      return jsonResponse({
+        success: false,
+        message: "Conta precisa ser reconectada manualmente.",
+        details: { reconnectRequired: true, status: account.status }
+      }, 409);
+    }
+
+    // Guarda 2: backoff — respeita janela mínima entre tentativas
+    if (account.next_refresh_attempt_at && new Date(account.next_refresh_attempt_at) > new Date()) {
+      console.warn(`[Refresh Token] Skip ${platform}/${targetUserId}: em backoff até ${account.next_refresh_attempt_at}.`);
+      return jsonResponse({
+        success: false,
+        message: "Tentativa recente falhou. Aguardando janela de backoff.",
+        details: { nextAttemptAt: account.next_refresh_attempt_at }
+      }, 429);
+    }
+
     if (!account.refresh_token_encrypted) {
-      console.error(`[Refresh Token] ERRO: refresh_token_encrypted está NULL no banco para platform=${platform} user=${targetUserId}. O usuário precisa reconectar a conta!`);
-      await supabaseAdmin.from("social_tokens").update({ 
-        status: 'error', 
+      console.error(`[Refresh Token] refresh_token ausente para ${platform}/${targetUserId}.`);
+      await supabaseAdmin.from("social_tokens").update({
+        status: 'needs_reauth',
         last_error: "Refresh token ausente no banco.",
-        last_error_code: 'MISSING_REFRESH_TOKEN'
+        last_error_code: 'MISSING_REFRESH_TOKEN',
+        last_refresh_attempt_at: new Date().toISOString(),
       }).eq("id", account.id);
-      
-      return jsonResponse({ success: false, message: "Refresh token ausente no banco. Reconecte a conta.", details: { missingRefreshToken: true } }, 400);
+
+      return jsonResponse({ success: false, message: "Refresh token ausente. Reconecte a conta.", details: { missingRefreshToken: true, reconnectRequired: true } }, 400);
     }
 
     let tokenData: any;
@@ -171,6 +192,9 @@ Deno.serve(async (req) => {
       last_error: null,
       last_error_code: null,
       last_refreshed_at: new Date().toISOString(),
+      last_refresh_attempt_at: new Date().toISOString(),
+      next_refresh_attempt_at: null,
+      refresh_attempt_count: 0,
       updated_at: new Date().toISOString(),
     }).eq("id", account.id);
 
@@ -185,9 +209,37 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ success: true, message: "Token atualizado com sucesso" });
   } catch (err: any) {
-    console.error(`[Refresh Token] Falha geral detectada:`, err.message);
+    console.error(`[Refresh Token] Falha geral:`, err.message);
     const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR");
-    
+
+    // Atualiza backoff/contador para evitar loop. Para erros permanentes,
+    // status já foi setado para 'needs_reauth' acima; agendamos backoff longo.
+    try {
+      if (targetUserId && platform) {
+        const { data: acc } = await supabaseAdmin
+          .from("social_tokens")
+          .select("id, refresh_attempt_count")
+          .eq("user_id", targetUserId)
+          .eq("platform", platform)
+          .maybeSingle();
+        if (acc?.id) {
+          const attempts = (acc.refresh_attempt_count || 0) + 1;
+          // Backoff exponencial: 5, 15, 45, 120 min (cap 6h). Permanente: 24h.
+          const minutes = isPermanent
+            ? 60 * 24
+            : Math.min(5 * Math.pow(3, attempts - 1), 60 * 6);
+          const next = new Date(Date.now() + minutes * 60_000).toISOString();
+          await supabaseAdmin.from("social_tokens").update({
+            refresh_attempt_count: attempts,
+            last_refresh_attempt_at: new Date().toISOString(),
+            next_refresh_attempt_at: next,
+          }).eq("id", acc.id);
+        }
+      }
+    } catch (e) {
+      console.error("[Refresh Token] Falha ao gravar backoff:", e);
+    }
+
     await supabaseAdmin.rpc("log_integration_event", {
       p_user_id: targetUserId,
       p_platform: platform,
@@ -195,10 +247,10 @@ Deno.serve(async (req) => {
       p_payload: { error: err.message, isPermanent }
     });
 
-    return jsonResponse({ 
-      success: false, 
-      message: err.message || "Erro ao atualizar token", 
-      details: { isPermanent } 
+    return jsonResponse({
+      success: false,
+      message: err.message || "Erro ao atualizar token",
+      details: { isPermanent }
     }, isPermanent ? 401 : 500);
   }
 });

@@ -10,11 +10,16 @@ const corsHeaders = {
 async function getAccessToken(supabase: any, userId: string, platform: string): Promise<{ token: string; accountId: string | null } | null> {
   const { data: tokenRow } = await supabase
     .from("social_tokens")
-    .select("access_token_encrypted, account_id")
+    .select("access_token_encrypted, account_id, status")
     .eq("user_id", userId)
     .eq("platform", platform)
     .maybeSingle();
   if (!tokenRow?.access_token_encrypted) return null;
+  // Não tenta postar com contas em estado terminal — evita 401 em cascata
+  if (["needs_reauth", "reconnect_required", "disabled"].includes(tokenRow.status)) {
+    console.warn(`[auto-comment] skip ${platform}/${userId}: status=${tokenRow.status}`);
+    return null;
+  }
   try {
     const token = await decryptToken(tokenRow.access_token_encrypted);
     return { token, accountId: tokenRow.account_id || null };
@@ -121,15 +126,31 @@ Deno.serve(async (req) => {
 
         results.push({ targetId, status: "posted", commentId });
       } catch (err: any) {
-        console.error(`[auto-comment] falha target=${targetId}:`, err);
+        console.error(`[auto-comment] falha target=${targetId}:`, err?.message || err);
+        const msg = (err?.message || "").toLowerCase();
+        const isAuthError = msg.includes("401") || msg.includes("oauth") ||
+          msg.includes("expired") || msg.includes("invalid") || msg.includes("revoked") ||
+          msg.includes("permission");
+
+        // Se for erro de auth, marca a conta como needs_reauth para parar de tentar
+        if (isAuthError && userId && t.platform) {
+          await supabase.from("social_tokens").update({
+            status: "needs_reauth",
+            last_error: err?.message?.slice(0, 500) || "Auth error em post-auto-comment",
+            last_error_code: "AUTH_ERROR",
+            last_refresh_attempt_at: new Date().toISOString(),
+            next_refresh_attempt_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          }).eq("user_id", userId).eq("platform", t.platform);
+        }
+
         await supabase
           .from("publication_targets")
           .update({
             auto_comment_status: "failed",
-            auto_comment_error: err.message?.slice(0, 500) || "Erro desconhecido",
+            auto_comment_error: err?.message?.slice(0, 500) || "Erro desconhecido",
           })
           .eq("id", targetId);
-        results.push({ targetId, status: "failed", error: err.message });
+        results.push({ targetId, status: "failed", error: err?.message });
       }
     }
 
