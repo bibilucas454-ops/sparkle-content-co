@@ -209,9 +209,37 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ success: true, message: "Token atualizado com sucesso" });
   } catch (err: any) {
-    console.error(`[Refresh Token] Falha geral detectada:`, err.message);
+    console.error(`[Refresh Token] Falha geral:`, err.message);
     const isPermanent = err.message?.includes("PERMANENT_AUTH_ERROR");
-    
+
+    // Atualiza backoff/contador para evitar loop. Para erros permanentes,
+    // status já foi setado para 'needs_reauth' acima; agendamos backoff longo.
+    try {
+      if (targetUserId && platform) {
+        const { data: acc } = await supabaseAdmin
+          .from("social_tokens")
+          .select("id, refresh_attempt_count")
+          .eq("user_id", targetUserId)
+          .eq("platform", platform)
+          .maybeSingle();
+        if (acc?.id) {
+          const attempts = (acc.refresh_attempt_count || 0) + 1;
+          // Backoff exponencial: 5, 15, 45, 120 min (cap 6h). Permanente: 24h.
+          const minutes = isPermanent
+            ? 60 * 24
+            : Math.min(5 * Math.pow(3, attempts - 1), 60 * 6);
+          const next = new Date(Date.now() + minutes * 60_000).toISOString();
+          await supabaseAdmin.from("social_tokens").update({
+            refresh_attempt_count: attempts,
+            last_refresh_attempt_at: new Date().toISOString(),
+            next_refresh_attempt_at: next,
+          }).eq("id", acc.id);
+        }
+      }
+    } catch (e) {
+      console.error("[Refresh Token] Falha ao gravar backoff:", e);
+    }
+
     await supabaseAdmin.rpc("log_integration_event", {
       p_user_id: targetUserId,
       p_platform: platform,
@@ -219,10 +247,10 @@ Deno.serve(async (req) => {
       p_payload: { error: err.message, isPermanent }
     });
 
-    return jsonResponse({ 
-      success: false, 
-      message: err.message || "Erro ao atualizar token", 
-      details: { isPermanent } 
+    return jsonResponse({
+      success: false,
+      message: err.message || "Erro ao atualizar token",
+      details: { isPermanent }
     }, isPermanent ? 401 : 500);
   }
 });
