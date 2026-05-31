@@ -489,7 +489,7 @@ Deno.serve(async (req) => {
     globalTargetId = pTargetId;
     let pPlatform = payload.platform;
     let pMeta = { 
-      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
+      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, cta: payload.cta,
       privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption,
       contentFormat: payload.contentFormat 
     };
