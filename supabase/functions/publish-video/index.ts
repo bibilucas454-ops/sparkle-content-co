@@ -278,8 +278,10 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 
   const rawCaption = (meta.platformSpecificCaption || meta.caption || "").trim();
   const rawHashtags = (meta.hashtags || "").trim();
+  const rawCtaTk = (meta.cta || "").trim();
   // TikTok title field: max 150 chars
-  const title = (rawCaption ? rawCaption + (rawHashtags ? " " + rawHashtags : "") : rawHashtags).slice(0, 150);
+  const baseTitle = rawCaption ? rawCaption + (rawHashtags ? " " + rawHashtags : "") : rawHashtags;
+  const title = (rawCtaTk ? (baseTitle ? baseTitle + " " + rawCtaTk : rawCtaTk) : baseTitle).slice(0, 150);
 
   console.log(`[TikTok] isCarousel=${isCarousel}, title length=${title.length}, files=${mediaFiles.length}`);
   console.log(`[TikTok] media publicUrls:`, mediaFiles.map(m => m.publicUrl?.substring(0, 80)));
