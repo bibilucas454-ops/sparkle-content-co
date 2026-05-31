@@ -122,6 +122,7 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
       title: payload.title,
       caption: payload.caption,
       hashtags: payload.hashtags,
+      cta: payload.cta ?? null,
       privacyStatus: payload.privacyStatus,
       platformSpecificTitle: payload.platformSpecificTitle,
       platformSpecificCaption: payload.platformSpecificCaption,
