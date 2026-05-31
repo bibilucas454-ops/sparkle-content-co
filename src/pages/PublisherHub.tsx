@@ -400,7 +400,7 @@ export default function PublisherHub() {
       const { data: publication, error: pubError } = await supabase.from("publications").insert({
         user_id: user!.id,
         upload_id: uploadRecords[0].id,
-        title, caption, hashtags, cta,
+        title, caption, hashtags, cta: cta?.trim() || null,
         content_format: selectedFormat,
         scheduled_for: scheduledDateTime,
         overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
