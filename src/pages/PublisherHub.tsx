@@ -413,7 +413,11 @@ export default function PublisherHub() {
           format_compatibility: selectedFormat === "story" ? "full" : "recommendation"
         } : null,
       }).select().single();
-      if (pubError) throw pubError;
+      if (pubError) {
+        console.error("[CTA] Falha ao salvar publicação (incluindo CTA):", pubError);
+        throw pubError;
+      }
+      console.log("[CTA] Publicação salva com CTA:", publication?.cta ?? "(vazio)");
 
       // 3. Link multiple media (post_media)
       const postMediaInserts = uploadRecords.map((up, index) => ({
