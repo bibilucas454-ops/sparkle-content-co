@@ -103,7 +103,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
 
   const title = meta.platformSpecificTitle || meta.title;
-  const description = (meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts";
+  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta);
   const privacy = meta.privacyStatus || "public";
 
   const initRes = await fetch(
