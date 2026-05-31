@@ -86,6 +86,15 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
 
 // ====== API Publishing Handlers ======
 
+// Append the CTA (Call To Action) text to a base string when present.
+// Empty/whitespace CTA is safely ignored (no error, no extra lines).
+function appendCta(base: string, cta?: string | null): string {
+  const trimmedCta = (cta || "").trim();
+  if (!trimmedCta) return base;
+  return base + (base ? "\n\n" : "") + trimmedCta;
+}
+
+
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
   const videoBytes = mediaFiles[0].bytes;
