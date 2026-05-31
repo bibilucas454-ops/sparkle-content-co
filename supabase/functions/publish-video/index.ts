@@ -86,6 +86,15 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
 
 // ====== API Publishing Handlers ======
 
+// Append the CTA (Call To Action) text to a base string when present.
+// Empty/whitespace CTA is safely ignored (no error, no extra lines).
+function appendCta(base: string, cta?: string | null): string {
+  const trimmedCta = (cta || "").trim();
+  if (!trimmedCta) return base;
+  return base + (base ? "\n\n" : "") + trimmedCta;
+}
+
+
 async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
   if (mediaFiles.length > 1) throw new Error("YouTube Shorts não suporta carrossel de múltiplas mídias.");
   const videoBytes = mediaFiles[0].bytes;
@@ -94,7 +103,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
 
   const title = meta.platformSpecificTitle || meta.title;
-  const description = (meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts";
+  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta);
   const privacy = meta.privacyStatus || "public";
 
   const initRes = await fetch(
@@ -147,7 +156,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
 
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
-  const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
+  const caption = appendCta((meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || ""), meta.cta);
 
   if (mediaFiles.length === 1) {
     // Single Media (Reel or Photo)
@@ -269,8 +278,10 @@ async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: a
 
   const rawCaption = (meta.platformSpecificCaption || meta.caption || "").trim();
   const rawHashtags = (meta.hashtags || "").trim();
+  const rawCtaTk = (meta.cta || "").trim();
   // TikTok title field: max 150 chars
-  const title = (rawCaption ? rawCaption + (rawHashtags ? " " + rawHashtags : "") : rawHashtags).slice(0, 150);
+  const baseTitle = rawCaption ? rawCaption + (rawHashtags ? " " + rawHashtags : "") : rawHashtags;
+  const title = (rawCtaTk ? (baseTitle ? baseTitle + " " + rawCtaTk : rawCtaTk) : baseTitle).slice(0, 150);
 
   console.log(`[TikTok] isCarousel=${isCarousel}, title length=${title.length}, files=${mediaFiles.length}`);
   console.log(`[TikTok] media publicUrls:`, mediaFiles.map(m => m.publicUrl?.substring(0, 80)));
@@ -489,7 +500,7 @@ Deno.serve(async (req) => {
     globalTargetId = pTargetId;
     let pPlatform = payload.platform;
     let pMeta = { 
-      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, 
+      title: payload.title, caption: payload.caption, hashtags: payload.hashtags, cta: payload.cta,
       privacyStatus: payload.privacyStatus, platformSpecificTitle: payload.platformSpecificTitle, platformSpecificCaption: payload.platformSpecificCaption,
       contentFormat: payload.contentFormat 
     };
@@ -510,7 +521,7 @@ Deno.serve(async (req) => {
       const pub = target.publications;
       pPlatform = target.platform;
       pMeta = {
-        title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
+        title: pub.title, caption: pub.caption, hashtags: pub.hashtags, cta: pub.cta,
         privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
         contentFormat: pub.content_format
       };

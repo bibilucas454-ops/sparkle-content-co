@@ -25,6 +25,7 @@ export interface PublishPayload {
   title: string;
   caption: string | null;
   hashtags: string | null;
+  cta?: string | null;
   privacyStatus?: string;
   platformSpecificTitle?: string;
   platformSpecificCaption?: string;
@@ -121,6 +122,7 @@ async function publishToPlatform(payload: PublishPayload): Promise<void> {
       title: payload.title,
       caption: payload.caption,
       hashtags: payload.hashtags,
+      cta: payload.cta ?? null,
       privacyStatus: payload.privacyStatus,
       platformSpecificTitle: payload.platformSpecificTitle,
       platformSpecificCaption: payload.platformSpecificCaption,
@@ -159,6 +161,7 @@ export async function retryPublication(targetId: string): Promise<void> {
     title: (pub as any).title || "Sem título",
     caption: (pub as any).caption,
     hashtags: (pub as any).hashtags,
+    cta: (pub as any).cta ?? null,
     privacyStatus: target.privacy_status || "public",
     platformSpecificTitle: target.platform_specific_title || undefined,
     platformSpecificCaption: target.platform_specific_caption || undefined,

@@ -400,7 +400,7 @@ export default function PublisherHub() {
       const { data: publication, error: pubError } = await supabase.from("publications").insert({
         user_id: user!.id,
         upload_id: uploadRecords[0].id,
-        title, caption, hashtags, cta,
+        title, caption, hashtags, cta: cta?.trim() || null,
         content_format: selectedFormat,
         scheduled_for: scheduledDateTime,
         overall_status: schedule ? "pendente" : (approved ? "queued" : "draft"),
@@ -413,7 +413,11 @@ export default function PublisherHub() {
           format_compatibility: selectedFormat === "story" ? "full" : "recommendation"
         } : null,
       }).select().single();
-      if (pubError) throw pubError;
+      if (pubError) {
+        console.error("[CTA] Falha ao salvar publicação (incluindo CTA):", pubError);
+        throw pubError;
+      }
+      console.log("[CTA] Publicação salva com CTA:", publication?.cta ?? "(vazio)");
 
       // 3. Link multiple media (post_media)
       const postMediaInserts = uploadRecords.map((up, index) => ({
