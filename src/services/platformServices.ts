@@ -25,6 +25,7 @@ export interface PublishPayload {
   title: string;
   caption: string | null;
   hashtags: string | null;
+  cta?: string | null;
   privacyStatus?: string;
   platformSpecificTitle?: string;
   platformSpecificCaption?: string;
