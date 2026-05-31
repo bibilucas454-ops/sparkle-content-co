@@ -156,7 +156,7 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
 
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
-  const caption = (meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || "");
+  const caption = appendCta((meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || ""), meta.cta);
 
   if (mediaFiles.length === 1) {
     // Single Media (Reel or Photo)
