@@ -161,6 +161,7 @@ export async function retryPublication(targetId: string): Promise<void> {
     title: (pub as any).title || "Sem título",
     caption: (pub as any).caption,
     hashtags: (pub as any).hashtags,
+    cta: (pub as any).cta ?? null,
     privacyStatus: target.privacy_status || "public",
     platformSpecificTitle: target.platform_specific_title || undefined,
     platformSpecificCaption: target.platform_specific_caption || undefined,
