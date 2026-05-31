@@ -510,7 +510,7 @@ Deno.serve(async (req) => {
       const pub = target.publications;
       pPlatform = target.platform;
       pMeta = {
-        title: pub.title, caption: pub.caption, hashtags: pub.hashtags,
+        title: pub.title, caption: pub.caption, hashtags: pub.hashtags, cta: pub.cta,
         privacyStatus: target.privacy_status, platformSpecificTitle: target.platform_specific_title, platformSpecificCaption: target.platform_specific_caption,
         contentFormat: pub.content_format
       };
