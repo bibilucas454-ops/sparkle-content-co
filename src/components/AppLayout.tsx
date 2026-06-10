@@ -27,6 +27,7 @@ const navGroups: NavGroup[] = [
     items: [
       { path: "/generate", label: "Gerar Conteúdo", icon: Sparkles },
       { path: "/story-engine", label: "MINDMAX Stories", icon: Instagram },
+      { path: "/stories-guide", label: "Guia de Horários", icon: Clock },
       { path: "/hooks", label: "Biblioteca de Hooks", icon: BookOpen },
       { path: "/prompt-grok", label: "Prompt de Vídeo IA", icon: Bot },
     ]
