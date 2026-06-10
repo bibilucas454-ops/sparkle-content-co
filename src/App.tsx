@@ -26,6 +26,7 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import StoryPlan from "./pages/StoryPlan";
 import StoryEnginePage from "./pages/StoryEnginePage";
+import StoriesScheduleGuide from "./pages/StoriesScheduleGuide";
 
 const queryClient = new QueryClient();
 
