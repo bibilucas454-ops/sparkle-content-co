@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Sparkles, Compass, BookOpen, Save,
-  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3, Instagram
+  Calendar, Settings, LogOut, Zap, Menu, X, Upload, Bot, History, Link as LinkIcon, BarChart3, Instagram, Clock
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
