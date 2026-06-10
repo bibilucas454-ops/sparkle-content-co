@@ -26,6 +26,7 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import StoryPlan from "./pages/StoryPlan";
 import StoryEnginePage from "./pages/StoryEnginePage";
+import StoriesScheduleGuide from "./pages/StoriesScheduleGuide";
 
 const queryClient = new QueryClient();
 
@@ -65,9 +66,10 @@ const App = () => (
                 <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
                 <Route path="/trends" element={<ProtectedRoute><TrendHunter /></ProtectedRoute>} />
                 <Route path="/hooks" element={<ProtectedRoute><HookLibrary /></ProtectedRoute>} />
-                <Route path="/story-plan" element={<ProtectedRoute><StoryPlan /></ProtectedRoute>} />
-                <Route path="/story-engine" element={<ProtectedRoute><StoryEnginePage /></ProtectedRoute>} />
-                <Route path="/prompt-grok" element={<ProtectedRoute><GrokPrompt /></ProtectedRoute>} />
+            <Route path="/story-plan" element={<ProtectedRoute><StoryPlan /></ProtectedRoute>} />
+            <Route path="/story-engine" element={<ProtectedRoute><StoryEnginePage /></ProtectedRoute>} />
+            <Route path="/stories-guide" element={<ProtectedRoute><StoriesScheduleGuide /></ProtectedRoute>} />
+            <Route path="/prompt-grok" element={<ProtectedRoute><GrokPrompt /></ProtectedRoute>} />
                 <Route path="/saved" element={<ProtectedRoute><SavedContent /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><ContentCalendar /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
