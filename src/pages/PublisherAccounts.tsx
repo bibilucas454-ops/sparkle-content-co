@@ -219,7 +219,7 @@ export default function PublisherAccounts() {
                           </Button>
                         )}
                         <Button
-                          variant="outline"
+                          variant={["precisa_reautenticar", "erro"].includes(status) ? "premium" : "outline"}
                           size="sm"
                           onClick={() => handleConnect(platform.id, platform.connectFn)}
                           disabled={isConnecting}
