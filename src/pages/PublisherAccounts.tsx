@@ -166,11 +166,28 @@ export default function PublisherAccounts() {
                               <p>{(account as any).last_error}</p>
                             </div>
                           )}
-                          {(account as any).expires_at && (
+                          {status === "conectada" && (
+                            <p className="text-xs font-bold text-green-500 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Token ativo
+                            </p>
+                          )}
+                          {(account as any).expires_at && status !== "precisa_reautenticar" && (
                             <p className={`text-xs font-medium ${status === "token_expirado" ? "text-amber-500" : "text-text-muted"}`}>
                               {status === "token_expirado"
-                                ? "⚠️ Token expirado — tentando renovação automática"
-                                : `Token renovável até ${new Date((account as any).expires_at).toLocaleDateString("pt-BR")}`}
+                                ? "⚠️ Token expirado — renovação automática em andamento"
+                                : platform.id === "youtube"
+                                  ? "Renovado automaticamente pelo Google (sem necessidade de reconexão)"
+                                  : `Token renovável até ${new Date((account as any).expires_at).toLocaleDateString("pt-BR")}`}
+                            </p>
+                          )}
+                          {(account as any).last_refreshed_at && (
+                            <p className="text-[10px] uppercase font-black tracking-[0.15em] text-text-muted">
+                              Última renovação automática: {new Date((account as any).last_refreshed_at).toLocaleString("pt-BR")}
+                            </p>
+                          )}
+                          {status === "precisa_reautenticar" && (
+                            <p className="text-xs font-bold text-orange-500">
+                              ⚠️ O acesso foi revogado/expirado pelo Google. Clique em "Reconectar".
                             </p>
                           )}
                         </div>
