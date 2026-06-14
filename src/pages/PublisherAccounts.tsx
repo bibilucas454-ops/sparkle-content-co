@@ -44,7 +44,7 @@ export default function PublisherAccounts() {
     setLoading(true);
     const { data, error } = await supabase
       .from("social_tokens")
-      .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at")
+      .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at, last_refreshed_at")
       .order("created_at", { ascending: false });
       
     console.log("[Diagnostics] fetchAccounts result:", { data, error });
