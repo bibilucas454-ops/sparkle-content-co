@@ -547,11 +547,48 @@ Deno.serve(async (req) => {
     if (mediaList.length === 0) throw new Error("Nenhuma mídia vinculada encontrada para publicar");
 
     // ====== Account Resolution ======
-    const { data: account, error: accError } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", pPlatform).eq("user_id", userId).single();
+    let { data: account, error: accError } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", pPlatform).eq("user_id", userId).single();
     if (accError || !account || !account.access_token_encrypted) {
       const errMsg = `Conta ${pPlatform} não conectada/encontrada ou sem token registrado no banco.`;
       await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
       return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: corsHeaders });
+    }
+
+    // Conta em estado terminal — exige reconexão manual antes de publicar.
+    if (["needs_reauth", "reconnect_required", "disabled"].includes(account.status)) {
+      const errMsg = `A conta ${pPlatform} precisa ser reconectada (reautenticação necessária). Acesse Contas Conectadas e reconecte.`;
+      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
+      return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: corsHeaders });
+    }
+
+    // ====== Pre-publish token refresh ======
+    // Se o access_token expirou ou expira em menos de 10 minutos, renova proativamente
+    // usando o refresh_token antes de iniciar a publicação.
+    const expiresAtMs = account.expires_at ? new Date(account.expires_at).getTime() : 0;
+    const needsRefresh = !account.expires_at || expiresAtMs - Date.now() < 10 * 60 * 1000;
+    if (needsRefresh && account.refresh_token_encrypted) {
+      console.log(`[Publish] Token de ${pPlatform} expirado/perto de expirar. Renovando antes de publicar...`);
+      try {
+        const refreshRes = await supabaseAdmin.functions.invoke("refresh-token", {
+          body: { platform: pPlatform, userId },
+          headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+        });
+        if (refreshRes.error) {
+          console.warn(`[Publish] Renovação proativa de token retornou erro:`, refreshRes.error?.message || refreshRes.error);
+        }
+      } catch (e: any) {
+        console.warn(`[Publish] Falha ao invocar refresh-token (seguindo com token atual):`, e?.message || e);
+      }
+      // Re-lê a conta para pegar o token mais recente (renovado ou não)
+      const { data: refreshed } = await supabaseAdmin.from("social_tokens").select("*").eq("platform", pPlatform).eq("user_id", userId).single();
+      if (refreshed) account = refreshed;
+
+      // Se a renovação marcou a conta como needs_reauth, aborta com mensagem clara.
+      if (["needs_reauth", "reconnect_required"].includes(account.status)) {
+        const errMsg = `A conta ${pPlatform} precisa ser reconectada: o refresh token foi revogado ou expirou.`;
+        await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
+        return new Response(JSON.stringify({ error: errMsg }), { status: 400, headers: corsHeaders });
+      }
     }
 
     const accessToken = await decryptToken(account.access_token_encrypted);

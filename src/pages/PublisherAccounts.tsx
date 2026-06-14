@@ -44,7 +44,7 @@ export default function PublisherAccounts() {
     setLoading(true);
     const { data, error } = await supabase
       .from("social_tokens")
-      .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at")
+      .select("id, platform, account_name, account_id, created_at, expires_at, status, last_error, last_error_code, last_sync_at, last_refreshed_at")
       .order("created_at", { ascending: false });
       
     console.log("[Diagnostics] fetchAccounts result:", { data, error });
@@ -166,11 +166,28 @@ export default function PublisherAccounts() {
                               <p>{(account as any).last_error}</p>
                             </div>
                           )}
-                          {(account as any).expires_at && (
+                          {status === "conectada" && (
+                            <p className="text-xs font-bold text-green-500 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Token ativo
+                            </p>
+                          )}
+                          {(account as any).expires_at && status !== "precisa_reautenticar" && (
                             <p className={`text-xs font-medium ${status === "token_expirado" ? "text-amber-500" : "text-text-muted"}`}>
                               {status === "token_expirado"
-                                ? "⚠️ Token expirado — tentando renovação automática"
-                                : `Token renovável até ${new Date((account as any).expires_at).toLocaleDateString("pt-BR")}`}
+                                ? "⚠️ Token expirado — renovação automática em andamento"
+                                : platform.id === "youtube"
+                                  ? "Renovado automaticamente pelo Google (sem necessidade de reconexão)"
+                                  : `Token renovável até ${new Date((account as any).expires_at).toLocaleDateString("pt-BR")}`}
+                            </p>
+                          )}
+                          {(account as any).last_refreshed_at && (
+                            <p className="text-[10px] uppercase font-black tracking-[0.15em] text-text-muted">
+                              Última renovação automática: {new Date((account as any).last_refreshed_at).toLocaleString("pt-BR")}
+                            </p>
+                          )}
+                          {status === "precisa_reautenticar" && (
+                            <p className="text-xs font-bold text-orange-500">
+                              ⚠️ O acesso foi revogado/expirado pelo Google. Clique em "Reconectar".
                             </p>
                           )}
                         </div>
@@ -202,7 +219,7 @@ export default function PublisherAccounts() {
                           </Button>
                         )}
                         <Button
-                          variant="outline"
+                          variant={["precisa_reautenticar", "erro"].includes(status) ? "premium" : "outline"}
                           size="sm"
                           onClick={() => handleConnect(platform.id, platform.connectFn)}
                           disabled={isConnecting}

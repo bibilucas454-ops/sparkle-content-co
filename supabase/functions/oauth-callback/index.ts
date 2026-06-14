@@ -9,6 +9,7 @@ interface TokenResponse {
   refresh_token?: string;
   expires_in?: number;
   token_type?: string;
+  scope?: string;
 }
 
 async function exchangeYouTubeCode(code: string, redirectUri: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
@@ -42,6 +43,8 @@ async function exchangeYouTubeCode(code: string, redirectUri: string): Promise<T
     access_token: tokenData.access_token,
     refresh_token: tokenData.refresh_token,
     expires_in: tokenData.expires_in,
+    token_type: tokenData.token_type,
+    scope: tokenData.scope,
     accountName: channel?.snippet?.title || "Canal YouTube",
     accountId: channel?.id,
   };
@@ -262,10 +265,15 @@ Deno.serve(async (req) => {
       account_id: result.accountId || null,
       access_token_encrypted: encryptedAccess,
       expires_at: expiresAt,
+      scope: result.scope || null,
+      token_type: result.token_type || null,
       status: 'connected',
       last_sync_at: new Date().toISOString(),
+      last_refreshed_at: new Date().toISOString(),
       last_error: null,
       last_error_code: null,
+      refresh_attempt_count: 0,
+      next_refresh_attempt_at: null,
       updated_at: new Date().toISOString(),
     };
 
