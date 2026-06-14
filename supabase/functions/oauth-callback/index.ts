@@ -9,6 +9,7 @@ interface TokenResponse {
   refresh_token?: string;
   expires_in?: number;
   token_type?: string;
+  scope?: string;
 }
 
 async function exchangeYouTubeCode(code: string, redirectUri: string): Promise<TokenResponse & { accountName?: string; accountId?: string }> {
@@ -42,6 +43,8 @@ async function exchangeYouTubeCode(code: string, redirectUri: string): Promise<T
     access_token: tokenData.access_token,
     refresh_token: tokenData.refresh_token,
     expires_in: tokenData.expires_in,
+    token_type: tokenData.token_type,
+    scope: tokenData.scope,
     accountName: channel?.snippet?.title || "Canal YouTube",
     accountId: channel?.id,
   };
