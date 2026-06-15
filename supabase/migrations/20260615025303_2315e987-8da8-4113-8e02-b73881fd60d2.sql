@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated users can read sync jobs" ON public.music_sync_jobs;
