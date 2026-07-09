@@ -49,6 +49,21 @@ export default function GenerateContent() {
     );
   };
 
+  const ensureSession = async (): Promise<boolean> => {
+    // Garante um token válido antes de chamar a Edge Function.
+    // Em celulares o token pode estar expirado após a aba ficar em segundo plano.
+    let { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      const refreshed = await supabase.auth.refreshSession();
+      data = refreshed.data;
+    }
+    if (!data.session) {
+      toast.error("Sua sessão expirou. Faça login novamente para gerar conteúdo.");
+      return false;
+    }
+    return true;
+  };
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast.error("Por favor, insira o tema principal do vídeo");
@@ -58,6 +73,8 @@ export default function GenerateContent() {
       toast.error("Selecione pelo menos um tipo de conteúdo");
       return;
     }
+
+    if (!(await ensureSession())) return;
 
     setLoading(true);
     setResults([]);
