@@ -146,6 +146,8 @@ export default function GenerateContent() {
       return;
     }
 
+    if (!(await ensureSession())) return;
+
     setLoadingViralMachine(true);
     setResults([]);
     setIsViralMachineResult(true);
