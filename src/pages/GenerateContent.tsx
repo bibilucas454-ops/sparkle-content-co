@@ -13,6 +13,7 @@ import { useNiche } from "@/contexts/NicheContext";
 
 const contentTypes = [
   { id: "viral-idea", label: "Ideia Viral", emoji: "💡" },
+  { id: "viral-title", label: "Títulos Virais", emoji: "🔥" },
   { id: "hook", label: "Hook (Gancho)", emoji: "🎯" },
   { id: "script", label: "Roteiro", emoji: "📝" },
   { id: "video-text", label: "Texto para Vídeo", emoji: "💬" },
