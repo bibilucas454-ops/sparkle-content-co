@@ -21,6 +21,17 @@ REGRAS CRÍTICAS:
 - O conceito deve ser específico, não abstrato
 APENAS Português do Brasil.`,
 
+  "viral-title": `Gere EXATAMENTE 5 TÍTULOS VIRAIS para vídeo curto, com ALTÍSSIMO poder de parar o scroll.
+
+REGRAS OBRIGATÓRIAS:
+- Cada título deve ser curto, direto e gerar curiosidade imediata
+- Use gatilhos: curiosidade, choque, quebra de expectativa, números, identificação
+- Varie os formatos (pergunta, afirmação polêmica, número, "como", segredo revelado)
+- NADA de frases genéricas ou clichês vazios
+- Formate como lista numerada de 1 a 5
+APENAS Português do Brasil.`,
+
+
   "hook": `Crie um HOOK (gancho) para OS PRIMEIROS 3 SEGUNDOS que PARE O SCROLL.
 
 TÉCNICAS OBRIGATÓRIAS (use uma ou misture):
