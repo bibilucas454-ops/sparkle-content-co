@@ -84,6 +84,82 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
   if (!ready) throw new Error("Timeout: Instagram não finalizou o processamento da mídia.");
 }
 
+// ====== Cross-posting para Facebook ======
+async function crossPostToFacebookPage(supabase: any, accessToken: string, igAccountId: string, mediaFiles: any[], caption: string, targetId: string) {
+  try {
+    await logEvent(supabase, targetId, "processando", "Iniciando cross-post para a Página do Facebook vinculada.");
+    
+    // 1. Obter páginas do usuário
+    const pagesRes = await fetch(`https://graph.facebook.com/v19.0/me/accounts?access_token=${accessToken}`);
+    const pagesData = await pagesRes.json();
+    if (!pagesData.data) {
+      console.warn("[FB CrossPost] Não foi possível carregar as páginas do usuário.");
+      return;
+    }
+    
+    let fbPageId = null;
+    let pageAccessToken = null;
+
+    for (const page of pagesData.data) {
+      if (!page.id || !page.access_token) continue;
+      const igRes = await fetch(`https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`);
+      const igData = await igRes.json();
+      if (igData.instagram_business_account?.id === igAccountId) {
+        fbPageId = page.id;
+        pageAccessToken = page.access_token;
+        break;
+      }
+    }
+
+    if (!fbPageId || !pageAccessToken) {
+      console.warn("[FB CrossPost] Página do Facebook vinculada a esta conta do Instagram não encontrada.");
+      await logEvent(supabase, targetId, "aviso", "Cross-post ignorado: Página do Facebook vinculada não encontrada ou sem permissões.");
+      return;
+    }
+
+    // 2. Publicar na página
+    if (mediaFiles.length === 1) {
+      const media = mediaFiles[0];
+      const isVideo = media.mime_type?.startsWith("video");
+      
+      if (isVideo) {
+        // Publicar Vídeo
+        const postRes = await fetch(`https://graph.facebook.com/v19.0/${fbPageId}/videos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            file_url: media.publicUrl,
+            description: caption,
+            access_token: pageAccessToken
+          })
+        });
+        const postData = await postRes.json();
+        if (postData.error) throw new Error(postData.error.message);
+        await logEvent(supabase, targetId, "publicado", `Cross-post (Vídeo) no Facebook realizado com sucesso: ID ${postData.id}`);
+      } else {
+        // Publicar Foto
+        const postRes = await fetch(`https://graph.facebook.com/v19.0/${fbPageId}/photos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: media.publicUrl,
+            message: caption,
+            access_token: pageAccessToken
+          })
+        });
+        const postData = await postRes.json();
+        if (postData.error) throw new Error(postData.error.message);
+        await logEvent(supabase, targetId, "publicado", `Cross-post (Foto) no Facebook realizado com sucesso: ID ${postData.id}`);
+      }
+    } else {
+      await logEvent(supabase, targetId, "aviso", "Cross-post ignorado: Carrossel ainda não suportado no cross-post automático nativo.");
+    }
+  } catch (err: any) {
+    console.warn("[FB CrossPost] Erro no cross-post:", err);
+    await logEvent(supabase, targetId, "erro", `Falha no cross-post para Facebook: ${err.message}`);
+  }
+}
+
 // ====== API Publishing Handlers ======
 
 // Append the CTA (Call To Action) text to a base string when present.
@@ -258,6 +334,9 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
     });
     await logEvent(supabase, targetId, "publicado", `Carrossel Publicado: ${mediaDat.permalink || publishData.id}`);
   }
+
+  // Aciona o cross-post para a página do Facebook automaticamente
+  await crossPostToFacebookPage(supabase, accessToken, accountId, mediaFiles, caption, targetId);
 }
 
 async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
