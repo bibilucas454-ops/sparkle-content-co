@@ -43,7 +43,7 @@ export default function ConnectionAlertBanner() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<ProblematicAccount[]>([]);
   const [dismissed, setDismissed] = useState(false);
-  const toastRef = useRef<string | null>(null);
+  const toastRef = useRef<string | number | null>(null);
 
   useEffect(() => {
     if (!user) return;
