@@ -85,7 +85,7 @@ async function pollInstagramContainer(containerId: string, accessToken: string) 
 }
 
 // ====== Cross-posting para Facebook ======
-async function crossPostToFacebookPage(supabase: any, accessToken: string, igAccountId: string, mediaFiles: any[], caption: string, targetId: string) {
+async function crossPostToFacebookPage(supabase: any, accessToken: string, igAccountId: string, mediaFiles: any[], caption: string, targetId: string, meta: any) {
   try {
     await logEvent(supabase, targetId, "processando", "Iniciando cross-post para a Página do Facebook vinculada.");
     
@@ -121,10 +121,15 @@ async function crossPostToFacebookPage(supabase: any, accessToken: string, igAcc
     if (mediaFiles.length === 1) {
       const media = mediaFiles[0];
       const isVideo = media.mime_type?.startsWith("video");
+      const isStory = meta?.contentFormat === "story";
       
       if (isVideo) {
         // Publicar Vídeo
-        const postRes = await fetch(`https://graph.facebook.com/v19.0/${fbPageId}/videos`, {
+        const endpoint = isStory ? `https://graph.facebook.com/v19.0/${fbPageId}/video_stories` : `https://graph.facebook.com/v19.0/${fbPageId}/videos`;
+        
+        // Nota: API de vídeo do Facebook Page aceita file_url, mas para video_stories, se falhar por exigir upload_phase,
+        // o fall-back ideal seria fazer o upload_phase. Aqui enviaremos a url direta (suportada em alguns casos).
+        const postRes = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -134,11 +139,16 @@ async function crossPostToFacebookPage(supabase: any, accessToken: string, igAcc
           })
         });
         const postData = await postRes.json();
-        if (postData.error) throw new Error(postData.error.message);
-        await logEvent(supabase, targetId, "publicado", `Cross-post (Vídeo) no Facebook realizado com sucesso: ID ${postData.id}`);
+        
+        if (postData.error) {
+           throw new Error(postData.error.message);
+        }
+        await logEvent(supabase, targetId, "publicado", `Cross-post (${isStory ? 'Video Story' : 'Vídeo'}) no Facebook realizado com sucesso: ID ${postData.id}`);
       } else {
         // Publicar Foto
-        const postRes = await fetch(`https://graph.facebook.com/v19.0/${fbPageId}/photos`, {
+        const endpoint = isStory ? `https://graph.facebook.com/v19.0/${fbPageId}/photo_stories` : `https://graph.facebook.com/v19.0/${fbPageId}/photos`;
+        
+        const postRes = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -149,7 +159,7 @@ async function crossPostToFacebookPage(supabase: any, accessToken: string, igAcc
         });
         const postData = await postRes.json();
         if (postData.error) throw new Error(postData.error.message);
-        await logEvent(supabase, targetId, "publicado", `Cross-post (Foto) no Facebook realizado com sucesso: ID ${postData.id}`);
+        await logEvent(supabase, targetId, "publicado", `Cross-post (${isStory ? 'Photo Story' : 'Foto'}) no Facebook realizado com sucesso: ID ${postData.id}`);
       }
     } else {
       await logEvent(supabase, targetId, "aviso", "Cross-post ignorado: Carrossel ainda não suportado no cross-post automático nativo.");
@@ -336,7 +346,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
   }
 
   // Aciona o cross-post para a página do Facebook automaticamente
-  await crossPostToFacebookPage(supabase, accessToken, accountId, mediaFiles, caption, targetId);
+  await crossPostToFacebookPage(supabase, accessToken, accountId, mediaFiles, caption, targetId, meta);
 }
 
 async function publishToTikTok(supabase: any, accessToken: string, mediaFiles: any[], meta: any, targetId: string) {
