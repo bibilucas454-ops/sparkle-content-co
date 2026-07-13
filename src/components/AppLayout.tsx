@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Footer } from "./Footer";
 import { ThemeToggle } from "./ThemeToggle";
+import ConnectionAlertBanner from "./ConnectionAlertBanner";
 
 type NavGroup = {
   label: string;
