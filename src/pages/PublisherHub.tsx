@@ -16,10 +16,10 @@ import {
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
-  { time: "06:00", label: "Manhã", icon: "🌅", isMorning: true },
-  { time: "11:00", label: "Manhã", icon: "☀️", isMorning: true },
-  { time: "17:00", label: "Tarde", icon: "🌇", isMorning: false },
-  { time: "20:00", label: "Noite", icon: "🌙", isMorning: false },
+  { time: "10:00", label: "Manhã", icon: "☀️", isMorning: true },
+  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️", isMorning: false },
+  { time: "18:00 - 22:00", label: "Noite", icon: "🌙", isMorning: false },
+  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌", isMorning: false },
 ];
 
 let morningScheduleIndex = 0;
