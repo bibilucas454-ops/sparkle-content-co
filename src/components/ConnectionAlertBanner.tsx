@@ -63,7 +63,10 @@ export default function ConnectionAlertBanner() {
       }
 
       setAccounts((prev) => {
-        const next = (data as ProblematicAccount[]) ?? [];
+        const rawData = (data as ProblematicAccount[]) ?? [];
+        // Filtra plataformas de debug que foram criadas para logs
+        const next = rawData.filter(a => !a.platform.startsWith('debug_'));
+        
         const wentBad = next.length > 0 && prev.length === 0;
         const gotWorse = next.length > prev.length;
 
