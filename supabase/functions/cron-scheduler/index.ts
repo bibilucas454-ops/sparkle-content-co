@@ -167,10 +167,22 @@ Deno.serve(async (req) => {
             last_error: `Falha permanente após ${attempts} tentativas. Último erro: ${errorMsg}`
           }).eq("id", jobId);
           
-          // Also mark corresponding target as error
+          // Also mark corresponding target as error.
+          // IMPORTANT: preserve the detailed error message that publish-video already recorded
+          // (e.g. the real Meta/Graph API error). Only fall back to the generic invocation
+          // error when the worker did not manage to store a specific one.
           const { data: jobTarget } = await supabaseAdmin.from("publication_jobs").select("publication_target_id").eq("id", jobId).single();
           if (jobTarget?.publication_target_id) {
-            await supabaseAdmin.from("publication_targets").update({status: "erro", error_message: errorMsg}).eq("id", jobTarget.publication_target_id);
+            const { data: existingTarget } = await supabaseAdmin
+              .from("publication_targets")
+              .select("error_message")
+              .eq("id", jobTarget.publication_target_id)
+              .single();
+            const genericMsg = "Edge Function returned a non-2xx status code";
+            const detailedMsg = existingTarget?.error_message && existingTarget.error_message !== genericMsg
+              ? existingTarget.error_message
+              : errorMsg;
+            await supabaseAdmin.from("publication_targets").update({status: "erro", error_message: detailedMsg}).eq("id", jobTarget.publication_target_id);
           }
         } else {
           // Transient failure (Queue again for next minute)
