@@ -29,21 +29,6 @@ export function getNextContentSlot(
 
   const nextSlotIndex = (lastSlotIndex + 1) % slots.length;
   const nextHour = slots[nextSlotIndex];
-  const tzOffset = getTimezoneOffset(timezone);
-
-  if (!lastPublishedAt) {
-    return getInitialSlot(now, tzOffset);
-  }
-
-  const lastHour = lastPublishedAt.getHours();
-  const lastSlotIndex = PUBLISH_SLOTS.indexOf(lastHour);
-
-  if (lastSlotIndex === -1) {
-    return getNextSlotFromNonStandard(lastPublishedAt, tzOffset);
-  }
-
-  const nextSlotIndex = (lastSlotIndex + 1) % PUBLISH_SLOTS.length;
-  const nextHour = PUBLISH_SLOTS[nextSlotIndex];
 
   let nextSuggestedAt = new Date(lastPublishedAt);
   nextSuggestedAt.setHours(nextHour, 0, 0, 0);
@@ -53,7 +38,7 @@ export function getNextContentSlot(
   }
 
   if (nextSuggestedAt <= now) {
-    nextSuggestedAt = findNextAvailableSlot(now, tzOffset);
+    nextSuggestedAt = findNextAvailableSlot(now, tzOffset, slots);
   }
 
   return {
@@ -64,8 +49,8 @@ export function getNextContentSlot(
   };
 }
 
-function getInitialSlot(now: Date, tzOffset: number): SlotResult {
-  const nextSlot = findNextAvailableSlot(now, tzOffset);
+function getInitialSlot(now: Date, tzOffset: number, slots: number[]): SlotResult {
+  const nextSlot = findNextAvailableSlot(now, tzOffset, slots);
   return {
     lastPublishedAt: null,
     nextSuggestedAt: nextSlot,
@@ -74,14 +59,14 @@ function getInitialSlot(now: Date, tzOffset: number): SlotResult {
   };
 }
 
-function getNextSlotFromNonStandard(lastPublishedAt: Date, tzOffset: number): SlotResult {
+function getNextSlotFromNonStandard(lastPublishedAt: Date, tzOffset: number, slots: number[]): SlotResult {
   const now = new Date();
   const lastHour = lastPublishedAt.getHours();
 
-  let closestSlot = PUBLISH_SLOTS[0];
+  let closestSlot = slots[0];
   let minDiff = Infinity;
 
-  for (const slot of PUBLISH_SLOTS) {
+  for (const slot of slots) {
     let diff = slot - lastHour;
     if (diff <= 0) diff += 24;
     if (diff < minDiff) {
@@ -99,7 +84,7 @@ function getNextSlotFromNonStandard(lastPublishedAt: Date, tzOffset: number): Sl
   }
 
   if (nextSuggestedAt <= now) {
-    nextSuggestedAt = findNextAvailableSlot(now, tzOffset);
+    nextSuggestedAt = findNextAvailableSlot(now, tzOffset, slots);
   }
 
   return {
@@ -110,23 +95,23 @@ function getNextSlotFromNonStandard(lastPublishedAt: Date, tzOffset: number): Sl
   };
 }
 
-function findNextAvailableSlot(from: Date, tzOffset: number): Date {
+function findNextAvailableSlot(from: Date, tzOffset: number, slots: number[] = PUBLISH_SLOTS): Date {
   const candidate = new Date(from);
-  candidate.setHours(PUBLISH_SLOTS[0], 0, 0, 0);
+  candidate.setHours(slots[0], 0, 0, 0);
 
   if (candidate > from) {
     return candidate;
   }
 
-  for (let i = 1; i < PUBLISH_SLOTS.length; i++) {
-    candidate.setHours(PUBLISH_SLOTS[i], 0, 0, 0);
+  for (let i = 1; i < slots.length; i++) {
+    candidate.setHours(slots[i], 0, 0, 0);
     if (candidate > from) {
       return candidate;
     }
   }
 
   candidate.setDate(candidate.getDate() + 1);
-  candidate.setHours(PUBLISH_SLOTS[0], 0, 0, 0);
+  candidate.setHours(slots[0], 0, 0, 0);
   return candidate;
 }
 
