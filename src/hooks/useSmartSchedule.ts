@@ -58,7 +58,8 @@ export function useSmartSchedule(selectedFormat: string) {
         ? new Date(publications[0].scheduled_for || publications[0].created_at)
         : null;
 
-      const slotResult = getNextContentSlot(lastDate, "America/Sao_Paulo");
+      const slotsToUse = selectedFormat === "story" ? STORY_SLOTS : undefined;
+      const slotResult = getNextContentSlot(lastDate, "America/Sao_Paulo", slotsToUse);
 
       const lastLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
       
