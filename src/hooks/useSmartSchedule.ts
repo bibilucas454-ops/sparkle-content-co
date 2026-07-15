@@ -110,7 +110,8 @@ export function useSmartSchedule(selectedFormat: string) {
   };
 
   const getDefaultSuggestion = (): SmartScheduleSuggestion => {
-    const slotResult = getNextContentSlot(null, "America/Sao_Paulo");
+    const slotsToUse = selectedFormat === "story" ? STORY_SLOTS : undefined;
+    const slotResult = getNextContentSlot(null, "America/Sao_Paulo", slotsToUse);
     const formatLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
     const nextFormatted = formatDateTimeDisplay(slotResult.nextSuggestedAt);
     
