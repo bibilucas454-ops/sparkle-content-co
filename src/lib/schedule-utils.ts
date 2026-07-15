@@ -1,4 +1,5 @@
 const PUBLISH_SLOTS = [10, 15, 22, 3];
+export const STORY_SLOTS = [10, 20];
 
 export interface SlotResult {
   lastPublishedAt: Date | null;
