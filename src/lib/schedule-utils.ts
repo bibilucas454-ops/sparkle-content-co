@@ -10,9 +10,25 @@ export interface SlotResult {
 
 export function getNextContentSlot(
   lastPublishedAt: Date | null,
-  timezone: string = "America/Sao_Paulo"
+  timezone: string = "America/Sao_Paulo",
+  slots: number[] = PUBLISH_SLOTS
 ): SlotResult {
   const now = new Date();
+  const tzOffset = getTimezoneOffset(timezone);
+
+  if (!lastPublishedAt) {
+    return getInitialSlot(now, tzOffset, slots);
+  }
+
+  const lastHour = lastPublishedAt.getHours();
+  const lastSlotIndex = slots.indexOf(lastHour);
+
+  if (lastSlotIndex === -1) {
+    return getNextSlotFromNonStandard(lastPublishedAt, tzOffset, slots);
+  }
+
+  const nextSlotIndex = (lastSlotIndex + 1) % slots.length;
+  const nextHour = slots[nextSlotIndex];
   const tzOffset = getTimezoneOffset(timezone);
 
   if (!lastPublishedAt) {
