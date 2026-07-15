@@ -120,6 +120,7 @@ export default function PublisherHub() {
 
   // Smart Schedule
   const { suggestion: smartSuggestion, loading: smartLoading, applySuggestion } = useSmartSchedule(selectedFormat);
+  const { suggestion: storySuggestion, loading: storyLoading, applySuggestion: applyStorySuggestion } = useSmartSchedule("story");
 
   useEffect(() => {
     clearForm();
