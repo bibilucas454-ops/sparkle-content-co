@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getNextContentSlot, formatDateTimeForInput, formatDateTimeDisplay, type SlotResult } from "@/lib/schedule-utils";
+import { getNextContentSlot, formatDateTimeForInput, formatDateTimeDisplay, STORY_SLOTS, type SlotResult } from "@/lib/schedule-utils";
 
 interface SmartScheduleSuggestion {
   recommendedDate: Date;
@@ -58,7 +58,8 @@ export function useSmartSchedule(selectedFormat: string) {
         ? new Date(publications[0].scheduled_for || publications[0].created_at)
         : null;
 
-      const slotResult = getNextContentSlot(lastDate, "America/Sao_Paulo");
+      const slotsToUse = selectedFormat === "story" ? STORY_SLOTS : undefined;
+      const slotResult = getNextContentSlot(lastDate, "America/Sao_Paulo", slotsToUse);
 
       const lastLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
       
@@ -109,7 +110,8 @@ export function useSmartSchedule(selectedFormat: string) {
   };
 
   const getDefaultSuggestion = (): SmartScheduleSuggestion => {
-    const slotResult = getNextContentSlot(null, "America/Sao_Paulo");
+    const slotsToUse = selectedFormat === "story" ? STORY_SLOTS : undefined;
+    const slotResult = getNextContentSlot(null, "America/Sao_Paulo", slotsToUse);
     const formatLabel = FORMAT_LABELS[selectedFormat] || selectedFormat;
     const nextFormatted = formatDateTimeDisplay(slotResult.nextSuggestedAt);
     

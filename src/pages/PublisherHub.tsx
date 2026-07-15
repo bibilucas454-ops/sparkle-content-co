@@ -120,6 +120,7 @@ export default function PublisherHub() {
 
   // Smart Schedule
   const { suggestion: smartSuggestion, loading: smartLoading, applySuggestion } = useSmartSchedule(selectedFormat);
+  const { suggestion: storySuggestion, loading: storyLoading, applySuggestion: applyStorySuggestion } = useSmartSchedule("story");
 
   useEffect(() => {
     clearForm();
@@ -1068,6 +1069,53 @@ export default function PublisherHub() {
                           <Sparkles className="w-3 h-3 mr-2" />
                         )}
                         Aplicar próximo horário
+                      </Button>
+                    </div>
+                  )}
+
+                  {storySuggestion && selectedFormat !== "story" && !scheduledFor && (
+                    <div className="bg-gradient-to-r from-pink-500/10 to-orange-500/10 border border-pink-500/20 rounded-lg p-3 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Flame className="w-4 h-4 text-pink-500" />
+                        <span className="text-xs font-bold text-pink-500 uppercase tracking-[0.1em]">Próximo Horário Story · 2 por dia</span>
+                      </div>
+                      {storySuggestion.lastPostFormatted ? (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-text-muted">Último story:</span>
+                            <span className="font-mono font-semibold text-foreground">{storySuggestion.lastPostFormatted}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-text-muted">Próximo story:</span>
+                            <span className="font-mono font-bold text-pink-500">{storySuggestion.nextPostFormatted}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-text-secondary">
+                          Primeiro story: {storySuggestion.nextPostFormatted}
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const dateStr = applyStorySuggestion();
+                          if (dateStr) {
+                            setScheduledFor(dateStr);
+                            setSelectedFormat("story");
+                            toast.success("Horário de Story aplicado!");
+                          }
+                        }}
+                        disabled={storyLoading}
+                        className="w-full text-xs h-8 border-pink-500/30 hover:bg-pink-500/10"
+                      >
+                        {storyLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                        ) : (
+                          <Flame className="w-3 h-3 mr-2" />
+                        )}
+                        Aplicar próximo horário Story
                       </Button>
                     </div>
                   )}
