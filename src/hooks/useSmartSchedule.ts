@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getNextContentSlot, formatDateTimeForInput, formatDateTimeDisplay, type SlotResult } from "@/lib/schedule-utils";
+import { getNextContentSlot, formatDateTimeForInput, formatDateTimeDisplay, STORY_SLOTS, type SlotResult } from "@/lib/schedule-utils";
 
 interface SmartScheduleSuggestion {
   recommendedDate: Date;
