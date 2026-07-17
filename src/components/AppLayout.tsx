@@ -136,7 +136,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border/40 px-5 py-4 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background border-b border-border/40 px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
             <Zap className="w-5 h-5 fill-current" />
@@ -153,7 +153,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile nav overlay */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-2xl pt-24 p-6 overflow-y-auto animate-fade-in">
+        <div className="md:hidden fixed inset-0 z-40 bg-background pt-24 p-6 overflow-y-auto animate-fade-in">
           <nav>
             {renderNavLinks(true)}
           </nav>

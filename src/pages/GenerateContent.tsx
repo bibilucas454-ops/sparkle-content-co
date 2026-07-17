@@ -478,7 +478,7 @@ export default function GenerateContent() {
                       </div>
                       
                       {/* Markdown-like output styling */}
-                      <div className="prose prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
+                      <div className="prose prose-slate dark:prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
                          <div className="text-text-primary leading-relaxed" dangerouslySetInnerHTML={{ __html: 
                             results[0].content
                               .replace(/## (.*?)\n/g, '<h2 class="text-primary font-black mt-8 mb-4">$1</h2>')
