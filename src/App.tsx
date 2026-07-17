@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import StoryPlan from "./pages/StoryPlan";
 import StoryEnginePage from "./pages/StoryEnginePage";
 import StoriesScheduleGuide from "./pages/StoriesScheduleGuide";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/generate" element={<ProtectedRoute><GenerateContent /></ProtectedRoute>} />
                 <Route path="/publisher" element={<ProtectedRoute><PublisherHub /></ProtectedRoute>} />

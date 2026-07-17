@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Zap, Mail } from "lucide-react";
+import { Zap, Mail, Eye, EyeOff } from "lucide-react";
 import { Footer } from "@/components/Footer";
 
 const Login = () => {
@@ -13,7 +13,29 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
   const navigate = useNavigate();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Enviamos um link de redefinição para o seu e-mail.");
+      setShowForgot(false);
+      setResetEmail("");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -120,14 +142,26 @@ const Login = () => {
                 </div>
                 <div className="relative">
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Senha secreta"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl px-6 transition-all font-medium"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl px-6 pr-14 transition-all font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
               <Button 
@@ -140,7 +174,19 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="mt-8 text-center">
+            {!isSignUp && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => { setShowForgot(true); setResetEmail(email); }}
+                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                  type="button"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
+            )}
+
+            <div className="mt-6 text-center">
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -149,6 +195,54 @@ const Login = () => {
                 {isSignUp ? "Já tem uma conta? Fazer login" : "Não tem conta? Cadastre-se"}
               </button>
             </div>
+
+            {showForgot && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+                onClick={() => setShowForgot(false)}
+              >
+                <div
+                  className="premium-card w-full max-w-md p-8 relative"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h2 className="text-2xl font-bold mb-2">Redefinir senha</h2>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Digite seu e-mail e enviaremos um link para você criar uma nova senha.
+                  </p>
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+                      <Input
+                        type="email"
+                        placeholder="Seu e-mail"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                        className="pl-12 h-12 bg-secondary/30 border-border/40 rounded-2xl"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1 h-12 rounded-2xl"
+                        onClick={() => setShowForgot(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="premium"
+                        className="flex-1 h-12 rounded-2xl"
+                        disabled={resetLoading}
+                      >
+                        {resetLoading ? "Enviando..." : "Enviar link"}
+                      </Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
