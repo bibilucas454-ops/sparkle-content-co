@@ -168,13 +168,14 @@ serve(async (req) => {
       });
     }
 
+    const jwt = authHeader.replace("Bearer ", "");
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } }
     );
     
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(jwt);
     if (userError || !userData?.user) {
       console.error("Auth erro de acesso da Edge Function:", userError);
       return new Response(JSON.stringify({ error: "Sessão expirada ou JWT inválido. Faça login novamente." }), {
