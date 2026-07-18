@@ -24,7 +24,7 @@ const Login = () => {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
-        redirectTo: `https://creatorosai.lovable.app/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
       toast.success("Enviamos um link de redefinição para o seu e-mail.");
@@ -135,11 +135,8 @@ const Login = () => {
                     type="email"
                     placeholder="E-mail profissional"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
                     className="pl-12 h-14 bg-secondary/30 border-border/40 text-foreground placeholder:text-text-muted focus-visible:ring-primary/40 focus-visible:border-primary/40 text-base rounded-2xl transition-all font-medium"
                   />
                 </div>

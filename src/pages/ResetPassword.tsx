@@ -15,36 +15,17 @@ const ResetPassword = () => {
   const [ready, setReady] = useState(false);
   const navigate = useNavigate();
 
-  const [linkExpired, setLinkExpired] = useState(false);
-
   useEffect(() => {
-    // Verifica se há token de recovery na URL (formato hash do Supabase)
-    const hash = window.location.hash;
-    const params = new URLSearchParams(window.location.search);
-    const hasRecoveryInHash = hash.includes('type=recovery') || (hash.includes('access_token') && hash.includes('type=recovery'));
-    const hasCodeInSearch = params.has('code'); // PKCE flow
-
-    // Escuta o evento de mudança de estado de autenticação
+    // Supabase parses the recovery hash automatically and emits PASSWORD_RECOVERY
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setReady(true);
-        setLinkExpired(false);
-      } else if (event === "SIGNED_IN" && (hasRecoveryInHash || hasCodeInSearch)) {
-        setReady(true);
-        setLinkExpired(false);
       }
     });
-
-    // Fallback: verifica sessão existente com token na URL
+    // Also check if we already have a session (link clicked)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && (hasRecoveryInHash || hasCodeInSearch)) {
-        setReady(true);
-      } else if (!hasRecoveryInHash && !hasCodeInSearch) {
-        // Sem token de recovery na URL → link inválido
-        setLinkExpired(true);
-      }
+      if (session) setReady(true);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -101,22 +82,7 @@ const ResetPassword = () => {
           <div className="premium-card p-10 shadow-3xl relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-indigo-400 to-primary opacity-80"></div>
 
-            {linkExpired ? (
-              <div className="text-center space-y-4">
-                <div className="text-4xl">⏰</div>
-                <p className="text-base font-semibold text-foreground">Link inválido ou expirado</p>
-                <p className="text-sm text-muted-foreground">
-                  Este link de redefinição não é válido ou já foi usado. Os links expiram em 1 hora.
-                </p>
-                <Button
-                  variant="premium"
-                  className="w-full h-12 rounded-2xl"
-                  onClick={() => navigate("/login")}
-                >
-                  Solicitar novo link
-                </Button>
-              </div>
-            ) : !ready ? (
+            {!ready ? (
               <p className="text-center text-sm text-muted-foreground">
                 Validando link de redefinição...
               </p>

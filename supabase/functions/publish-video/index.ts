@@ -718,10 +718,6 @@ Deno.serve(async (req) => {
       await publishToYouTube(supabaseAdmin, accessToken, mediaFilesReady, pMeta, pTargetId);
     } else if (pPlatform === "instagram") {
       await publishToInstagram(supabaseAdmin, accessToken, account.account_id!, mediaFilesReady, pMeta, pTargetId);
-    } else {
-      const errMsg = `Plataforma "${pPlatform}" não é suportada atualmente.`;
-      await updateTargetStatus(supabaseAdmin, pTargetId, "erro", { error_message: errMsg });
-      throw new Error(errMsg);
     }
 
     // If we've made it here, mark Job as COMPLETED
@@ -733,22 +729,12 @@ Deno.serve(async (req) => {
 
   } catch (err: any) {
     console.error("Publish Fatal Error:", err);
-    const errMessage = err.message || "Erro de publicação desconhecido";
     try {
       const targetId = globalTargetId || globalPayload?.targetId;
       const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       
-      if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: errMessage });
-
-      // Also mark the job as failed if we have a jobId
-      const jobId = globalPayload?.jobId;
-      if (jobId) {
-        await supabaseAdmin
-          .from("publication_jobs")
-          .update({ status: "failed", last_error: errMessage })
-          .eq("id", jobId);
-      }
+      if (targetId) await updateTargetStatus(supabaseAdmin, targetId, "erro", { error_message: err.message });
     } catch (_) {}
-    return new Response(JSON.stringify({ error: errMessage }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: err.message || "Erro de publicação" }), { status: 500, headers: corsHeaders });
   }
 });

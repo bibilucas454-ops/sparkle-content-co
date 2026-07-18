@@ -25,24 +25,3 @@ verify_jwt = false
 
 [functions.post-auto-comment]
 verify_jwt = false
-
-[functions.retry-publish]
-verify_jwt = false
-
-[functions.refresh-youtube-token]
-verify_jwt = false
-
-[functions.analyze-trends]
-verify_jwt = false
-
-[functions.sync-music]
-verify_jwt = false
-
-[functions.merge-audio-video]
-verify_jwt = false
-
-[functions.serve-static]
-verify_jwt = false
-
-[functions.generate-story-plan]
-verify_jwt = false

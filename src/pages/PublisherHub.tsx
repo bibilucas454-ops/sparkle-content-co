@@ -95,11 +95,10 @@ export default function PublisherHub() {
   });
 
   const [approved, setApproved] = useState(false);
-const [publishing, setPublishing] = useState(false);
-const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string; jobId?: string }>>({});
-const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
-const [dragging, setDragging] = useState(false);
-const schedulerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [platformStatuses, setPlatformStatuses] = useState<Record<string, { status: PubStatus; url?: string; error?: string; jobId?: string }>>({});
+  const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
 
   // Comentário automático (CTA)
   const DEFAULT_AUTO_COMMENT = "Se você está buscando mais clareza, disciplina e paz interior,\nEstá no link da Bio.";
@@ -127,16 +126,6 @@ const schedulerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
     clearForm();
     fetchConnectedAccounts();
     fetchTrendingSounds();
-
-    schedulerIntervalRef.current = setInterval(() => {
-      supabase.functions.invoke("cron-scheduler", { body: {} }).catch(() => {});
-    }, 60000);
-
-    return () => {
-      if (schedulerIntervalRef.current) {
-        clearInterval(schedulerIntervalRef.current);
-      }
-    };
   }, []);
 
   const fetchConnectedAccounts = async () => {
@@ -499,10 +488,6 @@ const schedulerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
           pollJobStatus(job.id, platform);
         }
       }
-
-      supabase.functions.invoke("cron-scheduler", { body: {} }).catch((e) => {
-        console.warn("[Scheduler] Fallback invoke falhou (non-critical):", e);
-      });
 
       setPlatformStatuses({ ...statuses });
       toast.success(schedule ? "Publicação agendada com sucesso!" : "Post enviado para a fila do motor. Aguarde o processamento no Histórico.");
