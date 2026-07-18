@@ -125,10 +125,28 @@ Deno.serve(async (req) => {
           body: { jobId: job.id, correlationId }, 
         });
 
+        let errorMsg: string | null = null;
+
         if (error) {
-           console.error(`[Scheduler] Erro fatal na invocação do worker (Job: ${job.id}):`, error);
-           throw error;
+          console.error(`[Scheduler] Erro na invocação do worker (Job: ${job.id}):`, error);
+          errorMsg = error.message || "Invocation Timeout or Fatal Error";
+          // Try to extract the actual error from the response body
+          try {
+            if (error.context && typeof error.context.text === 'function') {
+              const errorBody = await error.context.clone().text();
+              const errorJson = JSON.parse(errorBody);
+              if (errorJson.error) errorMsg = errorJson.error;
+            }
+          } catch (_) {}
+          throw new Error(errorMsg);
         }
+
+        if (data && (data as any).error) {
+          errorMsg = (data as any).error;
+          console.error(`[Scheduler] Worker reportou erro no body (Job: ${job.id}):`, errorMsg);
+          throw new Error(errorMsg);
+        }
+
         return data;
       })
     );
