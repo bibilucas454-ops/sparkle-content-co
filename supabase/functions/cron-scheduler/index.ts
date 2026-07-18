@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
     // 0b. Processar comentários automáticos pendentes (não bloqueia o resto)
     try {
-      const acRes = await supabaseAdmin.functions.invoke("post-auto-comment", { body: {} });
+      const acRes = await supabaseAdmin.functions.invoke("post-auto-comment", { body: {}, headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}` } });
       console.log("[Scheduler] post-auto-comment result:", acRes?.data || acRes?.error);
     } catch (e) {
       console.warn("[Scheduler] Falha ao invocar post-auto-comment:", e);
@@ -122,7 +122,8 @@ Deno.serve(async (req) => {
         });
 
         const { data, error } = await supabaseAdmin.functions.invoke("publish-video", {
-          body: { jobId: job.id, correlationId }, 
+          body: { jobId: job.id, correlationId },
+          headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}` },
         });
 
         if (error) {
