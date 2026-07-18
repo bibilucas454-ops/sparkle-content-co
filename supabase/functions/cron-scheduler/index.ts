@@ -122,7 +122,8 @@ Deno.serve(async (req) => {
         });
 
         const { data, error } = await supabaseAdmin.functions.invoke("publish-video", {
-          body: { jobId: job.id, correlationId }, 
+          body: { jobId: job.id, correlationId },
+          headers: { Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!}` },
         });
 
         if (error) {
