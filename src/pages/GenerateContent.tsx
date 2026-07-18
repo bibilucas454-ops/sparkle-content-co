@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,20 +50,31 @@ export default function GenerateContent() {
     );
   };
 
-  const ensureSession = async (): Promise<boolean> => {
-    // Garante um token válido antes de chamar a Edge Function.
-    // Em celulares o token pode estar expirado após a aba ficar em segundo plano.
-    let { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      const refreshed = await supabase.auth.refreshSession();
-      data = refreshed.data;
+  const ensureSession = useCallback(async (): Promise<boolean> => {
+    // Garante um token VÁLIDO antes de chamar a Edge Function.
+    // Em celulares o token pode estar expirado após a aba ficar em segundo plano
+    // mesmo que o sessionStorage ainda contenha um objeto de sessão.
+    //
+    // Chamamos getUser() que valida o token com o servidor e força refresh automático
+    // se o access_token estiver expirado (autoRefreshToken: true no client).
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (!userError && userData?.user) {
+      return true;
     }
-    if (!data.session) {
-      toast.error("Sua sessão expirou. Faça login novamente para gerar conteúdo.");
+
+    // Se getUser() falhou, tenta refresh explícito (caso o auto refresh não tenha funcionado)
+    try {
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !refreshed?.session) {
+        toast.error("Sua sessão expirou. Faça login novamente para gerar conteúdo.");
+        return false;
+      }
+      return true;
+    } catch {
+      toast.error("Erro de conexão ao renovar sessão. Verifique sua internet.");
       return false;
     }
-    return true;
-  };
+  }, []);
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
