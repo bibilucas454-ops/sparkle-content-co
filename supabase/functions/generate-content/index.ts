@@ -24,8 +24,11 @@ APENAS Português do Brasil.`,
   "viral-title": `Gere EXATAMENTE 5 TÍTULOS VIRAIS para vídeo curto, com ALTÍSSIMO poder de parar o scroll.
 
 REGRAS OBRIGATÓRIAS:
-- Cada título deve ser curto, direto e gerar curiosidade imediata
-- Use gatilhos: curiosidade, choque, quebra de expectativa, números, identificação
+- Os títulos DEVEM ser 100% EM CAIXA ALTA (ALL CAPS).
+- Inclua emojis no início ou fim que combinem perfeitamente com o impacto.
+- Use linguagem altamente inovadora e visionária, nível "2026 em diante", fugindo de qualquer padrão atual.
+- Cada título deve ser absurdamente chamativo, diferente e OBRIGAR a pessoa a ver o vídeo.
+- Use gatilhos: curiosidade extrema, choque, quebra de expectativa, números, identificação profunda.
 - Varie os formatos (pergunta, afirmação polêmica, número, "como", segredo revelado)
 - NADA de frases genéricas ou clichês vazios
 - Formate como lista numerada de 1 a 5
@@ -88,17 +91,19 @@ APENAS Português do Brasil.`,
 
   "caption": `Escreva uma LEGENDA ULTRA ENGAJADORA para Instagram/Reels.
 
-STRUTURA OBRIGATÓRIA:
+ESTRUTURA OBRIGATÓRIA:
 
 1️⃣ TÍTULO (1 linha): Algo que para o scroll imediatamente
-- Use curiosity gap, dor, ou quebra de expectativa
-- NADA de "Você não vai acreditar" ou "3 dicas..."
+- O título DEVE ser 100% EM CAIXA ALTA (ALL CAPS) e conter emojis que combinem.
+- Deve ser absurdamente chamativo, diferente, padrão "2026 em diante" e OBRIGAR a pessoa a ver o vídeo.
+- Use curiosity gap extremo, dor, ou quebra de expectativa.
+- NADA de "Você não vai acreditar" ou "3 dicas...".
 
 2️⃣ CORPO (3-5 linhas): Conecte emocionalmente
 - Fale a VERDADE que ninguém conta
 - Use histórias ou dados reais
 - Mostre que você ENTENDE o que eles sentem
-- Use linguagem natural e conversacional
+- Use linguagem natural, moderna e conversacional
 
 3️⃣ CTA (1 linha): Forte e específico
 - Não "comenta abaixo" - seja específico
@@ -111,7 +116,7 @@ IMPORTANTE:
 - NADA de frases motivacionais vazias
 - NADA de "a gente" - use "você"
 - Seja raw, real, vulnerável
-- Use EMojis estrategicamente
+- Use emojis estrategicamente
 APENAS Português do Brasil.`,
 
   "hashtags": `Gere EXATAMENTE 10 hashtags em português do Brasil.

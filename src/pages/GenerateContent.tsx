@@ -161,6 +161,9 @@ export default function GenerateContent() {
       TEMA SOLICITADO: ${topic.trim()}
       PLATAFORMA: ${platform}
       
+      ESTILO E LINGUAGEM OBRIGATÓRIOS:
+      Use linguagem altamente inovadora e visionária, nível "2026 em diante", fugindo de qualquer padrão atual. Seja disruptivo.
+      
       GATILHOS MENTAIS OBRIGATÓRIOS (use pelo menos 3):
       - CURIOSIDADE: Faça eles quererem saber mais
       - DOR: Fale o que eles sentem mas não conseguem expressar
@@ -168,10 +171,13 @@ export default function GenerateContent() {
       - CHOQUE: Dado ou fato surpreendente
       - QUEBRA DE EXPECTATIVA: Diga o oposto do que esperam
       
+      REGRAS PARA TÍTULOS E LEGENDAS: 
+      Todos os títulos DEVEM ser 100% EM CAIXA ALTA (ALL CAPS). Inclua emojis que combinem perfeitamente. Eles precisam ser absurdamente chamativos, diferentes e OBRIGAR a pessoa a ver o vídeo.
+      
       Formate EXATAMENTE assim usando Markdown claro, separando cada bloco:
       
       ## 💡 Ideia Viral
-      (Título ultra chamativo + conceito específico que gera curiosidade imediata)
+      (Título ULTRA CHAMATIVO EM CAIXA ALTA COM EMOJIS + conceito específico que gera curiosidade imediata)
       
       ## 🎯 Hook (Primeiros 3s)
       (A frase exata para parar o scroll - use gatilho emocional)
@@ -183,7 +189,7 @@ export default function GenerateContent() {
       **[Cena 4 - CTA]**: Call to action natural
       
       ## ✍️ Legenda Ultra Engajadora
-      (Título que para o scroll + corpo emocional que conecta + CTA específico)
+      (Título 100% EM CAIXA ALTA COM EMOJIS que obriga a ver o vídeo + corpo emocional que conecta + CTA específico)
       
       ## #️⃣ Hashtags (10 hashtags)
       (Mix: 3 alto volume + 4 médio + 3 nicho)
