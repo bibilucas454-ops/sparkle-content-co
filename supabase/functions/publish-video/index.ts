@@ -188,9 +188,16 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await updateTargetStatus(supabase, targetId, "enviando");
   await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
 
-  const title = meta.platformSpecificTitle || meta.title;
-  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta);
+  // YouTube: título máx. 100 caracteres, sem "<" ou ">", e não pode ser vazio
+  const rawTitle = (meta.platformSpecificTitle || meta.title || "").replace(/[<>]/g, "").trim();
+  let title = rawTitle.length > 100 ? rawTitle.slice(0, 97).trimEnd() + "..." : rawTitle;
+  if (!title) title = "Novo Short";
+  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta)
+    .replace(/[<>]/g, "")
+    .slice(0, 4900);
   const privacy = meta.privacyStatus || "public";
+  console.log(`[YouTube] title length=${title.length}`);
+
 
   const initRes = await fetch(
     "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
