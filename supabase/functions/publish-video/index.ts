@@ -286,7 +286,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     const containerData = await containerRes.json();
-    if (containerData.error) throw new Error(containerData.error.message);
+    if (containerData.error) throw metaError(containerData.error);
 
     const containerId = containerData.id;
     await updateTargetStatus(supabase, targetId, "processando");
@@ -298,7 +298,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: containerId, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
-    if (publishData.error) throw new Error(publishData.error.message);
+    if (publishData.error) throw metaError(publishData.error);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
     const mediaDat = await mediaRes.json();
@@ -327,7 +327,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
       const childData = await childRes.json();
-      if (childData.error) throw new Error("Erro na mídia do carrossel: " + childData.error.message);
+      if (childData.error) throw metaError(childData.error);
       childIds.push(childData.id);
     }
 
@@ -349,7 +349,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       })
     });
     const parentData = await parentRes.json();
-    if (parentData.error) throw new Error("Erro ao compilar carrossel: " + parentData.error.message);
+    if (parentData.error) throw metaError(parentData.error);
     
     // Step 3: Publish Parent
     const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
@@ -357,7 +357,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: parentData.id, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
-    if (publishData.error) throw new Error(publishData.error.message);
+    if (publishData.error) throw metaError(publishData.error);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
     const mediaDat = await mediaRes.json();
