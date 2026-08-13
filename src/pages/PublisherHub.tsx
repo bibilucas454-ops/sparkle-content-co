@@ -16,13 +16,17 @@ import {
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
-  { time: "10:00", label: "Manhã", icon: "☀️", isMorning: true },
-  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️", isMorning: false },
-  { time: "18:00 - 22:00", label: "Noite", icon: "🌙", isMorning: false },
-  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌", isMorning: false },
+  { time: "07:40", label: "Manhã", icon: "☀️", isMorning: false },
+  { time: "09:15", label: "Manhã", icon: "☀️", isMorning: false },
+  { time: "10:40", label: "Meio da manhã", icon: "🌤️", isMorning: false },
+  { time: "12:40", label: "Almoço", icon: "🍽️", isMorning: false },
+  { time: "14:15", label: "Tarde", icon: "🕑", isMorning: false },
+  { time: "16:40", label: "Tarde", icon: "🌇", isMorning: false },
+  { time: "18:40", label: "Noite", icon: "🌆", isMorning: false },
+  { time: "20:15", label: "Noite", icon: "🌙", isMorning: false },
+  { time: "22:00", label: "Late night", icon: "🌌", isMorning: false },
 ];
 
-let morningScheduleIndex = 0;
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -956,17 +960,8 @@ export default function PublisherHub() {
                       className="bg-card/60 border border-border/50 rounded-lg p-3 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
                       onClick={() => {
                         const now = new Date();
-                        let hours: number, minutes: number;
-                        
-                        if (slot.isMorning) {
-                          hours = morningScheduleIndex % 2 === 0 ? 10 : 10;
-                          minutes = morningScheduleIndex % 2 === 0 ? 0 : 30;
-                          morningScheduleIndex++;
-                        } else {
-                          const [start] = slot.time.split(' - ');
-                          [hours, minutes] = start.split(':').map(Number);
-                        }
-                        
+                        const [hours, minutes] = slot.time.split(':').map(Number);
+
                         const scheduleDate = new Date(now);
                         scheduleDate.setHours(hours, minutes, 0, 0);
                         if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
@@ -978,7 +973,8 @@ export default function PublisherHub() {
                         const minsStr = String(scheduleDate.getMinutes()).padStart(2, '0');
                         const localDateTime = `${year}-${month}-${day}T${hoursStr}:${minsStr}`;
                         setScheduledFor(localDateTime);
-                        toast.success(`${slot.icon} ${slot.isMorning ? `${hours}:${minsStr} - ${hours}:${minutes === 30 ? '30' : '00'}` : slot.time}`);
+                        toast.success(`${slot.icon} ${slot.time}`);
+
                       }}
                     >
                       <div className="flex items-center gap-2 mb-1">
