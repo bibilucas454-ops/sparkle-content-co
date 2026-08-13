@@ -247,6 +247,22 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await logEvent(supabase, targetId, "publicado", `Publicado: https://youtube.com/shorts/${videoData.id}`);
 }
 
+// Traduz erros comuns do Graph API para mensagens acionáveis em PT-BR
+function metaError(error: any): Error {
+  const code = error?.code;
+  const sub = error?.error_subcode;
+  const msg = error?.message || "Erro desconhecido do Instagram";
+  if (code === 10 || code === 200 || sub === 33) {
+    return new Error(
+      `Instagram: permissão insuficiente (${msg}). Reconecte a conta em "Contas Conectadas" e confirme que ela é Business/Criador, vinculada a uma Página do Facebook, e que o app Meta tem instagram_content_publish aprovado em modo Live.`
+    );
+  }
+  if (code === 190) {
+    return new Error(`Instagram: token expirado ou revogado (${msg}). Reconecte a conta em "Contas Conectadas".`);
+  }
+  return new Error(`Instagram: ${msg}`);
+}
+
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
   const caption = appendCta((meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || ""), meta.cta);
