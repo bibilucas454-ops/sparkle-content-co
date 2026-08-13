@@ -16,13 +16,17 @@ import {
 } from "lucide-react";
 
 const RECOMMENDED_SCHEDULES = [
-  { time: "10:00", label: "Manhã", icon: "☀️", isMorning: true },
-  { time: "12:00 - 14:00", label: "Almoço", icon: "🍽️", isMorning: false },
-  { time: "18:00 - 22:00", label: "Noite", icon: "🌙", isMorning: false },
-  { time: "02:00 - 03:00", label: "Madrugada", icon: "🌌", isMorning: false },
+  { time: "07:40", label: "Manhã", icon: "☀️", isMorning: false },
+  { time: "09:15", label: "Manhã", icon: "☀️", isMorning: false },
+  { time: "10:40", label: "Meio da manhã", icon: "🌤️", isMorning: false },
+  { time: "12:40", label: "Almoço", icon: "🍽️", isMorning: false },
+  { time: "14:15", label: "Tarde", icon: "🕑", isMorning: false },
+  { time: "16:40", label: "Tarde", icon: "🌇", isMorning: false },
+  { time: "18:40", label: "Noite", icon: "🌆", isMorning: false },
+  { time: "20:15", label: "Noite", icon: "🌙", isMorning: false },
+  { time: "22:00", label: "Late night", icon: "🌌", isMorning: false },
 ];
 
-let morningScheduleIndex = 0;
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
