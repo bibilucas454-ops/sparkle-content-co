@@ -960,17 +960,8 @@ export default function PublisherHub() {
                       className="bg-card/60 border border-border/50 rounded-lg p-3 hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer"
                       onClick={() => {
                         const now = new Date();
-                        let hours: number, minutes: number;
-                        
-                        if (slot.isMorning) {
-                          hours = morningScheduleIndex % 2 === 0 ? 10 : 10;
-                          minutes = morningScheduleIndex % 2 === 0 ? 0 : 30;
-                          morningScheduleIndex++;
-                        } else {
-                          const [start] = slot.time.split(' - ');
-                          [hours, minutes] = start.split(':').map(Number);
-                        }
-                        
+                        const [hours, minutes] = slot.time.split(':').map(Number);
+
                         const scheduleDate = new Date(now);
                         scheduleDate.setHours(hours, minutes, 0, 0);
                         if (scheduleDate <= now) scheduleDate.setDate(scheduleDate.getDate() + 1);
@@ -982,7 +973,8 @@ export default function PublisherHub() {
                         const minsStr = String(scheduleDate.getMinutes()).padStart(2, '0');
                         const localDateTime = `${year}-${month}-${day}T${hoursStr}:${minsStr}`;
                         setScheduledFor(localDateTime);
-                        toast.success(`${slot.icon} ${slot.isMorning ? `${hours}:${minsStr} - ${hours}:${minutes === 30 ? '30' : '00'}` : slot.time}`);
+                        toast.success(`${slot.icon} ${slot.time}`);
+
                       }}
                     >
                       <div className="flex items-center gap-2 mb-1">
