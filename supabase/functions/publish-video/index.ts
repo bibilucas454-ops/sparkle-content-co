@@ -188,9 +188,16 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await updateTargetStatus(supabase, targetId, "enviando");
   await logEvent(supabase, targetId, "enviando", "Iniciando upload para YouTube Shorts");
 
-  const title = meta.platformSpecificTitle || meta.title;
-  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta);
+  // YouTube: título máx. 100 caracteres, sem "<" ou ">", e não pode ser vazio
+  const rawTitle = (meta.platformSpecificTitle || meta.title || "").replace(/[<>]/g, "").trim();
+  let title = rawTitle.length > 100 ? rawTitle.slice(0, 97).trimEnd() + "..." : rawTitle;
+  if (!title) title = "Novo Short";
+  const description = appendCta((meta.platformSpecificCaption || meta.caption || "") + "\n" + (meta.hashtags || "") + "\n#Shorts", meta.cta)
+    .replace(/[<>]/g, "")
+    .slice(0, 4900);
   const privacy = meta.privacyStatus || "public";
+  console.log(`[YouTube] title length=${title.length}`);
+
 
   const initRes = await fetch(
     "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
@@ -240,6 +247,22 @@ async function publishToYouTube(supabase: any, accessToken: string, mediaFiles: 
   await logEvent(supabase, targetId, "publicado", `Publicado: https://youtube.com/shorts/${videoData.id}`);
 }
 
+// Traduz erros comuns do Graph API para mensagens acionáveis em PT-BR
+function metaError(error: any): Error {
+  const code = error?.code;
+  const sub = error?.error_subcode;
+  const msg = error?.message || "Erro desconhecido do Instagram";
+  if (code === 10 || code === 200 || sub === 33) {
+    return new Error(
+      `Instagram: permissão insuficiente (${msg}). Reconecte a conta em "Contas Conectadas" e confirme que ela é Business/Criador, vinculada a uma Página do Facebook, e que o app Meta tem instagram_content_publish aprovado em modo Live.`
+    );
+  }
+  if (code === 190) {
+    return new Error(`Instagram: token expirado ou revogado (${msg}). Reconecte a conta em "Contas Conectadas".`);
+  }
+  return new Error(`Instagram: ${msg}`);
+}
+
 async function publishToInstagram(supabase: any, accessToken: string, accountId: string, mediaFiles: any[], meta: any, targetId: string) {
   await updateTargetStatus(supabase, targetId, "enviando");
   const caption = appendCta((meta.platformSpecificCaption || meta.caption || "") + " " + (meta.hashtags || ""), meta.cta);
@@ -263,7 +286,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     const containerData = await containerRes.json();
-    if (containerData.error) throw new Error(containerData.error.message);
+    if (containerData.error) throw metaError(containerData.error);
 
     const containerId = containerData.id;
     await updateTargetStatus(supabase, targetId, "processando");
@@ -275,7 +298,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: containerId, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
-    if (publishData.error) throw new Error(publishData.error.message);
+    if (publishData.error) throw metaError(publishData.error);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
     const mediaDat = await mediaRes.json();
@@ -304,7 +327,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
       const childData = await childRes.json();
-      if (childData.error) throw new Error("Erro na mídia do carrossel: " + childData.error.message);
+      if (childData.error) throw metaError(childData.error);
       childIds.push(childData.id);
     }
 
@@ -326,7 +349,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       })
     });
     const parentData = await parentRes.json();
-    if (parentData.error) throw new Error("Erro ao compilar carrossel: " + parentData.error.message);
+    if (parentData.error) throw metaError(parentData.error);
     
     // Step 3: Publish Parent
     const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
@@ -334,7 +357,7 @@ async function publishToInstagram(supabase: any, accessToken: string, accountId:
       body: JSON.stringify({ creation_id: parentData.id, access_token: accessToken }),
     });
     const publishData = await publishRes.json();
-    if (publishData.error) throw new Error(publishData.error.message);
+    if (publishData.error) throw metaError(publishData.error);
 
     const mediaRes = await fetch(`https://graph.facebook.com/v19.0/${publishData.id}?fields=permalink&access_token=${accessToken}`);
     const mediaDat = await mediaRes.json();
