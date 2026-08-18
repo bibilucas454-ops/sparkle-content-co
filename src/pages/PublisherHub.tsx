@@ -109,8 +109,6 @@ export default function PublisherHub() {
   const [autoCommentEnabled, setAutoCommentEnabled] = useState(false);
   const [autoCommentText, setAutoCommentText] = useState(DEFAULT_AUTO_COMMENT);
   const [autoCommentDelay, setAutoCommentDelay] = useState<number>(0);
-  const [isReplyMode, setIsReplyMode] = useState(false);
-  const [commentReplyId, setCommentReplyId] = useState("");
 
   // Music state
   const [selectedMusic, setSelectedMusic] = useState<{title: string; artist: string; preview_url?: string; source_platform?: string} | null>(null);
@@ -467,7 +465,6 @@ export default function PublisherHub() {
           auto_comment_text: autoCommentEnabled ? autoCommentText : null,
           auto_comment_delay_minutes: autoCommentDelay,
           auto_comment_status: autoCommentEnabled && (platform === "youtube" || platform === "instagram") ? "pending" : "disabled",
-          comment_id: isReplyMode ? commentReplyId : null,
         } as any).select().single();
         if (targetError || !target) throw targetError;
 
@@ -818,19 +815,11 @@ export default function PublisherHub() {
                   <Send className="w-4 h-4 text-primary" />
                   <h3 className="text-sm font-bold text-foreground">Comentário automático</h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={autoCommentEnabled} onCheckedChange={setAutoCommentEnabled} />
-                  <Switch checked={isReplyMode} onCheckedChange={setIsReplyMode} className="ms-4" />
-                </div>
-                {isReplyMode && (
-                  <p className="text-xs text-text-secondary -mt-2">
-                    Responde ao comentário ID: {commentReplyId || "(digite o ID do comentário)"}
-                  </p>
-                )}
+                <Switch checked={autoCommentEnabled} onCheckedChange={setAutoCommentEnabled} />
               </div>
 
               <p className="text-xs text-text-secondary -mt-2">
-                {isReplyMode ? "Responde a um comentário existente" : "Publica um comentário CTA logo após o post ser publicado (YouTube e Instagram)"}
+                Publica um comentário CTA logo após o post ser publicado (YouTube e Instagram).
               </p>
 
               <div className={`space-y-4 transition-opacity ${autoCommentEnabled ? "opacity-100" : "opacity-50 pointer-events-none"}`}>
@@ -846,21 +835,6 @@ export default function PublisherHub() {
                     maxLength={2000}
                   />
                 </div>
-
-                {isReplyMode && (
-                  <div>
-                    <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">
-                      ID do comentário a responder
-                    </label>
-                    <input
-                      type="text"
-                      value={commentReplyId}
-                      onChange={(e) => setCommentReplyId(e.target.value)}
-                      placeholder="ID do comentário (copie do post)"
-                      className="w-full bg-secondary/50 border-border rounded-md px-3 py-2 text-sm"
-                    />
-                  </div>
-                )}
 
                 <div>
                   <label className="text-xs font-bold text-text-secondary uppercase tracking-[0.15em] mb-2.5 block">

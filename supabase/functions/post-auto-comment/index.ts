@@ -1,78 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { decryptToken } from "../_shared/crypto.ts";
 
-const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY") || "";
-const OPENROUTER_MODEL = "anthropic/claude-3-haiku"; // Modelo barato e eficaz da OpenRouter
-
-async function fetchYouTubeComment(videoId: string, commentId: string, accessToken: string): Promise<string> {
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/comments?part=snippet&id=${commentId}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
-  const data = await res.json();
-  if (!res.ok || data.error) {
-    throw new Error(`Failed to fetch YouTube comment: ${res.status}`);
-  }
-  if (data.items && data.items[0]?.snippet?.topLevelComment?.snippet?.textOriginal) {
-    return data.items[0].snippet.topLevelComment.snippet.textOriginal;
-  }
-  return "";
-}
-
-async function fetchInstagramComment(mediaId: string, commentId: string, accessToken: string): Promise<string> {
-  const url = `https://graph.facebook.com/v19.0/${commentId}?fields=message&access_token=${accessToken}`;
-  const res = await fetch(url, { method: "GET" });
-  const data = await res.json();
-  if (!res.ok || data.error) {
-    throw new Error(`Failed to fetch Instagram comment: ${res.status}`);
-  }
-  return data.message || "";
-}
-
-async function generateAIReply(commentText: string, platform: string): Promise<string> {
-  if (!OPENROUTER_API_KEY) {
-    console.warn("[auto-comment] OpenRouter key not configured, using default reply");
-    return "Ótimo comentário! Mais detalhes no link da bio.";
-  }
-
-  const prompts: Record<string, string> = {
-    youtube: `Você é um assistente de mídia social para um canal do YouTube Shorts. O usuário comentou: "${commentText}". Gere uma resposta curta, envolvente e natural (máximo 200 caracteres) que incentive a interação ou direcione para o canal. Seja relevante com o comentário original.`,
-    instagram: `Você é um assistente de mídia social para o Instagram. O usuário comentou: "${commentText}". Gere uma resposta curta, amigável e natural (máximo 200 caracteres) que agradeça o comentário e incentive further engagement. Seja relevante com o comentário original.`
-  };
-
-  const systemPrompt = prompts[platform] || prompts.instagram;
-
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": import.meta.env.VITE_SUPABASE_URL || "",
-      "X-Title": "ujm-saas",
-    },
-    body: JSON.stringify({
-      model: OPENROUTER_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: commentText }
-      ],
-      temperature: 0.7,
-      max_tokens: 300
-    }),
-  });
-
-  const data = await res.json();
-  if (!res.ok || data.error) {
-    throw new Error(data.error?.message || `AI reply failed: ${res.status}`);
-  }
-  return data.choices[0]?.message?.content || "" || "Ótimo comentário! Mais detalhes no link da bio.";
-}
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -101,16 +29,7 @@ async function getAccessToken(supabase: any, userId: string, platform: string): 
   }
 }
 
-async function postYouTubeComment(videoId: string, text: string, accessToken: string, parentId?: string): Promise<string> {
-  const body: any = {
-    snippet: {
-      videoId,
-      topLevelComment: { snippet: { textOriginal: text } },
-    },
-  };
-  if (parentId) {
-    body.snippet.topLevelComment.parentId = parentId;
-  }
+async function postYouTubeComment(videoId: string, text: string, accessToken: string): Promise<string> {
   const res = await fetch(
     "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet",
     {
@@ -119,7 +38,12 @@ async function postYouTubeComment(videoId: string, text: string, accessToken: st
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        snippet: {
+          videoId,
+          topLevelComment: { snippet: { textOriginal: text } },
+        },
+      }),
     }
   );
   const data = await res.json();
@@ -129,13 +53,8 @@ async function postYouTubeComment(videoId: string, text: string, accessToken: st
   return data.id || "";
 }
 
-async function postInstagramComment(mediaId: string, text: string, accessToken: string, commentId?: string): Promise<string> {
-  let url: string;
-  if (commentId) {
-    url = `https://graph.facebook.com/v19.0/${commentId}/replies?message=${encodeURIComponent(text)}&access_token=${accessToken}`;
-  } else {
-    url = `https://graph.facebook.com/v19.0/${mediaId}/comments?message=${encodeURIComponent(text)}&access_token=${accessToken}`;
-  }
+async function postInstagramComment(mediaId: string, text: string, accessToken: string): Promise<string> {
+  const url = `https://graph.facebook.com/v19.0/${mediaId}/comments?message=${encodeURIComponent(text)}&access_token=${accessToken}`;
   const res = await fetch(url, { method: "POST" });
   const data = await res.json();
   if (!res.ok || data.error) {
@@ -186,34 +105,11 @@ Deno.serve(async (req) => {
         const tk = await getAccessToken(supabase, userId, t.platform);
         if (!tk) throw new Error(`Token ${t.platform} não encontrado`);
 
-        let commentReplyId = "";
-        const isReply = t.comment_id ? true : false;
-        const replyParentId = t.comment_id || undefined;
-
-        let finalText = text;
-
-        if (isReply && t.comment_id) {
-          // Modo reply: buscar comentário original e gerar resposta com IA
-          let originalComment = "";
-          try {
-            if (t.platform === "youtube") {
-              originalComment = await fetchYouTubeComment(platformPostId, t.comment_id, tk.token);
-            } else if (t.platform === "instagram") {
-              originalComment = await fetchInstagramComment(platformPostId, t.comment_id, tk.token);
-            }
-            if (originalComment) {
-              finalText = await generateAIReply(originalComment, t.platform);
-            }
-          } catch (aiErr: any) {
-            console.warn("[auto-comment] AI error, using fallback text:", aiErr?.message);
-            finalText = text || "Ótimo comentário! Mais detalhes no link da bio.";
-          }
-        }
-
+        let commentId = "";
         if (t.platform === "youtube") {
-          commentReplyId = await postYouTubeComment(platformPostId, finalText, tk.token, replyParentId);
+          commentId = await postYouTubeComment(platformPostId, text, tk.token);
         } else if (t.platform === "instagram") {
-          commentReplyId = await postInstagramComment(platformPostId, finalText, tk.token, replyParentId);
+          commentId = await postInstagramComment(platformPostId, text, tk.token);
         } else {
           throw new Error(`Plataforma ${t.platform} não suporta comentário automático`);
         }
@@ -222,14 +118,13 @@ Deno.serve(async (req) => {
           .from("publication_targets")
           .update({
             auto_comment_status: "posted",
-            auto_comment_platform_id: commentReplyId,
+            auto_comment_platform_id: commentId,
             auto_comment_posted_at: new Date().toISOString(),
             auto_comment_error: null,
-            comment_id: isReply ? t.comment_id : null,
           })
           .eq("id", targetId);
 
-        results.push({ targetId, status: "posted", commentId: commentReplyId });
+        results.push({ targetId, status: "posted", commentId });
       } catch (err: any) {
         console.error(`[auto-comment] falha target=${targetId}:`, err?.message || err);
         const msg = (err?.message || "").toLowerCase();
