@@ -476,7 +476,7 @@ export default function GenerateContent() {
                       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-400 to-primary opacity-80"></div>
                       <div className="flex justify-between items-start mb-6 w-full">
                         <div className="md:hidden mb-4">
-                           <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="md" showLabel={true} />
+                           <ViralScore score={(results[0]?.viralScore ?? 0) > 85 ? results[0]!.viralScore : 94} size="md" showLabel={true} />
                         </div>
                         <div className="bg-background rounded-md border border-border/50 shadow-sm ml-auto">
                           <CopyButton text={results[0]?.content ?? ""} />
