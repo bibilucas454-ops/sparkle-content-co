@@ -28,6 +28,7 @@ import StoryPlan from "./pages/StoryPlan";
 import StoryEnginePage from "./pages/StoryEnginePage";
 import StoriesScheduleGuide from "./pages/StoriesScheduleGuide";
 import ResetPassword from "./pages/ResetPassword";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
