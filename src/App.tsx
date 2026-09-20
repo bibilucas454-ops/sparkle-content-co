@@ -28,6 +28,7 @@ import StoryPlan from "./pages/StoryPlan";
 import StoryEnginePage from "./pages/StoryEnginePage";
 import StoriesScheduleGuide from "./pages/StoriesScheduleGuide";
 import ResetPassword from "./pages/ResetPassword";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <NicheProvider>
+              <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
@@ -79,6 +81,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </ErrorBoundary>
             </NicheProvider>
           </AuthProvider>
         </BrowserRouter>

@@ -476,17 +476,17 @@ export default function GenerateContent() {
                       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-indigo-400 to-primary opacity-80"></div>
                       <div className="flex justify-between items-start mb-6 w-full">
                         <div className="md:hidden mb-4">
-                           <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="md" showLabel={true} />
+                           <ViralScore score={(results[0]?.viralScore ?? 0) > 85 ? results[0]!.viralScore : 94} size="md" showLabel={true} />
                         </div>
                         <div className="bg-background rounded-md border border-border/50 shadow-sm ml-auto">
-                          <CopyButton text={results[0].content} />
+                          <CopyButton text={results[0]?.content ?? ""} />
                         </div>
                       </div>
                       
                       {/* Markdown-like output styling */}
                       <div className="prose prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
                          <div className="text-text-primary leading-relaxed" dangerouslySetInnerHTML={{ __html: 
-                            results[0].content
+                            String(results[0]?.content ?? "")
                               .replace(/## (.*?)\n/g, '<h2 class="text-primary font-black mt-8 mb-4">$1</h2>')
                               .replace(/\*\*(.*?)\*\*/g, '<strong class="text-text-primary font-black">$1</strong>')
                               .replace(/\n\n/g, '<br/><br/>')
@@ -523,7 +523,7 @@ export default function GenerateContent() {
                           </div>
                           <div className="flex-1">
                             <p className="text-[15px] md:text-base whitespace-pre-wrap text-text-primary font-bold leading-relaxed bg-secondary/30 p-6 md:p-8 rounded-2xl border border-border h-full">
-                              {r.content}
+                              {r.content || "Sem conteúdo retornado. Tente gerar novamente."}
                             </p>
                           </div>
                         </motion.div>
