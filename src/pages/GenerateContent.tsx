@@ -523,7 +523,7 @@ export default function GenerateContent() {
                           </div>
                           <div className="flex-1">
                             <p className="text-[15px] md:text-base whitespace-pre-wrap text-text-primary font-bold leading-relaxed bg-secondary/30 p-6 md:p-8 rounded-2xl border border-border h-full">
-                              {r.content}
+                              {r.content || "Sem conteúdo retornado. Tente gerar novamente."}
                             </p>
                           </div>
                         </motion.div>
