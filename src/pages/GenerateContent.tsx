@@ -479,14 +479,14 @@ export default function GenerateContent() {
                            <ViralScore score={results[0].viralScore > 85 ? results[0].viralScore : 94} size="md" showLabel={true} />
                         </div>
                         <div className="bg-background rounded-md border border-border/50 shadow-sm ml-auto">
-                          <CopyButton text={results[0].content} />
+                          <CopyButton text={results[0]?.content ?? ""} />
                         </div>
                       </div>
                       
                       {/* Markdown-like output styling */}
                       <div className="prose prose-invert max-w-none prose-h2:text-xl prose-h2:font-display prose-h2:text-primary prose-h2:mt-8 prose-h2:mb-4 prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground">
                          <div className="text-text-primary leading-relaxed" dangerouslySetInnerHTML={{ __html: 
-                            results[0].content
+                            String(results[0]?.content ?? "")
                               .replace(/## (.*?)\n/g, '<h2 class="text-primary font-black mt-8 mb-4">$1</h2>')
                               .replace(/\*\*(.*?)\*\*/g, '<strong class="text-text-primary font-black">$1</strong>')
                               .replace(/\n\n/g, '<br/><br/>')
