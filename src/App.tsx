@@ -55,6 +55,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <NicheProvider>
+              <ErrorBoundary>
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
