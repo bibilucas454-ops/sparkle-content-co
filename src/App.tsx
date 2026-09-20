@@ -81,6 +81,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </ErrorBoundary>
             </NicheProvider>
           </AuthProvider>
         </BrowserRouter>
